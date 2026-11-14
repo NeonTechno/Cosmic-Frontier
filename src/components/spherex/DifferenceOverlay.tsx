@@ -329,7 +329,7 @@ export const DifferenceOverlay: React.FC<DifferenceOverlayProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Difference Canvas */}
-        <div className={`lg:col-span-7 flex flex-col items-center ${panesFrozen ? 'lg:sticky lg:top-[152px] self-start' : ''}`}>
+        <div className="lg:col-span-7 flex flex-col items-center">
           <div className="relative aspect-square w-full max-w-md rounded-lg overflow-hidden border border-slate-800 bg-black shadow-inner">
             <canvas ref={canvasRef} width={450} height={450} className="w-full h-full object-contain" />
             <div className="absolute bottom-2 left-2 right-2 bg-slate-950/85 backdrop-blur-sm px-2.5 py-1 rounded text-[10px] font-mono flex items-center justify-between text-slate-300 border border-slate-800">

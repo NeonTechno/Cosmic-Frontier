@@ -67,3 +67,27 @@ npm run dev
 ```
 
 Open `http://localhost:3000`. Production build: `npm run build && npm start`.
+
+---
+
+## Deploying as a Website with GitHub
+
+### Option A: GitHub Pages (Free Static Hosting)
+
+This repository includes a ready-to-run GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) that builds `dist/`, automatically resolves subpath URLs (`/<repo-name>/`), adds an SPA `404.html` fallback, and publishes the site to `https://<your-username>.github.io/<your-repo>/`.
+
+1. Push this repository to GitHub on the `main` branch.
+2. Open your repository on GitHub and go to **Settings → Pages**.
+3. Under **Build and deployment → Source**, select **GitHub Actions**.
+4. Wait ~1–2 minutes for the **Deploy Website to GitHub Pages** workflow under the **Actions** tab to finish, then click the live `github.io` URL.
+
+> **Note on static mode**: GitHub Pages serves only static frontend files (`dist/`), so server-side `/api/*` proxies (live IRSA FITS downloads and `NVIDIA_API_KEY` inference) automatically fall back to calibrated client-side catalogs, synthetic SPHEREx benchmarks, and deterministic scientific explanations.
+
+### Option B: Full-Stack Deployment from GitHub (Live IRSA + NVIDIA NIM AI)
+
+To run the live Express backend (`server.ts`) alongside the frontend directly from your GitHub repository, connect the repo to a Node.js host such as **Render**, **Railway**, **Fly.io**, or **Google Cloud Run**:
+
+- **Build command**: `npm install && npm run build`
+- **Start command**: `npm start`
+- **Environment variables**: Set `NVIDIA_API_KEY` (and optional `NASA_API_KEY`) in the host's dashboard secrets (never commit `.env` to GitHub).
+

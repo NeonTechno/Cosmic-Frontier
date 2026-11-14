@@ -9,6 +9,7 @@
 import React, { useState, useEffect } from 'react';
 import { Telescope, Orbit, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
 import { BlackStarLogo } from './BlackStarLogo';
+import { assetUrl } from '../../utils/assetUrl';
 
 interface CosmicLoadingScreenProps {
   isLoading: boolean;
@@ -79,7 +80,7 @@ export const CosmicLoadingScreen: React.FC<CosmicLoadingScreenProps> = ({
       {/* 1. Full-Bleed Cosmic Dust Artwork Background with High Luminance & Cinematic Glow */}
       <div className="absolute inset-0 overflow-hidden">
         <img
-          src="/assets/cosmic-dust-universe.jpg"
+          src={assetUrl('assets/cosmic-dust-universe.jpg')}
           alt="Black Star Orbit Cosmic Dust Deep Universe"
           className="w-full h-full object-cover object-center scale-100 transition-transform duration-1000 ease-out select-none"
         />

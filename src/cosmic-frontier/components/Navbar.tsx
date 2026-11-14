@@ -3,7 +3,6 @@ import type { AppPage } from '../types';
 import { 
   Home,
   Telescope, 
-  Orbit, 
   Sparkles, 
   Info, 
   Menu, 
@@ -15,8 +14,7 @@ import {
   Radio,
   Search,
   Bookmark,
-  BookOpen,
-  FlaskConical
+  BookOpen
 } from 'lucide-react';
 import { BlackStarLogo } from '../../components/common/BlackStarLogo';
 import { useTheme } from '../../context/ThemeContext';
@@ -46,9 +44,6 @@ export const Navbar: FC<NavbarProps> = ({
 
   const navItems: { page: AppPage; label: string; icon: ReactNode }[] = [
     { page: 'home', label: 'Home', icon: <Home className="w-4 h-4" /> },
-    { page: 'spherex', label: 'SPHEREx Explorer', icon: <Telescope className="w-4 h-4" /> },
-    { page: 'astrobiology', label: 'Astrobiology Lab', icon: <FlaskConical className="w-4 h-4" /> },
-    { page: 'planet-x', label: 'Planet X Lab', icon: <Orbit className="w-4 h-4" /> },
     { page: 'mission-control', label: 'Mission Control', icon: <Radio className="w-4 h-4" /> },
     { page: 'observatory', label: 'Observatory', icon: <Telescope className="w-4 h-4" /> },
     { page: 'universe', label: '3D Universe', icon: <Globe className="w-4 h-4" /> },

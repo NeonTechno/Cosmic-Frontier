@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import confirmedExoplanetsData from '../../cosmic-frontier/data/catalogs/confirmed-exoplanets.json';
 import { ArrowUpRight, Search, Sparkles, Filter, Database, ShieldCheck, Compass, Eye, RefreshCw, Moon, Sun, LayoutGrid, Table2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
-import { FreezePaneButton } from '../common/FreezePaneButton';
+import { assetUrl } from '../../utils/assetUrl';
 
 interface EditorialVariation3Props {
   onNavigate: (tab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite') => void;
@@ -22,7 +22,6 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
   const { isLight, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
-  const [panesFrozen, setPanesFrozen] = useState<boolean>(true);
   const [catalogView, setCatalogView] = useState<'cards' | 'table'>('cards');
 
   const scrollToSection = (id: string) => {
@@ -85,7 +84,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                 isLight ? 'bg-[#000000]' : 'bg-[#0f172a] border border-cyan-500/30'
               }`}>
                 <img
-                  src="/assets/aistudio/image_5dde6a23.png"
+                  src={assetUrl('assets/aistudio/image_5dde6a23.png')}
                   alt="Black Star Icon"
                   className={isLight ? 'filter invert' : 'filter invert brightness-200'}
                   onError={(e) => {
@@ -168,11 +167,11 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
           </div>
         </header>
 
-        {/* --- FROZEN EDITORIAL INDEX & QUICK-FILTER BAR --- */}
-        <div className={`${panesFrozen ? 'sticky top-0 z-30 backdrop-blur-md' : ''} mb-10 py-2.5 pr-12 sm:pr-14 border-b transition-all ${
+        {/* --- EDITORIAL INDEX & QUICK-FILTER BAR --- */}
+        <div className={`mb-10 py-2.5 pr-12 sm:pr-14 border-b transition-all ${
           isLight
-            ? 'bg-[#fdfcf8]/95 border-[#1a1a1a]/12'
-            : 'bg-[#080d1a]/95 border-slate-800'
+            ? 'bg-[#fdfcf8] border-[#1a1a1a]/12'
+            : 'bg-[#080d1a] border-slate-800'
         }`}>
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 font-mono text-[11px] uppercase tracking-wider">
@@ -215,13 +214,6 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                   }`}
                 />
               </div>
-
-              <FreezePaneButton
-                frozen={panesFrozen}
-                onToggle={() => setPanesFrozen((v) => !v)}
-                label="Freeze Bar"
-                className="!rounded-none"
-              />
             </div>
           </div>
         </div>

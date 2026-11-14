@@ -26,6 +26,7 @@ import { EditorialVariation3 } from './components/editorial/EditorialVariation3.
 import { useTheme } from './context/ThemeContext.tsx';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.ts';
 import { KeyboardShortcutsModal } from './components/common/KeyboardShortcutsModal.tsx';
+import { assetUrl } from './utils/assetUrl.ts';
 import {
   SpherexObservation,
   PlanetXCandidate,
@@ -68,15 +69,18 @@ export default function App() {
     setSpherexError(null);
 
     try {
+      const isJsonOk = (res: Response) =>
+        res.ok && (res.headers.get('content-type') || '').includes('application/json');
+
       // Health check
       fetch('/api/health')
-        .then((r) => r.json())
+        .then((r) => (isJsonOk(r) ? r.json() : Promise.reject(new Error('No backend'))))
         .then(() => setServerOk(true))
         .catch(() => setServerOk(false));
 
       // SPHEREx observations
       const obsRes = await fetch('/api/spherex/observations');
-      if (obsRes.ok) {
+      if (isJsonOk(obsRes)) {
         const obsData = await obsRes.json();
         setSpherexObservations(obsData.observations || []);
       } else {
@@ -86,7 +90,7 @@ export default function App() {
 
       // Planet X candidates
       const candRes = await fetch('/api/planetx/candidates');
-      if (candRes.ok) {
+      if (isJsonOk(candRes)) {
         const candData = await candRes.json();
         setCandidates(candData.candidates || INITIAL_CANDIDATE_QUEUE);
         if (candData.hypothesis) setHypothesis(candData.hypothesis);
@@ -96,7 +100,7 @@ export default function App() {
 
       // eTNO catalog
       const etnoRes = await fetch('/api/planetx/etno-catalog');
-      if (etnoRes.ok) {
+      if (isJsonOk(etnoRes)) {
         const etnoData = await etnoRes.json();
         setEtnoCatalog(etnoData.objects || VERIFIED_ETNO_CATALOG);
       } else {
@@ -318,7 +322,7 @@ export default function App() {
           <div className="flex items-center space-x-2">
             {isLight ? (
               <div className="w-5 h-5 bg-black rounded-xs flex items-center justify-center shrink-0">
-                <img src="/assets/aistudio/image_5dde6a23.png" alt="logo" className="w-3.5 h-3.5 filter invert" />
+                <img src={assetUrl('assets/aistudio/image_5dde6a23.png')} alt="logo" className="w-3.5 h-3.5 filter invert" />
               </div>
             ) : (
               <BlackStarLogo size="xs" />

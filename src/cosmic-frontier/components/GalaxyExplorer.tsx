@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, type FC } from 'react';
 import type { GalaxyObject, GalaxyCategory, AppPage } from '../types';
 import { AstronomicalImage } from './astronomy-images/AstronomicalImage';
 import { AstronomicalBadge } from './astronomy-images/AstronomicalBadge';
-import { FreezePaneButton } from '../../components/common/FreezePaneButton';
+import deepSkyGalaxiesData from '../data/catalogs/deep-sky-galaxies.json';
 import { 
   Search, 
   Filter, 
@@ -50,7 +50,6 @@ export const GalaxyExplorer: FC<GalaxyExplorerProps> = ({ onNavigate }) => {
   const [sortBy, setSortBy] = useState<'name' | 'redshift' | 'distance' | 'magnitude' | 'diameter'>('distance');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [panesFrozen, setPanesFrozen] = useState<boolean>(true);
 
   // Live NED Lookup State
   const [liveQuery, setLiveQuery] = useState<string>('');
@@ -73,29 +72,31 @@ export const GalaxyExplorer: FC<GalaxyExplorerProps> = ({ onNavigate }) => {
     setSelectedWavelengthIndex(0);
   }, [selectedGalaxy?.id]);
 
-  // Fetch Galaxies from Backend
+  // Fetch Galaxies from Backend with static catalog fallback
   const fetchGalaxies = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/data/galaxies');
-      if (!res.ok) {
-        throw new Error(`Server returned HTTP ${res.status}`);
+      const contentType = res.headers.get('content-type') || '';
+      if (!res.ok || !contentType.includes('application/json')) {
+        throw new Error(`HTTP ${res.status}`);
       }
       const data = await res.json();
       if (Array.isArray(data.records)) {
         setGalaxies(data.records);
-        // Pre-select Andromeda as default if none selected
         if (!selectedGalaxy && data.records.length > 0) {
           setSelectedGalaxy(data.records[0]);
         }
       } else {
         throw new Error('Invalid catalog format');
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unknown network error';
-      console.warn('Failed to fetch galaxy catalog:', msg);
-      setError(`Unable to connect to extragalactic data service. (${msg})`);
+    } catch {
+      const fallbackRecords = (deepSkyGalaxiesData.records || []) as unknown as GalaxyObject[];
+      setGalaxies(fallbackRecords);
+      if (!selectedGalaxy && fallbackRecords.length > 0) {
+        setSelectedGalaxy(fallbackRecords[0]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +106,7 @@ export const GalaxyExplorer: FC<GalaxyExplorerProps> = ({ onNavigate }) => {
     fetchGalaxies();
   }, []);
 
-  // Handle Live NASA/IPAC NED Object Lookup
+  // Handle Live NASA/IPAC NED Object Lookup (with bundled catalog fallback)
   const handleLiveNedLookup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!liveQuery.trim()) return;
@@ -115,10 +116,13 @@ export const GalaxyExplorer: FC<GalaxyExplorerProps> = ({ onNavigate }) => {
 
     try {
       const res = await fetch(`/api/data/galaxies?lookup=${encodeURIComponent(liveQuery.trim())}`);
+      const contentType = res.headers.get('content-type') || '';
+      if (!res.ok || !contentType.includes('application/json')) {
+        throw new Error(`HTTP ${res.status}`);
+      }
       const data = await res.json();
       if (data.success && data.record) {
         const newRecord: GalaxyObject = data.record;
-        // Prepend to catalog if not already present
         setGalaxies(prev => {
           const exists = prev.some(g => g.id === newRecord.id || g.name.toLowerCase() === newRecord.name.toLowerCase());
           return exists ? prev : [newRecord, ...prev];
@@ -135,12 +139,27 @@ export const GalaxyExplorer: FC<GalaxyExplorerProps> = ({ onNavigate }) => {
           text: `Object "${liveQuery}" not found in NASA/IPAC NED. Verify name or catalog ID.`
         });
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Network failure';
-      setLookupMessage({
-        type: 'error',
-        text: `Live NED query failed (${msg}). Please try another name.`
-      });
+    } catch {
+      const q = liveQuery.trim().toLowerCase();
+      const localMatch = (deepSkyGalaxiesData.records as unknown as GalaxyObject[]).find(
+        (g) =>
+          g.name.toLowerCase().includes(q) ||
+          g.catalogIdentifier.toLowerCase().includes(q) ||
+          g.alternateNames?.some((alt) => alt.toLowerCase().includes(q))
+      );
+      if (localMatch) {
+        setSelectedGalaxy(localMatch);
+        setLookupMessage({
+          type: 'success',
+          text: `Matched "${localMatch.name}" in the verified archival NED/SIMBAD catalog (z = ${localMatch.redshift}).`
+        });
+        setLiveQuery('');
+      } else {
+        setLookupMessage({
+          type: 'error',
+          text: `Object "${liveQuery}" was not found in the archival catalog. Live external NED queries require the full-stack server.`
+        });
+      }
     } finally {
       setIsLookingUp(false);
     }
@@ -246,7 +265,7 @@ export const GalaxyExplorer: FC<GalaxyExplorerProps> = ({ onNavigate }) => {
               <Disc className="w-3.5 h-3.5" />
               <span>NASA/IPAC Extragalactic Database & CDS SIMBAD</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-[#F8FAFC] tracking-tight">
+            <h1 data-subtopic="Deep-Sky Catalog & Extragalactic Redshifts" className="text-3xl sm:text-5xl font-extrabold text-[#F8FAFC] tracking-tight">
               Galaxy Explorer
             </h1>
             <p className="text-base sm:text-lg text-[#F5C451] font-medium mt-1">
@@ -287,7 +306,7 @@ export const GalaxyExplorer: FC<GalaxyExplorerProps> = ({ onNavigate }) => {
       </div>
 
       {/* 2. SEARCH & CONTROLS TOOLBAR */}
-      <div className={`${panesFrozen ? 'lg:sticky lg:top-[76px] z-30 backdrop-blur-md bg-[#050B1A] border border-[#1E293B] rounded-2xl p-3.5 shadow-xl' : ''} space-y-4 transition-all`}>
+      <div data-subtopic="Morphological Filter & Live NED Lookup" className="space-y-4 transition-all">
         <div className="flex flex-col lg:flex-row gap-3">
           {/* Main Search Bar */}
           <div className="relative flex-1">
@@ -380,12 +399,6 @@ export const GalaxyExplorer: FC<GalaxyExplorerProps> = ({ onNavigate }) => {
                 <List className="w-4 h-4" />
               </button>
             </div>
-
-            <FreezePaneButton
-              frozen={panesFrozen}
-              onToggle={() => setPanesFrozen((v) => !v)}
-              label="Freeze Bar"
-            />
           </div>
         </div>
 

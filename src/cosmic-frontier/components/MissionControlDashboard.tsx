@@ -35,7 +35,6 @@ import {
 } from 'lucide-react';
 import { SpacecraftFlightHud } from './mission-control/SpacecraftFlightHud';
 import { PlanetaryIntelligenceConsole } from '../../components/planetary/PlanetaryIntelligenceConsole';
-import { FreezePaneButton } from '../../components/common/FreezePaneButton';
 
 interface MissionControlDashboardProps {
   onNavigate: (page: AppPage) => void;
@@ -57,7 +56,6 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
   const [showOrbits, setShowOrbits] = useState<boolean>(true);
   const [showLabels, setShowLabels] = useState<boolean>(true);
   const [isSimulating, setIsSimulating] = useState<boolean>(false);
-  const [panesFrozen, setPanesFrozen] = useState<boolean>(true);
 
   // Close Approaches State (Integrated from Asteroid Feed)
   const [cadData, setCadData] = useState<LiveCloseApproachesResponse | null>(null);
@@ -358,7 +356,7 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
               </span>
               {ephemData && renderStatusBadge(ephemData.statusLabel)}
             </div>
-            <h1 className="text-3xl sm:text-4xl font-serif font-bold tracking-tight text-[#F8FAFC]">
+            <h1 data-subtopic="Unified Planetary Command & Telemetry" className="text-3xl sm:text-4xl font-serif font-bold tracking-tight text-[#F8FAFC]">
               Mission Control Dashboard
             </h1>
             <p className="text-xs sm:text-sm text-[#A7B4CC] max-w-xl leading-relaxed">
@@ -491,7 +489,7 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
               <Orbit className="w-3.5 h-3.5" />
               <span>Real-Time Celestial Motion</span>
             </div>
-            <h2 className="text-2xl font-bold text-[#F8FAFC]">
+            <h2 data-subtopic="Solar System Planetary Ephemeris Preview" className="text-2xl font-bold text-[#F8FAFC]">
               Solar System Planetary Ephemeris Preview
             </h2>
             <p className="text-xs text-[#A7B4CC] leading-relaxed">
@@ -501,11 +499,6 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            <FreezePaneButton
-              frozen={panesFrozen}
-              onToggle={() => setPanesFrozen((v) => !v)}
-              label="Freeze Canvas"
-            />
             <button
               onClick={() => onNavigate('observatory')}
               className="px-4 py-2.5 rounded-xl bg-linear-to-r from-[#38BDF8] to-[#0284C7] hover:from-[#0284C7] hover:to-[#0369A1] text-[#050B1A] font-mono font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-[#38BDF8]/20 cursor-pointer"
@@ -528,7 +521,7 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
         {/* Canvas & Controls Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Canvas Viewport (Col Span 2) */}
-          <div className={`lg:col-span-2 space-y-3 ${panesFrozen ? 'lg:sticky lg:top-[84px] self-start' : ''}`}>
+          <div className="lg:col-span-2 space-y-3">
             <div className="relative rounded-xl bg-[#050B1A] border border-[#1E293B] overflow-hidden shadow-inner h-110 flex items-center justify-center">
               <canvas
                 ref={canvasRef}

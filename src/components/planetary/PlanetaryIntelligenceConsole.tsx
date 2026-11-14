@@ -91,15 +91,24 @@ export const PlanetaryIntelligenceConsole: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'atmosphere' | 'soil-radar' | 'api-health'>('all');
 
+  const safeFetchJson = async (url: string) => {
+    const res = await fetch(url);
+    const contentType = res.headers.get('content-type') || '';
+    if (!res.ok || !contentType.includes('application/json')) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    return res.json();
+  };
+
   const fetchTelemetry = async () => {
     try {
       setLoading(true);
 
       const [statusRes, weatherRes, agroRes, airRes] = await Promise.allSettled([
-        fetch('/api/system/api-status').then((r) => r.json()),
-        fetch(`/api/weather/current?lat=${selectedObs.lat}&lon=${selectedObs.lon}`).then((r) => r.json()),
-        fetch(`/api/agro/telemetry?lat=${selectedObs.lat}&lon=${selectedObs.lon}`).then((r) => r.json()),
-        fetch(`/api/weather/air-pollution?lat=${selectedObs.lat}&lon=${selectedObs.lon}`).then((r) => r.json()),
+        safeFetchJson('/api/system/api-status'),
+        safeFetchJson(`/api/weather/current?lat=${selectedObs.lat}&lon=${selectedObs.lon}`),
+        safeFetchJson(`/api/agro/telemetry?lat=${selectedObs.lat}&lon=${selectedObs.lon}`),
+        safeFetchJson(`/api/weather/air-pollution?lat=${selectedObs.lat}&lon=${selectedObs.lon}`),
       ]);
 
       if (statusRes.status === 'fulfilled' && statusRes.value.apiChecks) {
@@ -115,7 +124,7 @@ export const PlanetaryIntelligenceConsole: React.FC = () => {
         setAirData(airRes.value.data);
       }
     } catch (err) {
-      console.error('Failed to load planetary telemetry:', err);
+      console.warn('Planetary telemetry proxy unavailable in static mode:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -3,7 +3,6 @@ import type { AppPage, LiveCloseApproach, LiveCloseApproachesResponse, LiveDataB
 import { fetchLiveCloseApproaches } from '../services/liveSpaceService';
 import { AstronomicalImage } from './astronomy-images/AstronomicalImage';
 import { AsteroidMotionViewer } from './AsteroidMotionViewer';
-import { FreezePaneButton } from '../../components/common/FreezePaneButton';
 import { 
   ShieldAlert, 
   CheckCircle2, 
@@ -25,7 +24,6 @@ export const AsteroidWatch: FC<AsteroidWatchProps> = ({ onNavigate }) => {
   // Mode State: 'list' (records & CAD feed) vs 'motion' (interactive orbital scene)
   const [viewMode, setViewMode] = useState<'list' | 'motion'>('list');
   const [motionTargetDes, setMotionTargetDes] = useState<string>('99942');
-  const [panesFrozen, setPanesFrozen] = useState<boolean>(true);
 
   // Feed Data State
   const [cadResponse, setCadResponse] = useState<LiveCloseApproachesResponse | null>(null);
@@ -630,8 +628,8 @@ export const AsteroidWatch: FC<AsteroidWatchProps> = ({ onNavigate }) => {
       {/* 4. Interactive Earth Approach Schematic Visualizer (Section 6) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Canvas Visualizer (Col Span 2) */}
-        <div className={`lg:col-span-2 space-y-4 ${panesFrozen ? 'lg:sticky lg:top-[84px] self-start' : ''}`}>
-          <div className="p-4 rounded-2xl bg-[#0B1630] border border-[#1E293B] flex flex-wrap items-center justify-between gap-2">
+        <div className="lg:col-span-2 space-y-4">
+          <div data-subtopic="Earth Close-Approach Schematic" className="p-4 rounded-2xl bg-[#0B1630] border border-[#1E293B] flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Crosshair className="w-4 h-4 text-[#38BDF8]" />
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F8FAFC]">
@@ -642,11 +640,6 @@ export const AsteroidWatch: FC<AsteroidWatchProps> = ({ onNavigate }) => {
               <span className="text-[11px] font-mono text-[#A7B4CC]">
                 {selectedApproach ? `Epoch: ${selectedApproach.closeApproachDate}` : ''}
               </span>
-              <FreezePaneButton
-                frozen={panesFrozen}
-                onToggle={() => setPanesFrozen((v) => !v)}
-                label="Freeze Schematic"
-              />
             </div>
           </div>
 

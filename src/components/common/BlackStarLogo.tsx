@@ -8,6 +8,7 @@
  */
 
 import React from 'react';
+import { assetUrl } from '../../utils/assetUrl';
 
 interface BlackStarLogoProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
@@ -41,7 +42,7 @@ export const BlackStarLogo: React.FC<BlackStarLogoProps> = ({
       {/* High-contrast inner crest for the Black Star */}
       <div className="w-full h-full rounded-[inherit] bg-gradient-to-br from-white via-slate-100 to-slate-200 flex items-center justify-center overflow-hidden shadow-inner">
         <img
-          src="/assets/aistudio/image_5dde6a23.png"
+          src={assetUrl('assets/aistudio/image_5dde6a23.png')}
           alt="Black Star Orbit Logo"
           className={`${img} object-contain select-none filter contrast-125 drop-shadow-sm`}
           draggable={false}

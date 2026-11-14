@@ -3,7 +3,6 @@ import type { CatalogCategory, CatalogItem, AppPage } from '../types';
 import { fetchCatalogItems } from '../services/astronomyDataService';
 import { AstronomicalImage } from './astronomy-images/AstronomicalImage';
 import { AstronomicalImageGallery } from './astronomy-images/AstronomicalImageGallery';
-import { FreezePaneButton } from '../../components/common/FreezePaneButton';
 import { 
   Database, 
   Search, 
@@ -33,7 +32,6 @@ export const NasaDataCentre: FC<NasaDataCentreProps> = ({ onNavigate }) => {
   const [activeModalItem, setActiveModalItem] = useState<CatalogItem | null>(null);
   const [dataSource, setDataSource] = useState<string>('Connecting to Gateways...');
   const [isLiveGateway, setIsLiveGateway] = useState<boolean>(true);
-  const [panesFrozen, setPanesFrozen] = useState<boolean>(true);
 
   // Load items whenever category or search changes
   const loadData = async (cat: CatalogCategory, query: string) => {
@@ -115,7 +113,7 @@ export const NasaDataCentre: FC<NasaDataCentreProps> = ({ onNavigate }) => {
                 <Database className="w-3.5 h-3.5" />
                 Verified Astronomical Data Layer
               </div>
-              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
+              <h1 data-subtopic="Verified Catalogs & Mission Archives" className="text-3xl sm:text-5xl font-black tracking-tight text-white">
                 NASA Astronomical Data Centre
               </h1>
               <p className="mt-4 text-base sm:text-lg text-[#94A3B8] max-w-3xl leading-relaxed">
@@ -162,7 +160,7 @@ export const NasaDataCentre: FC<NasaDataCentreProps> = ({ onNavigate }) => {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
         {/* Controls Bar: Search & Category Pills */}
-        <div className={`${panesFrozen ? 'lg:sticky lg:top-[76px] z-30 backdrop-blur-md bg-[#050B1A] border border-[#1E293B] rounded-2xl p-4 shadow-xl' : ''} space-y-4 transition-all`}>
+        <div data-subtopic="Catalog Filter & Archive Records" className="space-y-4 transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Search Input */}
             <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-2xl">
@@ -191,13 +189,6 @@ export const NasaDataCentre: FC<NasaDataCentreProps> = ({ onNavigate }) => {
                 Search
               </button>
             </form>
-
-            <FreezePaneButton
-              frozen={panesFrozen}
-              onToggle={() => setPanesFrozen((v) => !v)}
-              label="Freeze Filters"
-              className="self-start sm:self-center"
-            />
           </div>
 
           {/* Category Pills */}

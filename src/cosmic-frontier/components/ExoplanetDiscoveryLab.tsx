@@ -4,7 +4,6 @@ import { fetchConfirmedExoplanets } from '../services/astronomyDataService';
 import { AstronomicalImage } from './astronomy-images/AstronomicalImage';
 import { AstronomicalImageGallery } from './astronomy-images/AstronomicalImageGallery';
 import { AstronomicalComparisonVisual } from './astronomy-images/AstronomicalComparisonVisual';
-import { FreezePaneButton } from '../../components/common/FreezePaneButton';
 import { 
   Telescope, 
   Orbit, 
@@ -49,7 +48,6 @@ export const ExoplanetDiscoveryLab: FC<ExoplanetDiscoveryLabProps> = ({ onNaviga
   const [activePlanetModal, setActivePlanetModal] = useState<ExoplanetRecord | null>(null);
   const [compareList, setCompareList] = useState<ExoplanetRecord[]>([]);
   const [activeDiscoveryMethodTab, setActiveDiscoveryMethodTab] = useState<'transit' | 'radial-velocity' | 'direct-imaging' | 'microlensing' | 'astrometry'>('transit');
-  const [panesFrozen, setPanesFrozen] = useState<boolean>(true);
 
   // Load exoplanets on mount
   const loadExoplanetData = async () => {
@@ -190,7 +188,7 @@ export const ExoplanetDiscoveryLab: FC<ExoplanetDiscoveryLabProps> = ({ onNaviga
                 <Telescope className="w-3.5 h-3.5" />
                 NASA Space Apps • Exoplanet Discovery Lab
               </div>
-              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
+              <h1 data-subtopic="Worlds Beyond Our Solar System" className="text-3xl sm:text-5xl font-black tracking-tight text-white">
                 Worlds Beyond Our Solar System
               </h1>
               <p className="mt-4 text-base sm:text-lg text-[#94A3B8] max-w-3xl leading-relaxed">
@@ -239,7 +237,7 @@ export const ExoplanetDiscoveryLab: FC<ExoplanetDiscoveryLabProps> = ({ onNaviga
       {/* 2. MAIN WORKSPACE CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 space-y-12">
         {/* CONTROLS BAR: SEARCH, FILTERS, DISPOSITION */}
-        <div className={`${panesFrozen ? 'lg:sticky lg:top-[76px] z-30 backdrop-blur-md' : ''} bg-[#0B1630] border border-[#1E293B] rounded-2xl p-5 shadow-xl space-y-4 transition-all`}>
+        <div data-subtopic="Exoplanet Search & Discovery Catalog" className="bg-[#0B1630] border border-[#1E293B] rounded-2xl p-5 shadow-xl space-y-4 transition-all">
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
             {/* Search Input */}
             <div className="relative flex-1 max-w-xl">
@@ -261,7 +259,7 @@ export const ExoplanetDiscoveryLab: FC<ExoplanetDiscoveryLabProps> = ({ onNaviga
               )}
             </div>
 
-            {/* Quick Filter Reset & Freeze Toggle */}
+            {/* Quick Filter Reset */}
             <div className="flex items-center gap-2.5">
               <button
                 onClick={handleResetFilters}
@@ -270,11 +268,6 @@ export const ExoplanetDiscoveryLab: FC<ExoplanetDiscoveryLabProps> = ({ onNaviga
                 <RotateCcw className="w-3.5 h-3.5" />
                 Reset Filters
               </button>
-              <FreezePaneButton
-                frozen={panesFrozen}
-                onToggle={() => setPanesFrozen((v) => !v)}
-                label="Freeze Bar"
-              />
             </div>
           </div>
 

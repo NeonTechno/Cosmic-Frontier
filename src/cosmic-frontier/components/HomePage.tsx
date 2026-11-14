@@ -29,7 +29,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30 text-xs font-mono font-semibold uppercase tracking-wider">
             Astronomy Observatories & Research Consoles
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F8FAFC] tracking-tight">
+          <h2 data-subtopic="Astronomy Observatories & Research Consoles" className="text-3xl sm:text-4xl font-extrabold text-[#F8FAFC] tracking-tight">
             Explore the Black Star Orbit
           </h2>
           <p className="text-sm sm:text-base text-[#A7B4CC] leading-relaxed">
@@ -257,22 +257,22 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
       </section>
 
       {/* 3. PLANETARY SHOWCASE & CATALOG ("various planets listed") */}
-      <section id="planetary-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="planetary-section" data-subtopic="Planetary Showcase & Catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <PlanetaryShowcase onNavigate={onNavigate} />
       </section>
 
       {/* 4. COSMIC ORBITAL ARCHITECTURE DIAGRAM */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section data-subtopic="Cosmic Orbital Architecture" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <CosmicOrbitalDiagram onNavigate={onNavigate} />
       </section>
 
       {/* 5. LIVE TELEMETRY RADAR & ASTROPHYSICAL KNOWLEDGE */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section data-subtopic="Live Telemetry Radar & Astrophysics" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <CosmicRadarHUD onNavigate={onNavigate} />
       </section>
 
       {/* 5B. LIVE NASA OPEN DATA DISPATCH (api.nasa.gov) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section data-subtopic="NASA Open Data Dispatch" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <NasaLiveDispatch onNavigate={onNavigate} />
       </section>
 
@@ -283,7 +283,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
             <span className="text-xs uppercase tracking-widest text-[#38BDF8] font-mono font-semibold">
               Exploration Methodology
             </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#F8FAFC]">
+            <h2 data-subtopic="Exploration Methodology" className="text-2xl sm:text-3xl font-bold text-[#F8FAFC]">
               How BLACK STAR ORBIT Works
             </h2>
             <p className="text-sm text-[#A7B4CC] leading-relaxed">

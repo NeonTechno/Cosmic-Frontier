@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { AppPage, SolarSystemObject } from './types';
 import { SOLAR_SYSTEM_OBJECTS } from './data/solarSystemData';
 import { Navbar } from './components/Navbar';
@@ -22,8 +22,56 @@ import { CosmicCommandPalette } from './components/common/CosmicCommandPalette';
 import { CelestialObjectInspector } from './components/common/CelestialObjectInspector';
 import { ObjectComparisonModal } from './components/common/ObjectComparisonModal';
 import { DiscoveryCollectionDrawer } from './components/common/DiscoveryCollectionDrawer';
+import { FreezePaneButton } from '../components/common/FreezePaneButton';
 
 const BOOKMARKS_STORAGE_KEY = 'blackstar_discovery_bookmarks';
+
+const COSMIC_LAB_TOPICS: Record<string, { topic: string; subtopic: string }> = {
+  home: {
+    topic: 'Cosmic Lab Observatories',
+    subtopic: 'Astronomy Observatories & Research Consoles',
+  },
+  'mission-control': {
+    topic: 'Mission Control Dashboard',
+    subtopic: 'Unified Planetary Command & Telemetry',
+  },
+  observatory: {
+    topic: 'Live Cosmic Observatory',
+    subtopic: 'Keplerian Motion & Historical Epochs',
+  },
+  universe: {
+    topic: '3D Universe Explorer',
+    subtopic: 'Interactive Heliocentric Orrery',
+  },
+  'asteroid-watch': {
+    topic: 'Asteroid Watch & NEO Defense',
+    subtopic: 'Close-Approach Telemetry & Orbits',
+  },
+  exoplanets: {
+    topic: 'Exoplanet Discovery Lab',
+    subtopic: 'Worlds Beyond Our Solar System',
+  },
+  galaxies: {
+    topic: 'Galaxy Explorer',
+    subtopic: 'Deep-Sky Catalog & Extragalactic Redshifts',
+  },
+  'data-centre': {
+    topic: 'NASA Astronomical Data Centre',
+    subtopic: 'Verified Catalogs & Mission Archives',
+  },
+  'ai-guide': {
+    topic: 'Cosmic AI Guide',
+    subtopic: 'Interactive Astrophysics Q&A',
+  },
+  guide: {
+    topic: 'Cosmic AI Guide',
+    subtopic: 'Interactive Astrophysics Q&A',
+  },
+  about: {
+    topic: 'About Black Star Orbit',
+    subtopic: 'NASA Space Apps Challenge 2026',
+  },
+};
 
 export type MainAppTab = 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite';
 
@@ -42,6 +90,9 @@ export function CosmicFrontierSuite({ onSwitchToEditorial, onNavigateTab }: Cosm
   const [compareInitialA, setCompareInitialA] = useState<SolarSystemObject | undefined>(undefined);
   const [compareInitialB, setCompareInitialB] = useState<SolarSystemObject | undefined>(undefined);
   const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
+  const [panesFrozen, setPanesFrozen] = useState(true);
+  const [activeSubtopic, setActiveSubtopic] = useState('');
+  const mainRef = useRef<HTMLElement>(null);
 
   // Persistent bookmarks
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>(() => {
@@ -177,6 +228,46 @@ export function CosmicFrontierSuite({ onSwitchToEditorial, onNavigateTab }: Cosm
     };
   }, []);
 
+  // Track visible subtopic headlines inside Cosmic Lab pages for the frozen Topic/Subtopic bar
+  useEffect(() => {
+    const meta = COSMIC_LAB_TOPICS[currentPage] || COSMIC_LAB_TOPICS.home;
+    setActiveSubtopic(meta.subtopic);
+
+    const container = mainRef.current;
+    if (!container) return;
+
+    let observer: IntersectionObserver | null = null;
+    const timer = window.setTimeout(() => {
+      const elements = Array.from(container.querySelectorAll<HTMLElement>('[data-subtopic]'));
+      if (elements.length === 0) return;
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+          if (visible.length > 0) {
+            const sub = visible[0].target.getAttribute('data-subtopic');
+            if (sub) setActiveSubtopic(sub);
+          }
+        },
+        {
+          rootMargin: '-120px 0px -60% 0px',
+          threshold: 0.05,
+        }
+      );
+
+      elements.forEach((el) => observer?.observe(el));
+    }, 120);
+
+    return () => {
+      window.clearTimeout(timer);
+      observer?.disconnect();
+    };
+  }, [currentPage]);
+
+  const currentTopicMeta = COSMIC_LAB_TOPICS[currentPage] || COSMIC_LAB_TOPICS.home;
+
   return (
     <div className="min-h-screen flex flex-col bg-[#050B1A] text-[#F8FAFC] selection:bg-[#38BDF8]/20 selection:text-[#38BDF8]">
       {/* Global Modern Navbar with Quick Commands & Research Collection */}
@@ -190,8 +281,36 @@ export function CosmicFrontierSuite({ onSwitchToEditorial, onNavigateTab }: Cosm
         onSwitchToEditorial={onSwitchToEditorial}
       />
 
+      {/* Frozen Cosmic Lab Topic & Subtopic Headline Bar */}
+      <div
+        className={`${
+          panesFrozen ? 'sticky top-16 sm:top-[72px] z-30 backdrop-blur-md shadow-lg' : ''
+        } border-b border-[#1E293B] bg-[#070E22]/95 transition-all`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-[#38BDF8]/15 text-[#38BDF8] border border-[#38BDF8]/30 font-semibold shrink-0">
+              Cosmic Lab
+            </span>
+            <h2 className="text-sm sm:text-base font-bold text-[#F8FAFC] tracking-tight truncate">
+              {currentTopicMeta.topic}
+            </h2>
+            <span className="text-[#475569] hidden sm:inline">/</span>
+            <span className="text-xs font-mono text-[#38BDF8] truncate">
+              {activeSubtopic || currentTopicMeta.subtopic}
+            </span>
+          </div>
+
+          <FreezePaneButton
+            frozen={panesFrozen}
+            onToggle={() => setPanesFrozen((v) => !v)}
+            label="Freeze Headlines"
+          />
+        </div>
+      </div>
+
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main ref={mainRef} className="flex-1">
         <div key={currentPage} className="animate-page-enter">
           {currentPage === 'home' && <HomePage onNavigate={handleNavigate} />}
           {currentPage === 'mission-control' && (

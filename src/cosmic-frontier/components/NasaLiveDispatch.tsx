@@ -1,5 +1,6 @@
 import { useState, useEffect, type FC } from 'react';
 import type { NasaApodData, NasaMissionPhoto, AppPage } from '../types';
+import nasaArchivesData from '../data/catalogs/nasa-archives.json';
 import { 
   Telescope, 
   ExternalLink, 
@@ -32,23 +33,65 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
   const fetchData = async () => {
     try {
       setErrorNotice(null);
+      let loadedApod = false;
+      let loadedSpherex = false;
+
       // Fetch APOD
-      const apodRes = await fetch('/api/nasa/apod');
-      if (apodRes.ok) {
-        const json = await apodRes.json();
-        if (json.data) {
-          setApodData(json.data);
-          setApiSource(json.source || 'api.nasa.gov');
+      try {
+        const apodRes = await fetch('/api/nasa/apod');
+        const contentType = apodRes.headers.get('content-type') || '';
+        if (apodRes.ok && contentType.includes('application/json')) {
+          const json = await apodRes.json();
+          if (json.data) {
+            setApodData(json.data);
+            setApiSource(json.source || 'api.nasa.gov');
+            loadedApod = true;
+          }
         }
+      } catch {
+        // Static hosting fallback handled below
       }
 
       // Fetch SPHEREx photos
-      const spherexRes = await fetch('/api/nasa/spherex');
-      if (spherexRes.ok) {
-        const json = await spherexRes.json();
-        if (json.photos) {
-          setSpherexPhotos(json.photos);
+      try {
+        const spherexRes = await fetch('/api/nasa/spherex');
+        const contentType = spherexRes.headers.get('content-type') || '';
+        if (spherexRes.ok && contentType.includes('application/json')) {
+          const json = await spherexRes.json();
+          if (Array.isArray(json.photos) && json.photos.length > 0) {
+            setSpherexPhotos(json.photos);
+            loadedSpherex = true;
+          }
         }
+      } catch {
+        // Static hosting fallback handled below
+      }
+
+      if (!loadedApod) {
+        const lead = nasaArchivesData.records[0];
+        setApodData({
+          title: lead.title,
+          date: lead.dateCreated,
+          explanation: lead.description,
+          url: lead.thumbUrl,
+          hdurl: lead.hdUrl,
+          media_type: 'image',
+          copyright: lead.credit,
+        });
+        setApiSource('NASA Image Library Archive');
+      }
+
+      if (!loadedSpherex) {
+        setSpherexPhotos(
+          nasaArchivesData.records.map((rec) => ({
+            nasaId: rec.nasaId,
+            title: rec.title,
+            description: rec.description,
+            dateCreated: rec.dateCreated,
+            center: rec.center,
+            thumb: rec.thumbUrl,
+          }))
+        );
       }
     } catch (err: unknown) {
       console.warn('Failed to fetch live NASA telemetry:', err);
