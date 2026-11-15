@@ -1291,7 +1291,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
       explanation: fallbackText,
       groundedAttributes: Object.keys(dataPayload),
       scientificReferences: ['NASA IRSA Astronomical Handbook'],
-      dataVerificationStatus: 'SIMULATION_GROUNDED',
+      dataVerificationStatus: ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus)) ? 'GROUNDED_VERIFIED' : 'REFERENCE_ONLY',
       confidenceRating: 'THEORETICAL_MODEL',
       modelUsed: `deterministic-fallback-on-error (${nvidiaModel} unavailable)`,
       timestamp: new Date().toISOString(),
