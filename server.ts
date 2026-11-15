@@ -15,9 +15,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'node:module';
 import dotenv from 'dotenv';
-import { generateSyntheticSpherexObservations, SPHEREX_BANDS } from './src/science/spherexEngine.ts';
+import { SPHEREX_BANDS } from './src/science/spherexEngine.ts';
 import { STARTER_QUESTIONS, findVerifiedAnswer } from './src/cosmic-frontier/data/guideKnowledge.ts';
-import { parseCelestialCoordinates, generateObservationAtCoordinates } from './src/science/spherexCoordinates.ts';
+import { parseCelestialCoordinates } from './src/science/spherexCoordinates.ts';
 import { VERIFIED_ETNO_CATALOG, DEFAULT_PLANET_X_HYPOTHESIS, INITIAL_CANDIDATE_QUEUE } from './src/science/orbitalMechanics.ts';
 import { OFFICIAL_NASA_DATA_SOURCES } from './src/science/dataConnector.ts';
 import { PlanetXCandidate } from './src/types/index.ts';
@@ -29,7 +29,9 @@ import {
   querySpherexTimeMachine,
   resolveTargetDesignator,
   SpherexArchiveUnavailableError,
+  SpherexNoObservationsError,
 } from './src/server/astroArchiveService.ts';
+import { getLocalSpherexDatasetStatus, queryLocalSpherexTimeMachine } from './src/server/localSpherexArchive.ts';
 import {
   buildLiveEphemeris,
   buildObservatoryObjects,
@@ -70,7 +72,6 @@ app.use(express.json());
 
 // In-memory state for candidates (allows student vetting actions in the app)
 let candidateState: PlanetXCandidate[] = JSON.parse(JSON.stringify(INITIAL_CANDIDATE_QUEUE));
-const spherexObservations = generateSyntheticSpherexObservations();
 
 // NVIDIA NIM AI Configuration (strictly server-side)
 const nvidiaApiKey = cleanEnv(process.env.NVIDIA_API_KEY);
@@ -489,24 +490,19 @@ app.get('/api/status', async (_req: Request, res: Response) => {
   });
 });
 
-// SPHEREx: List all observations
+// SPHEREx: Local dataset inventory. Never returns generated observations.
+app.get('/api/spherex/local-datasets', (_req: Request, res: Response) => {
+  res.json({ ...getLocalSpherexDatasetStatus(), source: 'NASA/IPAC IRSA local FITS files' });
+});
 app.get('/api/spherex/observations', (_req: Request, res: Response) => {
   res.json({
-    count: spherexObservations.length,
-    observations: spherexObservations,
-    provenance: 'Caltech/IPAC SPHEREx Level 2/3 Benchmark Specification',
-    license: 'NASA Space Apps Challenge Open Science',
+    count: 0, observations: [], localDatasetStatus: getLocalSpherexDatasetStatus(),
+    provenance: 'No synthetic SPHEREx observations are served. Query IRSA or import verified local DR1/QR3 FITS files.',
+    license: 'NASA/IPAC IRSA SPHEREx archive terms apply to downloaded products.',
   });
 });
-
-// SPHEREx: Single observation by ID
 app.get('/api/spherex/observations/:id', (req: Request, res: Response) => {
-  const obs = spherexObservations.find((o) => o.id === req.params.id);
-  if (!obs) {
-    res.status(404).json({ error: 'Observation not found', id: req.params.id });
-    return;
-  }
-  res.json(obs);
+  res.status(404).json({ error: 'Observation not found in the current real-data session.', id: req.params.id });
 });
 
 // SPHEREx: Coordinate Cutout & Target Search API (Live IRSA DR1/QR3 + Honest Fallback)
@@ -529,6 +525,8 @@ app.get('/api/spherex/cutout', async (req: Request, res: Response) => {
   }
 
   try {
+    const localObservation = queryLocalSpherexTimeMachine({ raDeg: parsed.raDeg, decDeg: parsed.decDeg, targetName, band, fovArcmin: fov });
+    if (localObservation) { res.json(localObservation); return; }
     const obs = await querySpherexTimeMachine({
       raDeg: parsed.raDeg,
       decDeg: parsed.decDeg,
@@ -539,10 +537,11 @@ app.get('/api/spherex/cutout', async (req: Request, res: Response) => {
     res.json(obs);
   } catch (err: any) {
     const archiveUnavailable = err instanceof SpherexArchiveUnavailableError;
+    const noObservations = err instanceof SpherexNoObservationsError;
     console.warn('[Server] /api/spherex/cutout archive query failed:', err?.message);
-    res.status(archiveUnavailable ? 503 : 500).json({
-      error: archiveUnavailable ? 'SPHEREx archive temporarily unavailable' : 'SPHEREx cutout query failed',
-      code: archiveUnavailable ? 'IRSA_ARCHIVE_UNAVAILABLE' : 'SPHEREX_QUERY_FAILED',
+    res.status(archiveUnavailable ? 503 : noObservations ? 404 : 500).json({
+      error: archiveUnavailable ? 'SPHEREx archive temporarily unavailable' : noObservations ? 'No verified SPHEREx observations found' : 'SPHEREx cutout query failed',
+      code: archiveUnavailable ? 'IRSA_ARCHIVE_UNAVAILABLE' : noObservations ? 'NO_VERIFIED_OBSERVATIONS' : 'SPHEREX_QUERY_FAILED',
       details: err?.message || 'Unknown archive error',
       retryable: archiveUnavailable,
       ...(archiveUnavailable ? { archiveDiagnostics: err.diagnostics } : {}),
@@ -585,6 +584,8 @@ app.get('/api/spherex/time-machine', async (req: Request, res: Response) => {
   }
 
   try {
+    const localObservation = queryLocalSpherexTimeMachine({ raDeg, decDeg, targetName: resolvedName, band, fovArcmin: fov });
+    if (localObservation) { res.json(localObservation); return; }
     const obs = await querySpherexTimeMachine({
       raDeg,
       decDeg,
@@ -595,10 +596,11 @@ app.get('/api/spherex/time-machine', async (req: Request, res: Response) => {
     res.json(obs);
   } catch (err: any) {
     const archiveUnavailable = err instanceof SpherexArchiveUnavailableError;
+    const noObservations = err instanceof SpherexNoObservationsError;
     console.warn('[Server] /api/spherex/time-machine archive query failed:', err?.message);
-    res.status(archiveUnavailable ? 503 : 500).json({
-      error: archiveUnavailable ? 'SPHEREx archive temporarily unavailable' : 'Time Machine archive query failed',
-      code: archiveUnavailable ? 'IRSA_ARCHIVE_UNAVAILABLE' : 'SPHEREX_QUERY_FAILED',
+    res.status(archiveUnavailable ? 503 : noObservations ? 404 : 500).json({
+      error: archiveUnavailable ? 'SPHEREx archive temporarily unavailable' : noObservations ? 'No verified SPHEREx observations found' : 'Time Machine archive query failed',
+      code: archiveUnavailable ? 'IRSA_ARCHIVE_UNAVAILABLE' : noObservations ? 'NO_VERIFIED_OBSERVATIONS' : 'SPHEREX_QUERY_FAILED',
       details: err?.message || 'Unknown archive error',
       retryable: archiveUnavailable,
       ...(archiveUnavailable ? { archiveDiagnostics: err.diagnostics } : {}),
@@ -1222,7 +1224,7 @@ SCIENTIFIC ACCURACY & STYLE GUIDELINES:
 1. Write naturally, like an experienced astronomer talking directly to a curious citizen scientist or student. Avoid stiff templates, meta-commentary, or overly bureaucratic headers.
 2. Never invent or extrapolate unverified coordinates, detections, or physical constants. Ground every number in the context provided.
 3. Clearly distinguish confirmed observations (e.g., Gaia DR3, AllWISE, IRSA SPHEREx DR1/QR3, known eTNO orbits) from theoretical models (such as the Batygin & Brown 2021 Planet X hypothesis).
-4. If the dataset is marked 'SIMULATED_BENCHMARK' or 'FALLBACK_SIMULATED', mention naturally that it is a calibrated synthetic benchmark used for testing alongside live IRSA SPHEREx archives.
+4. If the source is 'LOCAL_IRSA_SPHEREX', state that the image came from locally imported NASA/IPAC IRSA FITS files. Never describe a reference or benchmark as an archive observation.
 5. Use plain Unicode units and symbols (like µm, °, σ, ≈, ~) instead of LaTeX dollar signs or backslashes, and keep paragraphs concise and easy to scan.`;
 
   const serializedData = JSON.stringify(dataPayload, null, 2);
@@ -1256,9 +1258,9 @@ Answer directly and naturally, grounding your explanation in the values above.`;
           'NASA Infrared Science Archive (IRSA) / IVOA Specifications',
         ],
         dataVerificationStatus:
-          dataPayload.dataSourceStatus === 'SIMULATED_BENCHMARK' || dataPayload.dataSourceStatus === 'FALLBACK_SIMULATED'
-            ? 'SIMULATION_GROUNDED'
-            : 'GROUNDED_VERIFIED',
+          ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus))
+            ? 'GROUNDED_VERIFIED'
+            : 'REFERENCE_ONLY',
         confidenceRating: 'HIGH_PRECISION',
         modelUsed: nvidiaModel,
         timestamp: new Date().toISOString(),
@@ -1401,9 +1403,7 @@ function generateDeterministicScientificExplanation(
   payload: Record<string, unknown>,
   userPrompt?: string
 ): string {
-  const isSimulated =
-    payload.dataSourceStatus === 'SIMULATED_BENCHMARK' ||
-    payload.dataSourceStatus === 'FALLBACK_SIMULATED';
+  const isLocalArchive = payload.dataSourceStatus === 'LOCAL_IRSA_SPHEREX';
 
   if (contextType === 'spherex_fits') {
     const target = (payload.targetName as string) || 'this SPHEREx sky region';

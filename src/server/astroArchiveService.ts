@@ -19,8 +19,6 @@ import type {
 import {
   CHALLENGE_BENCHMARK_TARGETS,
   celestialToGalactic,
-  generateBenchmarkObservation,
-  generateObservationAtCoordinates,
   parseCelestialCoordinates,
 } from '../science/spherexCoordinates.ts';
 import { fitsPixelToSky, parseAndReprojectFitsCutout, skyToFitsPixel } from './fitsParser.ts';
@@ -252,6 +250,10 @@ export interface SpherexArchiveCollectionDiagnostic {
   attempts: number;
   latencyMs: number;
   error?: string;
+}
+
+export class SpherexNoObservationsError extends Error {
+  constructor(message: string) { super(message); this.name = 'SpherexNoObservationsError'; }
 }
 
 export class SpherexArchiveUnavailableError extends Error {
@@ -655,39 +657,11 @@ export async function querySpherexTimeMachine(options: {
     );
   }
 
-  // Only report "no matching observations" when every collection completed successfully.
+  // A successful empty query is not an observation. Never substitute generated frames.
   if (combinedRows.length === 0) {
-    const baseFallback = benchmark
-      ? generateBenchmarkObservation(benchmark)
-      : generateObservationAtCoordinates(raDeg, decDeg, resolvedName, fovArcmin);
-    const latency = Date.now() - t0;
-
-    return {
-      ...baseFallback,
-      targetName: resolvedName,
-      dataSourceStatus: 'FALLBACK_SIMULATED',
-      dataSourceLabel: 'CALIBRATED FALLBACK SIMULATION — all four SPHEREx collections responded successfully but returned no matching Level-2 image rows in this search cone. This does not establish global archive non-coverage.',
-      gaiaSources,
-      allWiseCutouts,
-      archiveSummary: {
-        dr1ObservationCount: 0,
-        qr3ObservationCount: 0,
-        availableBands: [],
-        distinctMjdCount: 0,
-        earliestDate: baseFallback.epochs[0]?.timestamp || '',
-        latestDate: baseFallback.epochs[baseFallback.epochs.length - 1]?.timestamp || '',
-        queryLatencyMs: latency,
-        cached: false,
-        limitations: [
-          ...limitations,
-          'All four SPHEREx SIA collections completed successfully and returned zero matching Level-2 image rows for the requested search cone; the displayed frames are synthetic.',
-        ],
-        collectionResults: collectionDiagnostics,
-        wiseViewUrl: `https://byw.tools/wiseview-v2#ra=${raDeg.toFixed(5)}&dec=${decDeg.toFixed(5)}&size=${Math.round(fovArcmin * 60)}`,
-        irsaFinderUrl: `https://irsa.ipac.caltech.edu/applications/finderchart/?locstr=${raDeg.toFixed(5)}+${decDeg.toFixed(5)}&subsetsize=${fovArcmin.toFixed(1)}`,
-        aladinUrl: `https://aladin.cds.unistra.fr/AladinLite/?target=${raDeg.toFixed(4)}%20${decDeg.toFixed(4)}&fov=${(fovArcmin / 60).toFixed(3)}&survey=P%2FALLWISE%2Fcolor`,
-      },
-    };
+    throw new SpherexNoObservationsError(
+      'IRSA completed the SPHEREx search but returned no matching Level-2 image rows for this search cone. No synthetic observations are available or displayed.'
+    );
   }
 
   const { selected, selectedBand, availableBands } = selectChronologicalRows(combinedRows, band, 3);
@@ -774,7 +748,7 @@ export async function querySpherexTimeMachine(options: {
   }
 
   // Build chronological ObservationFrames
-  const epochs: ObservationFrame[] = epochFitsResults.map(({ row, fits }, idx) => {
+  const epochs: ObservationFrame[] = epochFitsResults.filter(({ fits }) => Boolean(fits)).map(({ row, fits }, idx) => {
     const isoDate = (fits?.headerSummary['DATE-OBS'] as string) || mjdToIso(row.tMinMjd);
     const mjd = Number(fits?.headerSummary['MJD-OBS'] || row.tMinMjd);
     const wl = bandCenterMicrons(row.bandpassName, row.emMinMicrons, row.emMaxMicrons);
@@ -804,10 +778,13 @@ export async function querySpherexTimeMachine(options: {
     };
   });
 
-  // Check if any real FITS data succeeded
-  const realCutoutCount = epochs.filter((e) => e.isRealArchive).length;
+  // Metadata alone is not an image observation. Require at least one parsed real FITS cutout.
+  const realCutoutCount = epochs.filter((e) => e.isRealArchive && e.fitsData).length;
   if (realCutoutCount === 0) {
-    limitations.push('IRSA returned observation metadata rows, but FITS cutout downloads timed out or returned no valid image array.');
+    throw new SpherexArchiveUnavailableError(
+      'IRSA returned observation metadata, but none of the corresponding FITS image products could be downloaded and parsed. No synthetic pixels are substituted.',
+      collectionDiagnostics
+    );
   }
   limitations.push('SPHEREx Level-2 images use Linear Variable Filters (wavelength varies across detector Y-axis) and 6.15″/px sampling; North-Up WCS bilinear reprojection is applied for multi-epoch alignment.');
 
@@ -865,14 +842,10 @@ export async function querySpherexTimeMachine(options: {
     glatDeg,
     fieldOfViewArcmin: fovArcmin,
     detectorArray: `${selectedBand} (${availableBands.length} bands archived: ${availableBands.join(', ')})`,
-    detectorTempK: 80.0,
     pixelScaleArcsec: epochs[0]?.fitsData?.wcs?.pixelScaleArcsec || 6.15,
     dataQualityFlag: 'CALIBRATED_NOMINAL',
-    dataSourceStatus: realCutoutCount > 0 ? 'LIVE_IRSA_SPHEREX' : 'FALLBACK_SIMULATED',
-    dataSourceLabel:
-      realCutoutCount > 0
-        ? `LIVE NASA/IPAC IRSA ARCHIVE: ${dr1Res.length} SPHEREx DR1 + ${qr3Res.length} SPHEREx QR3 exposures (${realCutoutCount} Level-2 FITS cutouts parsed & North-Up WCS aligned)`
-        : 'LIVE METADATA ONLY — Archive rows were returned, but FITS cutout pixels could not be retrieved; no synthetic pixels are being presented as observations.',
+    dataSourceStatus: 'LIVE_IRSA_SPHEREX',
+    dataSourceLabel: `LIVE NASA/IPAC IRSA ARCHIVE: ${dr1Res.length} SPHEREx DR1 + ${qr3Res.length} SPHEREx QR3 exposures (${realCutoutCount} Level-2 FITS cutouts parsed & North-Up WCS aligned). No synthetic observations are used.`,
     documentationUrl: 'https://irsa.ipac.caltech.edu/Missions/spherex.html',
     fitsHeader: {
       TELESCOP: 'SPHEREx',
@@ -888,9 +861,7 @@ export async function querySpherexTimeMachine(options: {
       ...firstRealHeader,
     },
     epochs,
-    fullSedCurve: sedMeasurements.some((m) => m.isMeasured)
-      ? sedMeasurements
-      : (benchmark ? generateBenchmarkObservation(benchmark).fullSedCurve : []),
+    fullSedCurve: sedMeasurements.filter((measurement) => measurement.isMeasured),
     archiveSummary: {
       dr1ObservationCount: dr1Res.length + dr1DeepRes.length,
       qr3ObservationCount: qr3Res.length + qr3DeepRes.length,
@@ -908,13 +879,6 @@ export async function querySpherexTimeMachine(options: {
     },
     gaiaSources,
     allWiseCutouts,
-    contaminationFlags: {
-      zodiacalLevel: (realFrames[0]?.fitsData?.stats.zodiMedianMJySr || 0) > 0.35 ? 'Moderate' : 'Low',
-      strayLight: false,
-      cosmicRayHits: realFrames[0]?.fitsData?.stats.flaggedPixelCount || 0,
-      saturationWarning: false,
-      moonSeparationDeg: 75.0,
-    },
     properMotionTarget: benchmark
       ? {
           name: benchmark.name,
