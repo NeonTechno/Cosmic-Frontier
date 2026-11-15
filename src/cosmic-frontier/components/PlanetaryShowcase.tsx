@@ -5,7 +5,7 @@ import { PlanetGraphic } from './PlanetGraphic';
 import { 
   Orbit, 
   ChevronRight, 
-  Sparkles, 
+  MessageCircleQuestion, 
   ArrowUpRight 
 } from 'lucide-react';
 
@@ -83,7 +83,7 @@ export const PlanetaryShowcase: FC<PlanetaryShowcaseProps> = ({ onNavigate }) =>
             {/* Scientific insight snippet */}
             <div className="p-3.5 rounded-xl bg-[#050B1A]/80 border border-[#1E293B] text-xs text-[#A7B4CC] space-y-1">
               <div className="flex items-center gap-1.5 text-[#38BDF8] font-bold">
-                <Sparkles className="w-3.5 h-3.5" />
+                <MessageCircleQuestion className="w-3.5 h-3.5" />
                 <span>Astrophysical Significance:</span>
               </div>
               <p>{spotlightObject.scientificContext}</p>
@@ -124,8 +124,8 @@ export const PlanetaryShowcase: FC<PlanetaryShowcaseProps> = ({ onNavigate }) =>
                 onClick={() => onNavigate('ai-guide')}
                 className="px-5 py-3 rounded-xl bg-[#0B1630] hover:bg-[#1E293B] text-[#F8FAFC] border border-[#1E293B] hover:border-[#F5C451] text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#F5C451]" />
-                <span>Ask AI Guide About {spotlightObject.name.split('(')[0].trim()}</span>
+                <MessageCircleQuestion className="w-3.5 h-3.5 text-[#F5C451]" />
+                <span>Ask Guide About {spotlightObject.name.split('(')[0].trim()}</span>
               </button>
             </div>
           </div>
