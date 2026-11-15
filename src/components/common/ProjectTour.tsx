@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, Check, Compass, Database, FlaskConical,
   Globe2, Orbit, Rocket, Telescope, X
@@ -21,6 +21,7 @@ const steps = [
     icon: Rocket,
     tab: 'cosmic-suite' as TourTab,
     action: 'Enter Cosmic Lab',
+    highlights: ['Mission overview', 'Workspace map', 'Research shortcuts'],
   },
   {
     eyebrow: '01 / THE PLATFORM',
@@ -30,6 +31,7 @@ const steps = [
     icon: Globe2,
     tab: 'cosmic-suite' as TourTab,
     action: 'Open Cosmic Lab',
+    highlights: ['Unified workspace', 'Module navigation', 'Research context'],
   },
   {
     eyebrow: '02 / INFRARED SKY',
@@ -39,6 +41,7 @@ const steps = [
     icon: Telescope,
     tab: 'spherex' as TourTab,
     action: 'Open SPHEREx',
+    highlights: ['102 infrared bands', '0.75–5.0 µm', 'Archive workflows'],
   },
   {
     eyebrow: '03 / OUTER SOLAR SYSTEM',
@@ -48,6 +51,7 @@ const steps = [
     icon: Orbit,
     tab: 'planetx' as TourTab,
     action: 'Open Planet X',
+    highlights: ['eTNO catalogue', 'Orbital patterns', 'Candidate review'],
   },
   {
     eyebrow: '04 / LIFE BEYOND EARTH',
@@ -57,6 +61,7 @@ const steps = [
     icon: FlaskConical,
     tab: 'astrobiology' as TourTab,
     action: 'Open Astrobiology',
+    highlights: ['Habitability', 'Biosignatures', 'Prebiotic chemistry'],
   },
   {
     eyebrow: '05 / TRACEABLE SCIENCE',
@@ -66,6 +71,7 @@ const steps = [
     icon: Database,
     tab: 'architecture' as TourTab,
     action: 'View NASA specifications',
+    highlights: ['NASA / IPAC references', 'Data provenance', 'System architecture'],
   },
 ];
 
@@ -74,6 +80,16 @@ export const ProjectTour: React.FC<ProjectTourProps> = ({ onComplete, onNavigate
   const step = steps[current];
   const Icon = step.icon;
   const light = isLight;
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowRight') setCurrent((value) => Math.min(value + 1, steps.length - 1));
+      if (event.key === 'ArrowLeft') setCurrent((value) => Math.max(value - 1, 0));
+      if (event.key === 'Escape') onComplete();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onComplete]);
 
   const finish = (tab?: TourTab) => {
     if (tab && tab !== 'overview') onNavigate(tab);
@@ -93,7 +109,7 @@ export const ProjectTour: React.FC<ProjectTourProps> = ({ onComplete, onNavigate
             </div>
             <div>
               <p className={`text-[10px] font-semibold tracking-[0.24em] ${light ? 'text-slate-500' : 'text-slate-400'}`}>BLACK STAR ORBIT</p>
-              <p className="text-xs font-medium">Project orientation</p>
+              <p className="text-xs font-medium">Interactive mission briefing · 2 min</p>
             </div>
           </div>
           <button onClick={() => finish()} className={`rounded-full p-2 transition hover:bg-black/10 ${light ? 'text-slate-500' : 'text-slate-400 hover:text-white'}`} aria-label="Skip project tour">
@@ -102,7 +118,7 @@ export const ProjectTour: React.FC<ProjectTourProps> = ({ onComplete, onNavigate
         </div>
 
         <div className="grid gap-8 px-6 pb-7 pt-4 sm:grid-cols-[0.85fr_1.15fr] sm:items-center sm:px-9 sm:pb-10">
-          <div className={`relative flex min-h-[220px] items-center justify-center overflow-hidden rounded-2xl border ${light ? 'border-slate-200 bg-slate-100' : 'border-cyan-300/10 bg-[#050b18]'}`}>
+          <div className={`tour-visual relative flex min-h-[220px] items-center justify-center overflow-hidden rounded-2xl border ${light ? 'border-slate-200 bg-slate-100' : 'border-cyan-300/10 bg-[#050b18]'}`}>
             <div className="absolute h-44 w-44 rounded-full border border-cyan-400/15" />
             <div className="absolute h-32 w-32 rounded-full border border-indigo-400/20" />
             <div className="absolute h-20 w-20 rounded-full border border-cyan-300/20" />
