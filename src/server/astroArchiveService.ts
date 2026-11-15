@@ -124,30 +124,30 @@ function decodeXmlText(value: string): string {
     .replace(/&apos;/gi, "'")
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
-    .replace(/&#(\\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
-    .replace(/&#x([\\da-f]+);/gi, (_match, code) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([\da-f]+);/gi, (_match, code) => String.fromCodePoint(parseInt(code, 16)))
     .trim();
 }
 
 function parseVotableRows(xml: string): Record<string, string>[] {
   // IRSA returns IVOA VOTable XML. Accept attributes, namespaces, empty
   // cells and either quote style; strict <TD> matching silently lost rows.
-  const fieldTags = [...xml.matchAll(/<(?:\\w+:)?FIELD\\b([^>]*)\\/?\\s*>/gi)];
+  const fieldTags = [...xml.matchAll(/<(?:\w+:)?FIELD\b([^>]*)\/?\s*>/gi)];
   const fields = fieldTags
     .map((match) => {
-      const name = match[1].match(/\\bname\\s*=\\s*(?:"([^"]+)"|'([^']+)')/i);
+      const name = match[1].match(/\bname\s*=\s*(?:"([^"]+)"|'([^']+)')/i);
       return name ? (name[1] || name[2]).toLowerCase() : '';
     })
     .filter(Boolean);
   if (fields.length === 0) return [];
 
-  const tableData = xml.match(/<(?:\\w+:)?TABLEDATA\\b[^>]*>([\\s\\S]*?)<\\/(?:\\w+:)?TABLEDATA\\s*>/i)?.[1];
+  const tableData = xml.match(/<(?:\w+:)?TABLEDATA\b[^>]*>([\s\S]*?)<\/(?:\w+:)?TABLEDATA\s*>/i)?.[1];
   if (!tableData) return [];
 
   const rows: Record<string, string>[] = [];
-  const rowMatches = tableData.matchAll(/<(?:\\w+:)?TR\\b[^>]*>([\\s\\S]*?)<\\/(?:\\w+:)?TR\\s*>/gi);
+  const rowMatches = tableData.matchAll(/<(?:\w+:)?TR\b[^>]*>([\s\S]*?)<\/(?:\w+:)?TR\s*>/gi);
   for (const rowMatch of rowMatches) {
-    const cells = [...rowMatch[1].matchAll(/<(?:\\w+:)?TD\\b[^>]*>([\\s\\S]*?)<\\/(?:\\w+:)?TD\\s*>|<(?:\\w+:)?TD\\b[^>]*\\/\\s*>/gi)]
+    const cells = [...rowMatch[1].matchAll(/<(?:\w+:)?TD\b[^>]*>([\s\S]*?)<\/(?:\w+:)?TD\s*>|<(?:\w+:)?TD\b[^>]*\/\s*>/gi)]
       .map((cell) => decodeXmlText(cell[1] || ''));
     if (cells.length !== fields.length) continue;
     const row: Record<string, string> = {};
