@@ -117,21 +117,42 @@ function bandCenterMicrons(band: string, emMin: number, emMax: number): number {
   return defaults[band] || 3.05;
 }
 
+function decodeXmlText(value: string): string {
+  return value
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#(\\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([\\da-f]+);/gi, (_match, code) => String.fromCodePoint(parseInt(code, 16)))
+    .trim();
+}
+
 function parseVotableRows(xml: string): Record<string, string>[] {
-  const fields = [...xml.matchAll(/<FIELD[^>]*name="([^"]+)"/g)].map((m) => m[1]);
+  // IRSA returns IVOA VOTable XML. Accept attributes, namespaces, empty
+  // cells and either quote style; strict <TD> matching silently lost rows.
+  const fieldTags = [...xml.matchAll(/<(?:\\w+:)?FIELD\\b([^>]*)\\/?\\s*>/gi)];
+  const fields = fieldTags
+    .map((match) => {
+      const name = match[1].match(/\\bname\\s*=\\s*(?:"([^"]+)"|'([^']+)')/i);
+      return name ? (name[1] || name[2]).toLowerCase() : '';
+    })
+    .filter(Boolean);
   if (fields.length === 0) return [];
+
+  const tableData = xml.match(/<(?:\\w+:)?TABLEDATA\\b[^>]*>([\\s\\S]*?)<\\/(?:\\w+:)?TABLEDATA\\s*>/i)?.[1];
+  if (!tableData) return [];
+
   const rows: Record<string, string>[] = [];
-  for (const trMatch of xml.matchAll(/<TR>([\s\S]*?)<\/TR>/g)) {
-    const tds = [...trMatch[1].matchAll(/<TD>([\s\S]*?)<\/TD>/g)].map((td) =>
-      td[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').trim()
-    );
-    if (tds.length === fields.length) {
-      const obj: Record<string, string> = {};
-      for (let i = 0; i < fields.length; i++) {
-        obj[fields[i]] = tds[i];
-      }
-      rows.push(obj);
-    }
+  const rowMatches = tableData.matchAll(/<(?:\\w+:)?TR\\b[^>]*>([\\s\\S]*?)<\\/(?:\\w+:)?TR\\s*>/gi);
+  for (const rowMatch of rowMatches) {
+    const cells = [...rowMatch[1].matchAll(/<(?:\\w+:)?TD\\b[^>]*>([\\s\\S]*?)<\\/(?:\\w+:)?TD\\s*>|<(?:\\w+:)?TD\\b[^>]*\\/\\s*>/gi)]
+      .map((cell) => decodeXmlText(cell[1] || ''));
+    if (cells.length !== fields.length) continue;
+    const row: Record<string, string> = {};
+    fields.forEach((field, index) => { row[field] = cells[index]; });
+    rows.push(row);
   }
   return rows;
 }
@@ -146,7 +167,13 @@ export async function queryIrsaSpherexSia(
   const cached = getCached<SiaObservationRow[]>(cacheKey);
   if (cached) return cached;
 
-  const url = `https://irsa.ipac.caltech.edu/SIA?POS=circle+${raDeg.toFixed(5)}+${decDeg.toFixed(5)}+${radiusDeg}&COLLECTION=${collection}`;
+  const query = new URLSearchParams({
+    COLLECTION: collection,
+    POS: `CIRCLE ${raDeg.toFixed(5)} ${decDeg.toFixed(5)} ${radiusDeg}`,
+    RESPONSEFORMAT: 'VOTABLE',
+    MAXREC: '5000',
+  });
+  const url = `https://irsa.ipac.caltech.edu/SIA?${query.toString()}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
   if (!res.ok) {
     throw new Error(`IRSA SIA ${collection} HTTP ${res.status}`);
@@ -154,7 +181,7 @@ export async function queryIrsaSpherexSia(
   const xml = await res.text();
   const parsed = parseVotableRows(xml);
   const rows: SiaObservationRow[] = parsed
-    .filter((r) => r.access_url && r.dataproduct_type === 'image')
+    .filter((r) => r.access_url && (r.dataproduct_type || '').toLowerCase() === 'image')
     .map((r) => ({
       obsId: r.obs_id || `${collection}-obs`,
       obsCollection: r.obs_collection || collection,
