@@ -6,7 +6,7 @@
  * These deterministic fixtures demonstrate the workbench; they are never NASA/IPAC observations.
  */
 import type { SpherexObservation, SyntheticStar, TransientCandidate } from '../../types/index.ts';
-import { CHALLENGE_BENCHMARK_TARGETS } from '../../science/spherexCoordinates.ts';
+import { CHALLENGE_BENCHMARK_TARGETS, celestialToGalactic } from '../../science/spherexCoordinates.ts';
 import { SPHEREX_BANDS } from '../../science/spherexEngine.ts';
 
 interface DemoTarget {
@@ -222,8 +222,9 @@ export function createSpherexDemoObservation(input?: {
 }): SpherexObservation {
   const target = resolveTarget(input);
   const seed = targetHash(target.name);
-  const glonDeg = Number(((target.raDeg * 0.72 + target.decDeg * 0.31 + 180) % 360).toFixed(3));
-  const glatDeg = Number((target.decDeg * 0.61 - target.raDeg * 0.08).toFixed(3));
+  const galactic = celestialToGalactic(target.raDeg, target.decDeg);
+  const glonDeg = galactic.glonDeg;
+  const glatDeg = galactic.glatDeg;
   const dates = ['2025-05-15', '2025-11-15', '2026-05-15', '2026-11-15'];
   const epochs = dates.map((date, epoch) => ({
     frameId: 'SIM-' + target.id + '-EPOCH-' + (epoch + 1),
