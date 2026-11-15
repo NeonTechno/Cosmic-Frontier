@@ -222,17 +222,17 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
         {/* --- CINEMATIC NASA ASTRONAUT EDITORIAL HERO --- */}
         <section id="editorial-overview" className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28">
           <img
-            className="editorial-astronaut-image"
-            src={assetUrl('assets/editorial-astronaut.jpg')}
-            alt="Cosmic Frontier orbital astronaut conducting deep-space observations"
+            className="editorial-astronaut-image editorial-dust-horizon-image"
+            src="https://assets.science.nasa.gov/dynamicimage/assets/science/psd/photojournal/pia/pia26/pia26352/PIA26352.jpg?crop=faces%2Cfocalpoint&fit=crop&h=1100&w=1900"
+            alt="NASA SPHEREx infrared observation revealing interstellar dust clouds in the Large Magellanic Cloud"
             loading="eager"
             fetchPriority="high"
           />
           <div className="editorial-astronaut-shade" aria-hidden="true" />
           <div className="editorial-astronaut-grid" aria-hidden="true" />
           <div className="editorial-astronaut-frame" aria-hidden="true">
-            <span>ISS / EVA 059</span>
-            <span>ORBITAL FIELD NOTES</span>
+            <span>SPHEREX / INFRARED FIELD 01</span>
+            <span>INTERSTELLAR DUST SURVEY</span>
           </div>
 
           <div className="editorial-astronaut-layout">
@@ -291,9 +291,9 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
           </div>
 
           <footer className="editorial-astronaut-caption">
-            <span>FIG. 01 — HUMAN PRESENCE IN LOW EARTH ORBIT</span>
-            <a href="https://www.nasa.gov/image-article/nasa-spacewalker-nick-hague-3/" target="_blank" rel="noreferrer">
-              IMAGE: NASA / NICK HAGUE · ISS059E002192 ↗
+            <span>FIG. 01 — INTERSTELLAR DUST IN THE LARGE MAGELLANIC CLOUD</span>
+            <a href="https://science.nasa.gov/photojournal/spherexs-dust-cloud-reveal/" target="_blank" rel="noreferrer">
+              IMAGE: NASA / JPL-CALTECH · SPHEREX PIA26352 ↗
             </a>
           </footer>
         </section>
