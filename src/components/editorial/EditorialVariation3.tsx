@@ -116,14 +116,14 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
             }`}>
               <button
                 onClick={() => onNavigate('spherex')}
-                className={`hover:text-[#d44d5c] transition-colors cursor-pointer py-1 border-b border-transparent hover:border-[#d44d5c] ${!isLight ? 'hover:text-cyan-400 hover:border-cyan-400' : ''}`}
+                className={`portal-nav-discovery hover:text-[#d44d5c] transition-colors cursor-pointer py-1 border-b border-transparent hover:border-[#d44d5c] ${!isLight ? 'hover:text-cyan-400 hover:border-cyan-400' : ''}`}
                 title="SPHEREx Explorer (Alt + S)"
               >
                 SPHEREx
               </button>
               <button
                 onClick={() => onNavigate('planetx')}
-                className={`hover:text-[#d44d5c] transition-colors cursor-pointer py-1 border-b border-transparent hover:border-[#d44d5c] ${!isLight ? 'hover:text-cyan-400 hover:border-cyan-400' : ''}`}
+                className={`portal-nav-discovery hover:text-[#d44d5c] transition-colors cursor-pointer py-1 border-b border-transparent hover:border-[#d44d5c] ${!isLight ? 'hover:text-cyan-400 hover:border-cyan-400' : ''}`}
                 title="Planet X Lab (Alt + P)"
               >
                 Planet X
@@ -246,10 +246,10 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                 Explore the infrared universe through SPHEREx survey tools, archival telescope imagery, exoplanet records and orbital research. This featured JWST view reveals the sculpted pillars of gas and dust inside the Eagle Nebula.
               </p>
               <div className="editorial-astronaut-actions">
-                <button onClick={() => onNavigate('spherex')} className="editorial-astronaut-primary">
+                <button onClick={() => onNavigate('spherex')} className="editorial-astronaut-primary portal-discovery-button portal-discovery-button--spherex">
                   Launch SPHEREx Workbench <span aria-hidden="true">↗</span>
                 </button>
-                <button onClick={() => onNavigate('planetx')} className="editorial-astronaut-secondary">
+                <button onClick={() => onNavigate('planetx')} className="editorial-astronaut-secondary portal-discovery-button portal-discovery-button--planetx">
                   Investigate Planet X
                 </button>
               </div>
