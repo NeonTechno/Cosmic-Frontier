@@ -1514,7 +1514,7 @@ code, pre, .font-mono, .font-editorial-mono {
 }
 .editorial-astronaut-image {
   position: absolute;
-  z-index: -3;
+  z-index: 0;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -1524,7 +1524,7 @@ code, pre, .font-mono, .font-editorial-mono {
 }
 .editorial-astronaut-shade {
   position: absolute;
-  z-index: -2;
+  z-index: 1;
   inset: 0;
   background:
     linear-gradient(90deg, rgba(3,7,14,.97) 0%, rgba(3,7,14,.86) 25%, rgba(3,7,14,.24) 52%, rgba(3,7,14,.62) 72%, rgba(3,7,14,.94) 100%),
@@ -1532,7 +1532,7 @@ code, pre, .font-mono, .font-editorial-mono {
 }
 .editorial-astronaut-grid {
   position: absolute;
-  z-index: -1;
+  z-index: 2;
   inset: 0;
   pointer-events: none;
   opacity: .28;
@@ -1544,6 +1544,7 @@ code, pre, .font-mono, .font-editorial-mono {
 }
 .editorial-astronaut-frame {
   position: absolute;
+  z-index: 3;
   top: 20px;
   left: 24px;
   right: 24px;
@@ -1557,7 +1558,7 @@ code, pre, .font-mono, .font-editorial-mono {
 }
 .editorial-astronaut-layout {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(120px, .72fr) minmax(250px, .78fr);
   align-items: center;
