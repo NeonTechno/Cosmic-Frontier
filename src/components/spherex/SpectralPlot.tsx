@@ -234,7 +234,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
               {hoveredPoint.wavelength.toFixed(3)} µm {hoveredPoint.bandLabel ? `(${hoveredPoint.bandLabel})` : ''}
             </div>
             <div>
-              Flux: {hoveredPoint.fluxMJySr.toFixed(3)} ± {hoveredPoint.uncertainty.toFixed(3)} MJy/sr
+              {isDemo ? "Signal: " : "Flux: "}{hoveredPoint.fluxMJySr.toFixed(3)} ± {hoveredPoint.uncertainty.toFixed(3)} {isDemo ? "demo units" : "MJy/sr"}
             </div>
             <div className="text-[10px] text-slate-400">
               {isDemo ? 'SIMULATED_BENCHMARK — illustrative value, not measured' : observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Measured FITS flux; wavelength is nominal detector center' : hoveredPoint.isMeasured ? 'Measured from IRSA FITS HDU' : 'Reference Model'}
