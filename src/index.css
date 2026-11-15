@@ -1753,3 +1753,102 @@ code, pre, .font-mono, .font-editorial-mono {
     font-size: 7px;
   }
 }
+
+
+/* =========================================================================
+   LIGHT THEME READABILITY PASS — shared across every research module + modal
+   Keep the cinematic NASA astronaut image treatment intentionally dark.
+   ========================================================================= */
+.theme-light {
+  color-scheme: light;
+  --bg-primary: #fdfcf8;
+  --bg-secondary: #f4f1ea;
+  --bg-card: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #57534e;
+  --border-subtle: rgba(41, 37, 36, .14);
+  --border-muted: rgba(41, 37, 36, .09);
+}
+.theme-light :is(
+  [class~="bg-slate-950"], [class~="bg-slate-950/90"], [class~="bg-slate-950/80"],
+  [class~="bg-slate-950/60"], [class~="bg-slate-900"], [class~="bg-slate-900/90"],
+  [class~="bg-slate-900/80"], [class~="bg-slate-900/60"], [class~="bg-slate-850"],
+  [class~="bg-[#050B1A]"], [class~="bg-[#0B1630]"], [class~="bg-[#0E1B38]"],
+  [class~="bg-[#060914]"], [class~="bg-[#091224]/90"], [class~="bg-[#0b1329]/80"]
+) {
+  background-color: #ffffff !important;
+  background-image: none;
+}
+.theme-light :is(
+  [class~="bg-gradient-to-r"], [class~="bg-gradient-to-br"], [class~="bg-gradient-to-tr"]
+) {
+  background-image: linear-gradient(115deg, #ffffff 0%, #f7f5ef 100%) !important;
+}
+.theme-light :is(
+  [class~="text-white"], [class~="text-slate-100"], [class~="text-slate-200"],
+  [class~="text-slate-300"], [class~="text-slate-400"]
+) {
+  color: #292524 !important;
+}
+.theme-light :is(
+  [class~="text-slate-500"], [class~="text-slate-600"], [class~="text-gray-400"],
+  [class~="text-gray-500"]
+) {
+  color: #57534e !important;
+}
+.theme-light :is(
+  [class~="border-slate-800"], [class~="border-slate-800/80"],
+  [class~="border-slate-700"], [class~="border-slate-700/80"],
+  [class~="border-white/5"], [class~="border-white/[0.08]"]
+) {
+  border-color: rgba(41, 37, 36, .14) !important;
+}
+.theme-light :is(
+  [class~="text-cyan-200"], [class~="text-cyan-300"], [class~="text-cyan-400"],
+  [class~="text-sky-300"], [class~="text-sky-400"]
+) {
+  color: #08758a !important;
+}
+.theme-light :is(
+  [class~="text-purple-300"], [class~="text-purple-400"],
+  [class~="text-violet-300"], [class~="text-violet-400"],
+  [class~="text-indigo-300"], [class~="text-indigo-400"]
+) {
+  color: #5b45a5 !important;
+}
+.theme-light :is(
+  [class~="text-emerald-300"], [class~="text-emerald-400"],
+  [class~="text-green-300"], [class~="text-green-400"]
+) {
+  color: #087a50 !important;
+}
+.theme-light :is(
+  input, textarea, select
+) {
+  color: #1a1a1a;
+  background-color: #ffffff;
+  border-color: rgba(41, 37, 36, .2);
+}
+.theme-light input::placeholder,
+.theme-light textarea::placeholder {
+  color: #78716c;
+  opacity: 1;
+}
+.theme-light pre,
+.theme-light code {
+  color: #292524;
+}
+.theme-light :is(button, a):focus-visible {
+  outline-color: #08758a;
+}
+/* The astronaut photograph is deliberately cinematic; retain white overlay copy. */
+.theme-light .editorial-astronaut,
+.theme-light .editorial-astronaut * {
+  color: inherit;
+}
+.theme-light .editorial-astronaut :is(h1, h2, h3, p, span, small, strong, a) {
+  color: #f8fafc;
+}
+.theme-light .editorial-astronaut :is(.editorial-astronaut-copy p) {
+  color: rgba(248, 250, 252, .82);
+}
