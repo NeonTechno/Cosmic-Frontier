@@ -436,7 +436,7 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
 
         if (shouldLabel) {
           ctx.fillStyle = isSelected ? '#38BDF8' : '#F8FAFC';
-          ctx.font = `${isSelected ? 'bold ' : ''}11px -apple-system, sans-serif`;
+          ctx.font = `${isSelected ? 'bold ' : ''}11px Inter, sans-serif`;
           const text = isPlanetX ? 'Planet X [Hypothetical]' : obj.name.split('(')[0].trim();
           ctx.fillText(text, pos.x + bodyRadius + 6, pos.y + 4);
         }
