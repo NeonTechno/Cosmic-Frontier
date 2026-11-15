@@ -568,15 +568,23 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
     }
   }
 
-  // Test NASA
+  // Test NASA NeoWs and APOD independently.
   try {
-    const r = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=${NASA_KEY}`);
+    const r = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=${NASA_KEY}`, { signal: AbortSignal.timeout(7000) });
     results.nasa.status = r.ok ? 'connected' : `http_${r.status}`;
     results.nasa.connected = r.ok;
     results.nasa.testedEndpoint = 'api.nasa.gov/neo/rest/v1';
     results.nasa.message = r.ok ? 'NASA NeoWs responded successfully.' : 'NASA NeoWs request failed; check HTTP status, key and quota.';
   } catch (e: any) {
     results.nasa.status = `error: ${e.message}`;
+    results.nasa.connected = false;
+  }
+  try {
+    const apod = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}`, { signal: AbortSignal.timeout(7000) });
+    results.nasa.apod = { connected: apod.ok, status: apod.ok ? 'connected' : `http_${apod.status}`, testedEndpoint: 'api.nasa.gov/planetary/apod' };
+    if (!apod.ok) results.nasa.apod.message = (await apod.text()).slice(0, 240);
+  } catch (e: any) {
+    results.nasa.apod = { connected: false, status: 'error', message: e?.message || 'Request failed' };
   }
 
   res.json({
@@ -593,13 +601,11 @@ app.get('/api/nasa/apod', async (req: Request, res: Response) => {
     const response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}${dateQuery}`);
     if (response.ok) {
       const data = await response.json();
-      res.json({
-        data,
-        source: 'api.nasa.gov',
-        isLive: true,
-      });
+      res.json({ data, source: 'api.nasa.gov', isLive: true, dataStatus: 'LIVE' });
       return;
     }
+    const responseBody = await response.text().catch(() => '');
+    console.warn(`[Server] NASA APOD returned HTTP ${response.status}: ${responseBody.slice(0, 240)}`);
   } catch (err) {
     console.warn('[Server] NASA APOD fetch issue:', err);
   }
