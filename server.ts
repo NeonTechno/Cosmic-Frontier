@@ -710,80 +710,12 @@ app.get('/api/data/live-space/close-approaches', async (req: Request, res: Respo
     console.warn('[Server] NASA NeoWs live query failed, utilizing validated CNEOS cached records:', err);
   }
 
-  // High-fidelity fallback close approaches matching LiveCloseApproach schema
-  res.json({
-    success: true,
-    statusLabel: 'RECENT DATA',
-    retrievalTimestamp: new Date().toISOString(),
-    epoch: 'J2000',
-    timeframe: '7d',
-    count: 2,
-    approaches: [
-      {
-        designation: '99942 Apophis',
-        fullName: '99942 Apophis (2004 MN4)',
-        orbitId: '2099942',
-        julianDate: 2462239.407,
-        closeApproachDate: '2029-Apr-13 21:46',
-        closeApproachIso: '2029-04-13T21:46:00Z',
-        missDistanceAU: 0.000254,
-        missDistanceLunar: 0.098,
-        missDistanceKm: 38018,
-        distMinAU: 0.00025,
-        distMaxAU: 0.00026,
-        distMinKm: 37500,
-        distMaxKm: 38500,
-        relativeVelocityKmS: 7.43,
-        vInfinityKmS: 5.86,
-        uncertaintyTime: '< 1 min',
-        absoluteMagnitudeH: 19.7,
-        estimatedDiameterMeters: {
-          min: 340,
-          max: 370,
-          avg: 355,
-        },
-        isPotentiallyHazardous: true,
-        impactRisk: {
-          hasRisk: false,
-          assessment: 'No impact risk during 2029 Earth flyby (radar-eliminated).',
-          sentryUrl: 'https://cneos.jpl.nasa.gov/sentry/',
-        },
-        source: 'NASA JPL CNEOS Verified Close Approach Catalog',
-        sourceUrl: 'https://cneos.jpl.nasa.gov/ca/',
-      },
-      {
-        designation: '2024 YR4',
-        fullName: '2024 YR4',
-        orbitId: '54497812',
-        julianDate: 2460626.09,
-        closeApproachDate: '2026-Nov-12 14:10',
-        closeApproachIso: new Date(Date.now() + 86400000 * 5).toISOString(),
-        missDistanceAU: 0.0084,
-        missDistanceLunar: 3.27,
-        missDistanceKm: 1256000,
-        distMinAU: 0.008,
-        distMaxAU: 0.0088,
-        distMinKm: 1200000,
-        distMaxKm: 1310000,
-        relativeVelocityKmS: 12.18,
-        vInfinityKmS: 11.4,
-        uncertaintyTime: '± 2 min',
-        absoluteMagnitudeH: 24.1,
-        estimatedDiameterMeters: {
-          min: 45,
-          max: 95,
-          avg: 70,
-        },
-        isPotentiallyHazardous: false,
-        impactRisk: {
-          hasRisk: false,
-          assessment: 'Nominal flyby well outside lunar orbit.',
-          sentryUrl: 'https://cneos.jpl.nasa.gov/sentry/',
-        },
-        source: 'NASA JPL CNEOS Verified Close Approach Catalog',
-        sourceUrl: 'https://cneos.jpl.nasa.gov/ca/',
-      },
-    ],
+  res.status(502).json({
+    success: false,
+    statusLabel: 'LIVE DATA UNAVAILABLE',
+    dataStatus: 'UNAVAILABLE',
+    error: 'NASA NeoWs could not provide the close-approach feed. Retry later or check /api/system/api-status.',
+    approaches: [],
   });
 });
 
