@@ -3260,3 +3260,7 @@ body.theme-light {
     transition-duration: .01ms !important;
   }
 }
+
+/* Absolute hero layers must not inherit the section's vertical stack spacing. */
+.cf-home-hero > .cf-home-hero__image,
+.cf-home-hero > .cf-home-hero__shade { margin: 0 !important; }
