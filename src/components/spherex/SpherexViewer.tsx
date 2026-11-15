@@ -234,7 +234,11 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       setSelectedFov(obs.fieldOfViewArcmin);
     } catch (err) {
       const reason = err instanceof Error ? err.message : 'Unknown network or API error';
-      setLiveSearchError(`No verified SPHEREx FITS observation could be loaded (${reason}). The viewer has switched to a clearly labelled synthetic demonstration so its analysis tools remain explorable; no simulated values are represented as NASA data.`);\n      const demoObservation = createSpherexDemoObservation();\n      setLocalObservations((prev) => prev.length > 0 ? prev : [demoObservation]);\n      setSelectedObsId((current) => current || demoObservation.id);\n      setSelectedEpochIdx(0);
+      setLiveSearchError(`No verified SPHEREx FITS observation could be loaded (${reason}). The viewer has switched to a clearly labelled synthetic demonstration so its analysis tools remain explorable; no simulated values are represented as NASA data.`);
+      const demoObservation = createSpherexDemoObservation();
+      setLocalObservations((prev) => prev.length > 0 ? prev : [demoObservation]);
+      setSelectedObsId((current) => current || demoObservation.id);
+      setSelectedEpochIdx(0);
     } finally {
       setIsSearchingLive(false);
     }
