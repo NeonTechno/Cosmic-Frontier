@@ -40,7 +40,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
 
   const copyFitsText = () => {
     const lines = Object.entries(observation.fitsHeader).map(
-      ([k, v]) => `${k.padEnd(8)} = ${String(v).padEnd(20)} / SPHEREx telemetry`
+      ([k, v]) => `${k.padEnd(8)} = ${String(v).padEnd(20)} / ${isDemo ? 'SIMULATED BENCHMARK — NOT TELEMETRY' : 'FITS / ARCHIVE METADATA'}`
     );
     navigator.clipboard.writeText(lines.join('\n'));
     setCopied(true);
@@ -332,6 +332,57 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
         </div>
       </div>
 
+      {/* Astrophysical benchmark context and cross-catalog reference identifiers */}
+      <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 space-y-2">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-cyan-300">
+          {isDemo ? 'Benchmark Target Context · Reference Values' : 'Target Astrophysical Context'}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="block text-slate-500">Classification</span>
+            <span className="text-slate-100 font-semibold">{observation.properMotionTarget?.spectralType || String(observation.fitsHeader['TARGET_TEMPLATE'] || observation.category)}</span>
+          </div>
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="block text-slate-500">Distance</span>
+            <span className="text-slate-100 font-semibold">{observation.fitsHeader['DISTANCE_LIGHT_YEARS'] ?? 'Not supplied'}{typeof observation.fitsHeader['DISTANCE_LIGHT_YEARS'] === 'number' ? ' ly' : ''}</span>
+          </div>
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="block text-slate-500">Proper Motion</span>
+            <span className="text-slate-100 font-semibold">{observation.properMotionTarget ? observation.properMotionTarget.totalPmArcsecYr.toFixed(2) + '″/yr' : 'Not supplied'}</span>
+          </div>
+        </div>
+        {observation.properMotionTarget && (
+          <div className="rounded bg-slate-900/80 p-2 text-[11px]">
+            <span className="text-slate-500 block">Proper-motion vector (benchmark reference)</span>
+            <span className="text-slate-100 font-mono">
+              RA {observation.properMotionTarget.pmRaMasYr.toFixed(1)} mas/yr · Dec {observation.properMotionTarget.pmDecMasYr.toFixed(1)} mas/yr · Parallax {observation.properMotionTarget.parallaxMas.toFixed(2)} mas
+            </span>
+          </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="text-slate-500 block">Gaia DR3 context</span>
+            <span className="text-slate-200">{String(observation.fitsHeader['GAIA_REFERENCE'] || 'No cross-match supplied')}</span>
+          </div>
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="text-slate-500 block">AllWISE context</span>
+            <span className="text-slate-200">{String(observation.fitsHeader['ALLWISE_REFERENCE'] || 'No cross-match supplied')}</span>
+          </div>
+        </div>
+        {observation.fitsHeader['SCIENCE_HIGHLIGHTS'] && (
+          <p className="text-[11px] leading-relaxed text-slate-300">{String(observation.fitsHeader['SCIENCE_HIGHLIGHTS'])}</p>
+        )}
+        {observation.fitsHeader['KEY_SCIENCE_SIGNATURES'] && (
+          <p className="text-[10px] leading-relaxed text-slate-400">Diagnostic features: {String(observation.fitsHeader['KEY_SCIENCE_SIGNATURES'])}</p>
+        )}
+        {observation.variabilityTarget && (
+          <div className="rounded bg-slate-900/80 p-2 text-[11px] text-slate-200">
+            Variability reference: {observation.variabilityTarget.periodDays} day period · {observation.variabilityTarget.amplitudeMag} mag amplitude · {observation.variabilityTarget.classification}
+          </div>
+        )}
+        {isDemo && <p className="text-[10px] text-amber-300">These are benchmark reference facts and descriptive templates, not measurements made by the synthetic frames. Gaia and AllWISE are not queried or cross-matched in demo mode.</p>}
+      </div>
+
       {/* Live Gaia DR3 Cone Match Table */}
       {observation.gaiaSources && observation.gaiaSources.length > 0 && (
         <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-3 text-xs font-mono space-y-2">
@@ -427,7 +478,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
           className="w-full px-3 py-2 text-xs font-mono text-slate-300 hover:text-white bg-slate-900/60 flex items-center justify-between transition"
         >
           <span className="flex items-center gap-1.5 font-semibold text-cyan-400">
-            <span>FITS Standard Header</span>
+            <span>{isDemo ? 'Simulated Benchmark Metadata' : 'FITS Standard Header'}</span>
             <span className="text-slate-500 font-normal">({Object.keys(observation.fitsHeader).length} keywords)</span>
           </span>
           <span className="text-slate-400 text-[11px] underline">
