@@ -7,7 +7,7 @@ import {
   Database, 
   Search, 
   ExternalLink, 
-  Sparkles, 
+  MessageCircleQuestion, 
   RefreshCw, 
   CheckCircle2, 
   AlertCircle, 
@@ -71,7 +71,7 @@ export const NasaDataCentre: FC<NasaDataCentreProps> = ({ onNavigate }) => {
     { id: 'exoplanets', label: 'Exoplanets', icon: Orbit },
     { id: 'small-bodies', label: 'Asteroids & TNOs', icon: Orbit },
     { id: 'galaxies', label: 'Galaxies', icon: Telescope },
-    { id: 'stars', label: 'Stars', icon: Sparkles },
+    { id: 'stars', label: 'Stars', icon: MessageCircleQuestion },
     { id: 'spherex', label: 'SPHEREx Tracers', icon: Telescope },
   ];
 
@@ -486,8 +486,8 @@ export const NasaDataCentre: FC<NasaDataCentreProps> = ({ onNavigate }) => {
                   }}
                   className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30 hover:bg-[#38BDF8]/20 transition-colors"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Ask AI Guide About This Target
+                  <MessageCircleQuestion className="w-3.5 h-3.5" />
+                  Ask Guide About This Target
                 </button>
               )}
               <button

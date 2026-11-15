@@ -29,7 +29,7 @@ import {
   RotateCcw, 
   Search, 
   ExternalLink, 
-  Sparkles, 
+  MessageCircleQuestion, 
   Info, 
   X,
   ChevronLeft,
@@ -1141,13 +1141,13 @@ export const Universe3DExplorer: FC<Universe3DExplorerProps> = ({ onNavigate, on
                 <ExternalLink className="w-3 h-3" />
               </a>
 
-              {/* Ask AI Guide Button */}
+              {/* Ask Guide Button */}
               <button
                 onClick={() => onNavigate('ai-guide')}
                 className="text-[#38BDF8] hover:text-[#7DD3FC] font-semibold inline-flex items-center gap-1 text-[11px] cursor-pointer"
               >
-                <Sparkles className="w-3 h-3" />
-                <span>Ask AI Guide</span>
+                <MessageCircleQuestion className="w-3 h-3" />
+                <span>Ask Guide</span>
               </button>
             </div>
           </div>

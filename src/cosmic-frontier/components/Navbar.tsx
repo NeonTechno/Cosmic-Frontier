@@ -4,7 +4,7 @@ import {
   Home,
   Telescope, 
   Orbit,
-  Sparkles, 
+  MessageCircleQuestion, 
   Info, 
   Menu, 
   X, 
@@ -51,10 +51,10 @@ export const Navbar: FC<NavbarProps> = ({
     { page: 'observatory', label: 'Live', icon: <Telescope className="w-4 h-4" /> },
     { page: 'universe', label: '3D', icon: <Globe className="w-4 h-4" /> },
     { page: 'exoplanets', label: 'Worlds', icon: <Disc className="w-4 h-4" /> },
-    { page: 'galaxies', label: 'Galaxies', icon: <Sparkles className="w-4 h-4" /> },
+    { page: 'galaxies', label: 'Galaxies', icon: <Orbit className="w-4 h-4" /> },
     { page: 'asteroid-watch', label: 'NEOs', icon: <Compass className="w-4 h-4" /> },
     { page: 'data-centre', label: 'Data', icon: <Database className="w-4 h-4" /> },
-    { page: 'ai-guide', label: 'AI Guide', icon: <Sparkles className="w-4 h-4" /> },
+    { page: 'ai-guide', label: 'Guide', icon: <MessageCircleQuestion className="w-4 h-4" /> },
     
   ];
 
@@ -199,8 +199,8 @@ export const Navbar: FC<NavbarProps> = ({
                   : 'bg-[#F5C451]/10 text-[#F5C451] hover:bg-[#F5C451]/20 border-[#F5C451]/30'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Ask AI Guide</span>
+              <MessageCircleQuestion className="w-3.5 h-3.5" />
+              <span>Ask Guide</span>
             </button>
 
 

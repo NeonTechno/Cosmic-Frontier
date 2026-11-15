@@ -218,113 +218,84 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
           </div>
         </div>
 
-        {/* --- HERO GRID --- */}
-        <div id="editorial-overview" className="scroll-mt-20 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-12 lg:gap-16 mb-20 sm:mb-28">
-          <div className="space-y-6">
-            <span className={`editorial-label ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>OBSERVATIONAL ASTROPHYSICS // 2026</span>
-            <h2 className={`text-5xl sm:text-7xl lg:text-8xl font-serif font-semibold leading-[0.88] tracking-tight ${
-              isLight ? 'text-[#1a1a1a]' : 'text-white'
-            }`}>
-              The Cosmic Dust
-              <br />
-              <span className={`italic font-normal ${isLight ? 'text-[#1a1a1a]/90' : 'text-cyan-300/90'}`}>Horizon.</span>
-            </h2>
-            <p className={`text-base sm:text-lg font-editorial-sans leading-relaxed max-w-2xl pt-2 ${
-              isLight ? 'text-[#1a1a1a]/75' : 'text-slate-300'
-            }`}>
-              Black Star Orbit delivers calibrated spectrophotometric all-sky surveys across 102 infrared bands, alongside gravitational orbit clustering simulations of outer solar system perturbers. Rigorously anchored to NASA IPAC/IRSA and Minor Planet Center ephemerides.
-            </p>
+        {/* --- CINEMATIC NASA ASTRONAUT EDITORIAL HERO --- */}
+        <section id="editorial-overview" className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28">
+          <img
+            className="editorial-astronaut-image"
+            src="https://www.nasa.gov/wp-content/uploads/2023/03/iss059e002192.jpg?w=1041"
+            alt="NASA astronaut Nick Hague conducting a spacewalk outside the International Space Station"
+            loading="eager"
+            fetchPriority="high"
+          />
+          <div className="editorial-astronaut-shade" aria-hidden="true" />
+          <div className="editorial-astronaut-grid" aria-hidden="true" />
+          <div className="editorial-astronaut-frame" aria-hidden="true">
+            <span>ISS / EVA 059</span>
+            <span>ORBITAL FIELD NOTES</span>
+          </div>
 
-            <div className="flex flex-wrap items-center gap-4 pt-4">
-              <button
-                onClick={() => onNavigate('spherex')}
-                className={`editorial-btn group cursor-pointer ${
-                  !isLight ? 'border-cyan-500/50 text-cyan-200 hover:bg-cyan-500/20 hover:text-white' : ''
-                }`}
-              >
-                <span>Launch SPHEREx Workbench</span>
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
-              </button>
-              <button
-                onClick={() => onNavigate('planetx')}
-                className={`editorial-btn group cursor-pointer ${
-                  !isLight ? 'border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white' : ''
-                }`}
-              >
-                <span>Investigate Planet X</span>
-                <span className="group-hover:translate-x-1 transition-transform">→</span>
-              </button>
+          <div className="editorial-astronaut-layout">
+            <div className="editorial-astronaut-copy">
+              <span className="editorial-astronaut-kicker">OBSERVATIONAL ASTROPHYSICS // 2026</span>
+              <h2>
+                The Cosmic Dust
+                <span>Horizon.</span>
+              </h2>
+              <p>
+                Explore the infrared universe through calibrated all-sky observations, exoplanet records and orbital research. Every scientific workflow is grounded in traceable mission data and published astronomical sources.
+              </p>
+              <div className="editorial-astronaut-actions">
+                <button onClick={() => onNavigate('spherex')} className="editorial-astronaut-primary">
+                  Launch SPHEREx Workbench <span aria-hidden="true">↗</span>
+                </button>
+                <button onClick={() => onNavigate('planetx')} className="editorial-astronaut-secondary">
+                  Investigate Planet X
+                </button>
+              </div>
               {onOpenDataModal && (
-                <button
-                  onClick={onOpenDataModal}
-                  className={`font-mono text-xs uppercase tracking-wider underline underline-offset-4 cursor-pointer py-2 px-1 ${
-                    isLight ? 'text-[#8c8c8c] hover:text-[#1a1a1a]' : 'text-slate-400 hover:text-cyan-300'
-                  }`}
-                >
-                  View NASA Spec Sheet
+                <button onClick={onOpenDataModal} className="editorial-astronaut-spec-link">
+                  View NASA data specifications
                 </button>
               )}
             </div>
-          </div>
 
-          {/* Right Status / Telemetry Column */}
-          <div className={`border-t lg:border-t-0 lg:border-l pt-8 lg:pt-0 lg:pl-10 space-y-6 font-editorial-sans ${
-            isLight ? 'border-[#1a1a1a]/15' : 'border-slate-800'
-          }`}>
-            <div className="space-y-1">
-              <span className={`editorial-label ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>SYSTEM STATUS</span>
-              <div className={`font-mono text-sm font-bold flex items-center gap-2 ${
-                isLight ? 'text-[#1a1a1a]' : 'text-emerald-400'
-              }`}>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Nominal // Active Calibration
+            <div className="editorial-astronaut-center-space" aria-hidden="true" />
+
+            <aside className="editorial-astronaut-telemetry" aria-label="Scientific platform status">
+              <div className="editorial-astronaut-panel-top">
+                <span>MISSION TELEMETRY</span>
+                <span className="editorial-astronaut-live"><i /> ACTIVE</span>
               </div>
-              <p className={`text-xs font-editorial-sans leading-normal ${
-                isLight ? 'text-[#8c8c8c]' : 'text-slate-400'
-              }`}>
-                Spectrophotometric pipeline operating in Level-2/3 nominal processing mode.
-              </p>
-            </div>
-
-            <div className={`space-y-1 pt-3 border-t ${isLight ? 'border-[#1a1a1a]/10' : 'border-slate-800'}`}>
-              <span className={`editorial-label ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>INFRARED SPECTRAL SPAN</span>
-              <div className={`font-mono text-base font-bold ${isLight ? 'text-[#1a1a1a]' : 'text-cyan-300'}`}>
-                0.75 – 5.0 µm
+              <div className="editorial-astronaut-metric">
+                <span>SYSTEM STATUS</span>
+                <strong>Nominal</strong>
+                <small>Level-2/3 processing mode</small>
               </div>
-              <span className={`text-xs font-mono block ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>
-                102 Continuous Wavelength Bands
-              </span>
-            </div>
-
-            <div className={`space-y-1 pt-3 border-t ${isLight ? 'border-[#1a1a1a]/10' : 'border-slate-800'}`}>
-              <span className={`editorial-label ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>TARGET MODEL HYPOTHESIS</span>
-              <div className={`font-mono text-sm font-bold ${isLight ? 'text-[#1a1a1a]' : 'text-slate-200'}`}>
-                Batygin & Brown (2021)
+              <div className="editorial-astronaut-metric">
+                <span>INFRARED SPECTRAL SPAN</span>
+                <strong>0.75 – 5.0 µm</strong>
+                <small>102 continuous wavelength bands</small>
               </div>
-              <span className={`text-xs font-editorial-sans block ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>
-                eTNO Longitude of Perihelion clustering (varies 300–600 AU)
-              </span>
-            </div>
-
-            <div className="pt-2">
-              <button
-                onClick={() => onNavigate('astrobiology')}
-                className={`w-full text-left p-3.5 border transition-all cursor-pointer group ${
-                  isLight
-                    ? 'border-[#1a1a1a]/15 hover:border-[#1a1a1a] bg-black/[0.02]'
-                    : 'border-slate-800 hover:border-cyan-500/50 bg-slate-900/60'
-                }`}
-              >
-                <span className={`editorial-label mb-1 ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>FEATURED SCIENTIFIC STUDY</span>
-                <span className={`font-serif text-base font-semibold transition-colors block ${
-                  isLight ? 'text-[#1a1a1a] group-hover:text-[#d44d5c]' : 'text-white group-hover:text-cyan-300'
-                }`}>
-                  Prebiotic Interstellar Ices (H₂O, CO₂, CH₃OH) →
-                </span>
+              <div className="editorial-astronaut-metric">
+                <span>ORBITAL MODEL REFERENCE</span>
+                <strong>Batygin &amp; Brown</strong>
+                <small>2021 · eTNO perihelion clustering</small>
+              </div>
+              <button onClick={() => onNavigate('astrobiology')} className="editorial-astronaut-study">
+                <span>FEATURED SCIENTIFIC STUDY</span>
+                <strong>Prebiotic Interstellar Ices <b>↗</b></strong>
+                <small>H₂O · CO₂ · CH₃OH</small>
               </button>
-            </div>
+            </aside>
           </div>
-        </div>
+
+          <footer className="editorial-astronaut-caption">
+            <span>FIG. 01 — HUMAN PRESENCE IN LOW EARTH ORBIT</span>
+            <a href="https://www.nasa.gov/image-article/nasa-spacewalker-nick-hague-3/" target="_blank" rel="noreferrer">
+              IMAGE: NASA / NICK HAGUE · ISS059E002192 ↗
+            </a>
+          </footer>
+        </section>
 
         {/* --- CATALOG SECTION --- */}
         <section id="editorial-catalog" className={`scroll-mt-20 catalog-section border-t pt-12 mb-20 sm:mb-28 ${

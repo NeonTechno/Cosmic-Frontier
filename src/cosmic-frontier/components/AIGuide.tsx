@@ -3,14 +3,12 @@ import type { GuideMessage, AppPage } from '../types';
 import { STARTER_QUESTIONS, findVerifiedAnswer } from '../data/guideKnowledge';
 import { NaturalTextRenderer } from '../../components/common/NaturalTextRenderer';
 import { 
-  Sparkles, 
   Send, 
-  Bot, 
   User, 
   RotateCcw, 
   ShieldCheck, 
   BookOpen, 
-  Telescope, 
+  MessageCircleQuestion, 
   Orbit, 
   AlertCircle,
   HelpCircle,
@@ -241,7 +239,7 @@ You can explore any of our core educational questions or inspect our interactive
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1E293B]">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30 text-xs font-semibold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+            <MessageCircleQuestion className="w-3.5 h-3.5 text-[#38BDF8]" />
             <span>Educational Astronomy Assistant</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-[#F8FAFC] tracking-tight">
@@ -371,7 +369,7 @@ You can explore any of our core educational questions or inspect our interactive
                       onClick={() => handleSendMessage(question)}
                       className="p-3 text-left rounded-xl bg-[#050B1A] border border-[#1E293B] hover:border-[#38BDF8] hover:bg-[#0B1630] text-xs text-[#A7B4CC] hover:text-[#F8FAFC] transition-all flex items-start gap-2.5 group cursor-pointer focus:ring-2 focus:ring-[#38BDF8] focus:outline-none"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-[#38BDF8] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                      <MessageCircleQuestion className="w-3.5 h-3.5 text-[#38BDF8] shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                       <span className="font-medium leading-snug">{question}</span>
                     </button>
                   ))}
@@ -395,7 +393,7 @@ You can explore any of our core educational questions or inspect our interactive
                     }`}
                     aria-hidden="true"
                   >
-                    {isAssistant ? <Bot className="w-5 h-5" /> : <User className="w-5 h-5 font-bold" />}
+                    {isAssistant ? <Telescope className="w-5 h-5" /> : <User className="w-5 h-5 font-bold" />}
                   </div>
 
                   {/* Message Bubble & Supplementary Content */}

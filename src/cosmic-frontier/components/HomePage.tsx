@@ -4,7 +4,6 @@ import { NasaLiveDispatch } from './NasaLiveDispatch';
 import { 
   Telescope, 
   Orbit, 
-  Sparkles, 
   ChevronRight, 
   ArrowRight,
   Database,
@@ -227,9 +226,9 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
                 <span>04. DATA & PEDAGOGY</span>
                 <Database className="w-4 h-4" />
               </div>
-              <h4 className="text-base font-bold text-[#F8FAFC]">Open Archives & AI Guide</h4>
+              <h4 className="text-base font-bold text-[#F8FAFC]">Open Archives & Guide</h4>
               <p className="text-xs text-[#A7B4CC] leading-relaxed">
-                Search mission archives and ask the AI guide.
+                Search mission archives and ask the astronomy guide.
               </p>
             </div>
             <div className="space-y-2 pt-2 border-t border-[#1E293B]/70">
@@ -244,7 +243,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
                 onClick={() => onNavigate('ai-guide')}
                 className="w-full text-left py-1.5 px-2 rounded-lg hover:bg-[#050B1A] text-xs font-mono text-[#F8FAFC] hover:text-[#10B981] flex items-center justify-between transition-colors cursor-pointer"
               >
-                <span>COSMIC AI Guide</span>
+                <span>COSMIC GUIDE</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>

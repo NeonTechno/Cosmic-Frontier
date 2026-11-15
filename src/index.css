@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --font-nasa: 'Orbitron', 'Audiowide', 'Michroma', sans-serif;
-  --font-display: 'Orbitron', 'Audiowide', 'Michroma', sans-serif;
-  --font-heading: 'Orbitron', 'Space Grotesk', sans-serif;
-  --font-sans: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-nasa: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-editorial-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-editorial-mono: 'Space Mono', 'JetBrains Mono', monospace;
 }
@@ -29,22 +29,22 @@
     margin: 0;
     background: #050711;
     color: #f3f4f6;
-    font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.012em;
   }
   h1, h2, h3, .font-display, .font-serif-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: 'Inter', sans-serif;
     letter-spacing: -0.015em;
   }
   h4, h5, h6, .font-heading {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: 'Inter', sans-serif;
     letter-spacing: -0.01em;
   }
   .font-nasa {
-    font-family: 'Orbitron', 'Audiowide', 'Michroma', sans-serif;
+    font-family: 'Inter', 'Inter', sans-serif;
     letter-spacing: 0.04em;
   }
   button, a, select { -webkit-tap-highlight-color: transparent; }
@@ -211,7 +211,7 @@
 .mission-kicker,.mission-tag { display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid rgba(125,211,252,.2);border-radius:999px;background:rgba(8,20,39,.58);color:#a5eaf8;font:500 10px/1.2 'JetBrains Mono',monospace;letter-spacing:.13em; }
 .mission-tag { color:#a5b4fc;border-color:rgba(165,180,252,.16);letter-spacing:.08em; }
 .mission-kicker__dot,.status-dot { display:inline-block;width:6px;height:6px;border-radius:50%;background:#5eead4;box-shadow:0 0 12px rgba(94,234,212,.7); }
-.mission-title { font-family: 'Orbitron', 'Audiowide', 'Michroma', sans-serif; font-size:clamp(2.4rem,5.5vw,4.8rem);font-weight:800;letter-spacing:0.04em;line-height:1.02;color:#f8fafc;text-transform:uppercase; }
+.mission-title { font-family: 'Inter', 'Inter', sans-serif; font-size:clamp(2.4rem,5.5vw,4.8rem);font-weight:800;letter-spacing:0.04em;line-height:1.02;color:#f8fafc;text-transform:uppercase; }
 .mission-title span { color:transparent;background:linear-gradient(105deg,#a5f3fc 0%,#67e8f9 35%,#a5b4fc 78%,#c4b5fd 100%);background-clip:text;-webkit-background-clip:text; }
 .nasa-pill {
   display: inline-flex;
@@ -224,7 +224,7 @@
   border: 1.5px solid rgba(56, 189, 248, 0.65);
   box-shadow: 0 0 18px rgba(56, 189, 248, 0.45), inset 0 0 12px rgba(56, 189, 248, 0.25);
   color: #E0F2FE;
-  font-family: 'Orbitron', 'Audiowide', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -239,14 +239,14 @@
   color: #FFFFFF;
 }
 .mission-primary-button,.mission-secondary-button { display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:0 16px;border-radius:12px;font-size:13px;font-weight:600;transition:transform .2s ease,border-color .2s ease,background .2s ease,box-shadow .2s ease; }
-.mission-primary-button { color:#06111d;background:linear-gradient(110deg,#a5f3fc,#67e8f9 55%,#a5b4fc);box-shadow:0 8px 26px rgba(34,211,238,.13);font-family:'Orbitron','Audiowide',sans-serif;letter-spacing:0.04em; }
+.mission-primary-button { color:#06111d;background:linear-gradient(110deg,#a5f3fc,#67e8f9 55%,#a5b4fc);box-shadow:0 8px 26px rgba(34,211,238,.13);font-family:'Inter','Inter',sans-serif;letter-spacing:0.04em; }
 .mission-primary-button:hover { transform:translateY(-2px);box-shadow:0 12px 32px rgba(34,211,238,.22); }
-.mission-secondary-button { color:#e2e8f0;background:rgba(255,255,255,.035);border:1px solid rgba(148,163,184,.23);font-family:'Orbitron','Audiowide',sans-serif;letter-spacing:0.04em; }
+.mission-secondary-button { color:#e2e8f0;background:rgba(255,255,255,.035);border:1px solid rgba(148,163,184,.23);font-family:'Inter','Inter',sans-serif;letter-spacing:0.04em; }
 .mission-secondary-button:hover { transform:translateY(-2px);background:rgba(255,255,255,.07);border-color:rgba(165,180,252,.48); }
 .mission-console { overflow:hidden;border:1px solid rgba(148,163,184,.19);border-radius:18px;background:rgba(7,12,26,.76);box-shadow:0 22px 70px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.035);backdrop-filter:blur(18px); }
 .mission-stat { min-width:0;padding:17px 16px;background:rgba(13,19,38,.8); }
 .mission-stat__label { display:block;color:#7f91b0;font:500 9px/1.4 'JetBrains Mono',monospace;letter-spacing:.14em; }
-.mission-stat strong { display:block;margin-top:9px;color:#f1f5f9;font:600 19px/1.2 'Space Grotesk',sans-serif;letter-spacing:.02em; }
+.mission-stat strong { display:block;margin-top:9px;color:#f1f5f9;font:600 19px/1.2 'Inter',sans-serif;letter-spacing:.02em; }
 .mission-stat small { display:block;margin-top:5px;color:#94a3b8;font-size:11px; }
 .mission-stat--wide { grid-column:1 / -1;padding-top:14px;padding-bottom:15px; }
 .mission-console__footer { display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;color:#cbd5e1;font-size:11px;background:rgba(255,255,255,.018);transition:background .2s ease; }
@@ -298,7 +298,7 @@
 body {
   background-color: #050B1A;
   color: #F8FAFC;
-  font-family: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   margin: 0;
   padding: 0;
   overflow-x: clip;
@@ -577,8 +577,8 @@ body {
   --accent: #d44d5c;
   --muted: #8c8c8c;
   --serif: 'Cormorant Garamond', Georgia, serif;
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --mono: 'Space Mono', monospace;
+  --sans: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: 'Space Mono', 'JetBrains Mono', monospace;
   background-color: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
@@ -803,7 +803,7 @@ html.theme-light h6,
 .theme-light .font-nasa,
 .theme-light .font-heading,
 .theme-light .mission-title {
-  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-family: 'Inter', sans-serif !important;
   letter-spacing: -0.018em !important;
   color: #1a1a1a !important;
   font-weight: 600 !important;
@@ -884,7 +884,7 @@ html.theme-light kbd,
 
 .theme-light .mission-stat strong {
   color: #1a1a1a !important;
-  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 24px !important;
 }
 
@@ -1080,7 +1080,7 @@ html.theme-light kbd,
 .theme-light .launching-page-locked .font-nasa,
 .launching-page-locked h1,
 .launching-page-locked .font-nasa {
-  font-family: 'Orbitron', 'Audiowide', 'Michroma', sans-serif !important;
+  font-family: 'Inter', 'Inter', sans-serif !important;
 }
 .theme-light .launching-page-locked h1,
 .launching-page-locked h1 {
@@ -1148,7 +1148,7 @@ html.theme-light kbd,
 .cf-module-hero { position: relative; }
 .cf-module-hero h1 {
   color: #f4f8ff;
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 650;
   letter-spacing: -.045em;
 }
@@ -1461,4 +1461,479 @@ h1, h2, h3, h4, h5, h6,
 }
 code, pre, .font-mono, .font-editorial-mono {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+}
+
+
+/* Cinematic NASA astronaut editorial cover */
+.editorial-astronaut-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-height: clamp(590px, 68vw, 760px);
+  overflow: hidden;
+  color: #f4f8fc;
+  background: #050a12;
+  border: 1px solid rgba(154, 190, 216, .2);
+  border-radius: 24px;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .42), inset 0 1px rgba(255,255,255,.045);
+}
+.editorial-astronaut-image {
+  position: absolute;
+  z-index: -3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 44%;
+  filter: saturate(.72) contrast(1.08) brightness(.78);
+}
+.editorial-astronaut-shade {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3,7,14,.97) 0%, rgba(3,7,14,.86) 25%, rgba(3,7,14,.24) 52%, rgba(3,7,14,.62) 72%, rgba(3,7,14,.94) 100%),
+    linear-gradient(0deg, rgba(3,7,14,.94) 0%, transparent 34%, rgba(3,7,14,.14) 100%);
+}
+.editorial-astronaut-grid {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: .28;
+  background-image:
+    linear-gradient(rgba(194,218,235,.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(194,218,235,.14) 1px, transparent 1px);
+  background-size: 76px 76px;
+  mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,.8) 68%, transparent 100%);
+}
+.editorial-astronaut-frame {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: rgba(225,238,248,.56);
+  font: 9px/1.4 'Space Mono', monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.editorial-astronaut-layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, .72fr) minmax(250px, .78fr);
+  align-items: center;
+  gap: clamp(14px, 2.2vw, 34px);
+  flex: 1;
+  padding: clamp(62px, 6vw, 88px) clamp(24px, 4.2vw, 64px) 34px;
+}
+.editorial-astronaut-copy {
+  max-width: 520px;
+  align-self: center;
+}
+.editorial-astronaut-kicker {
+  display: block;
+  margin-bottom: 22px;
+  color: #a9c3d7;
+  font: 10px/1.5 'Space Mono', monospace;
+  letter-spacing: .18em;
+}
+.editorial-astronaut-copy h2 {
+  margin: 0;
+  max-width: 620px;
+  color: #f7fbff !important;
+  font: 600 clamp(48px, 5.6vw, 82px)/.94 'Cormorant Garamond', Georgia, serif !important;
+  letter-spacing: -.075em !important;
+  text-shadow: 0 4px 32px rgba(0,0,0,.38);
+}
+.editorial-astronaut-copy h2 span {
+  display: block;
+  color: #b9d4e8 !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  font-weight: 450;
+  letter-spacing: -.07em;
+}
+.editorial-astronaut-copy p {
+  max-width: 440px !important;
+  margin-top: 24px;
+  color: rgba(224,235,245,.78) !important;
+  font: 400 15px/1.8 'Plus Jakarta Sans', 'Space Grotesk', sans-serif !important;
+}
+.editorial-astronaut-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+.editorial-astronaut-actions button,
+.editorial-astronaut-spec-link {
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid rgba(198,220,237,.34);
+  border-radius: 3px;
+  color: #edf7ff;
+  background: rgba(8,18,31,.58);
+  font: 600 9px/1.3 'Space Mono', monospace;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.editorial-astronaut-actions button:hover,
+.editorial-astronaut-spec-link:hover {
+  border-color: rgba(202,233,255,.8);
+  background: rgba(58,91,118,.38);
+  transform: translateY(-1px);
+}
+.editorial-astronaut-actions .editorial-astronaut-primary {
+  border-color: rgba(205,228,245,.62);
+  color: #07111c;
+  background: #e4edf4;
+}
+.editorial-astronaut-actions .editorial-astronaut-primary:hover {
+  color: #02070d;
+  background: #fff;
+}
+.editorial-astronaut-actions .editorial-astronaut-primary span { margin-left: 10px; }
+.editorial-astronaut-spec-link {
+  min-height: auto;
+  margin-top: 15px;
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(207,225,240,.35);
+  border-radius: 0;
+  color: rgba(219,233,244,.7);
+  background: transparent;
+}
+.editorial-astronaut-center-space { min-height: 260px; }
+.editorial-astronaut-telemetry {
+  align-self: center;
+  padding: 20px;
+  border: 1px solid rgba(195,218,235,.22);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(8,17,29,.78), rgba(5,12,22,.76));
+  box-shadow: 0 18px 55px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.06);
+  backdrop-filter: blur(16px);
+}
+.editorial-astronaut-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(195,218,235,.16);
+  color: #9fb5c7;
+  font: 9px/1.4 'Space Mono', monospace;
+  letter-spacing: .12em;
+}
+.editorial-astronaut-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #d6e4ed;
+  font-size: 8px;
+}
+.editorial-astronaut-live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9bbca8;
+  box-shadow: 0 0 10px rgba(155,188,168,.6);
+}
+.editorial-astronaut-metric {
+  display: grid;
+  gap: 6px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(195,218,235,.13);
+}
+.editorial-astronaut-metric > span,
+.editorial-astronaut-study > span {
+  color: #8ea5b8;
+  font: 8px/1.5 'Space Mono', monospace;
+  letter-spacing: .13em;
+}
+.editorial-astronaut-metric strong {
+  color: #f0f6fb;
+  font: 600 17px/1.25 Inter, ui-sans-serif, sans-serif;
+  letter-spacing: -.035em;
+}
+.editorial-astronaut-metric small,
+.editorial-astronaut-study small {
+  color: #91a6b7;
+  font: 10px/1.5 Inter, ui-sans-serif, sans-serif;
+}
+.editorial-astronaut-study {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px;
+  border: 1px solid rgba(195,218,235,.2);
+  border-radius: 4px;
+  text-align: left;
+  background: rgba(166,195,216,.055);
+  cursor: pointer;
+}
+.editorial-astronaut-study:hover { border-color: rgba(205,228,245,.58); background: rgba(166,195,216,.1); }
+.editorial-astronaut-study strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #f2f7fb;
+  font: 600 12px/1.4 Inter, ui-sans-serif, sans-serif;
+}
+.editorial-astronaut-study strong b { color: #b9d4e8; }
+.editorial-astronaut-caption {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px clamp(24px, 4.2vw, 64px);
+  border-top: 1px solid rgba(195,218,235,.18);
+  color: rgba(206,222,235,.62);
+  background: rgba(3,8,15,.52);
+  font: 8px/1.5 'Space Mono', monospace;
+  letter-spacing: .1em;
+}
+.editorial-astronaut-caption a { color: rgba(219,233,244,.78); text-decoration: none; }
+.editorial-astronaut-caption a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.editorial-dark #editorial-overview::before,
+.editorial-dark #editorial-overview::after { content: none; display: none; }
+@media (max-width: 900px) {
+  .editorial-astronaut-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(230px, .78fr);
+  }
+  .editorial-astronaut-center-space { display: none; }
+  .editorial-astronaut-shade {
+    background:
+      linear-gradient(90deg, rgba(3,7,14,.94), rgba(3,7,14,.58) 56%, rgba(3,7,14,.84)),
+      linear-gradient(0deg, rgba(3,7,14,.92), transparent 55%);
+  }
+}
+@media (max-width: 640px) {
+  .editorial-astronaut-hero { min-height: 0; border-radius: 16px; }
+  .editorial-astronaut-image {
+    height: 380px;
+    object-position: 48% 42%;
+  }
+  .editorial-astronaut-shade {
+    background: linear-gradient(180deg, rgba(3,7,14,.08) 0%, rgba(3,7,14,.2) 34%, #050a12 380px, #050a12 100%);
+  }
+  .editorial-astronaut-grid { background-size: 54px 54px; opacity: .2; }
+  .editorial-astronaut-frame {
+    top: 14px;
+    left: 16px;
+    right: 16px;
+    font-size: 7px;
+    letter-spacing: .1em;
+  }
+  .editorial-astronaut-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding: 290px 18px 22px;
+  }
+  .editorial-astronaut-kicker { margin-bottom: 14px; font-size: 8px; }
+  .editorial-astronaut-copy h2 { font-size: clamp(42px, 12vw, 62px) !important; }
+  .editorial-astronaut-copy p { margin-top: 16px; font-size: 13px !important; }
+  .editorial-astronaut-actions { margin-top: 20px; }
+  .editorial-astronaut-actions button { width: 100%; justify-content: center; }
+  .editorial-astronaut-telemetry { padding: 16px; }
+  .editorial-astronaut-caption {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 12px 18px;
+    font-size: 7px;
+  }
+}
+
+
+
+/* =========================================================================
+   APPLICATION-WIDE LIGHT THEME
+   Shared by Editorial, SPHEREx, Planet X, Astrobiology, Architecture,
+   the Cosmic Frontier suite, navigation, drawers and modal surfaces.
+   ========================================================================= */
+.theme-light {
+  color-scheme: light;
+  --bg-primary: #fdfcf8;
+  --bg-secondary: #f4f1ea;
+  --bg-card: #ffffff;
+  --text-primary: #1c2430;
+  --text-secondary: #586273;
+  --border-subtle: #d9dce2;
+  --border-muted: #e7e8ec;
+}
+
+/* Convert dark structural surfaces to clean paper/card surfaces. */
+.theme-light :is(
+  [class*="bg-slate-950"], [class*="bg-slate-900"],
+  [class*="bg-slate-850"], [class*="bg-slate-800"],
+  [class*="bg-slate-700"], [class*="bg-gray-950"],
+  [class*="bg-gray-900"], [class*="bg-zinc-950"],
+  [class*="bg-zinc-900"], [class*="bg-neutral-950"],
+  [class*="bg-neutral-900"], [class*="bg-[#050"],
+  [class*="bg-[#060"], [class*="bg-[#070"],
+  [class*="bg-[#080"], [class*="bg-[#090"],
+  [class*="bg-[#0a"], [class*="bg-[#0b"],
+  [class*="bg-[#0B"], [class*="bg-[#0c"],
+  [class*="bg-[#0C"], [class*="bg-[#0d"],
+  [class*="bg-[#0D"], [class*="bg-[#0e"],
+  [class*="bg-[#0E"], [class*="bg-[#101"]
+) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Low-contrast dark status chips become light tinted semantic chips. */
+.theme-light :is([class*="bg-cyan-950"], [class*="bg-sky-950"]) {
+  background-color: #e3f3f7 !important;
+}
+.theme-light :is([class*="bg-indigo-950"], [class*="bg-violet-950"]) {
+  background-color: #eeebfa !important;
+}
+.theme-light :is([class*="bg-purple-950"]) {
+  background-color: #f2eafa !important;
+}
+.theme-light :is([class*="bg-emerald-950"], [class*="bg-green-950"]) {
+  background-color: #e5f4ec !important;
+}
+.theme-light :is([class*="bg-amber-950"], [class*="bg-yellow-950"]) {
+  background-color: #fbf1d9 !important;
+}
+.theme-light :is([class*="bg-red-950"], [class*="bg-rose-950"]) {
+  background-color: #fbe9e7 !important;
+}
+
+/* Neutral text hierarchy: headings, body copy, captions and telemetry. */
+.theme-light :is(
+  [class~="text-white"], [class~="text-slate-50"],
+  [class~="text-slate-100"], [class~="text-slate-200"],
+  [class~="text-slate-300"], [class~="text-slate-400"],
+  [class~="text-gray-100"], [class~="text-gray-200"],
+  [class~="text-gray-300"], [class~="text-gray-400"],
+  [class~="text-zinc-100"], [class~="text-zinc-200"],
+  [class~="text-zinc-300"], [class~="text-zinc-400"],
+  [class~="text-neutral-100"], [class~="text-neutral-200"],
+  [class~="text-neutral-300"], [class~="text-neutral-400"],
+  [class*="text-white/"], [class*="text-slate-100/"],
+  [class*="text-slate-200/"], [class*="text-slate-300/"],
+  [class*="text-slate-400/"], [class*="text-gray-400/"],
+  [class*="text-gray-500/"]
+) {
+  color: #263244 !important;
+}
+.theme-light :is(
+  [class~="text-slate-500"], [class~="text-slate-600"],
+  [class~="text-gray-500"], [class~="text-gray-600"],
+  [class~="text-zinc-500"], [class~="text-zinc-600"]
+) {
+  color: #586273 !important;
+}
+
+/* Keep accent colours saturated enough to remain legible on paper. */
+.theme-light :is(
+  [class*="text-cyan-"], [class*="text-sky-"]
+) { color: #08758a !important; }
+.theme-light :is(
+  [class*="text-indigo-"], [class*="text-violet-"],
+  [class*="text-purple-"]
+) { color: #59439b !important; }
+.theme-light :is(
+  [class*="text-emerald-"], [class*="text-green-"]
+) { color: #087a50 !important; }
+.theme-light :is(
+  [class*="text-amber-"], [class*="text-yellow-"]
+) { color: #8a5a08 !important; }
+.theme-light :is(
+  [class*="text-red-"], [class*="text-rose-"]
+) { color: #a83232 !important; }
+
+/* Fine borders and dividers become visible without looking heavy. */
+.theme-light :is(
+  [class*="border-slate-"], [class*="border-gray-"],
+  [class*="border-zinc-"], [class*="border-neutral-"],
+  [class*="border-white/"]
+) {
+  border-color: #d9dce2 !important;
+}
+.theme-light hr { border-color: #d9dce2 !important; }
+
+/* Pale semantic borders stay coordinated with their tinted surfaces. */
+.theme-light :is([class*="border-cyan-"], [class*="border-sky-"]) { border-color: #b7dce5 !important; }
+.theme-light :is([class*="border-indigo-"], [class*="border-violet-"], [class*="border-purple-"]) { border-color: #d6cbed !important; }
+.theme-light :is([class*="border-emerald-"], [class*="border-green-"]) { border-color: #bfe2ce !important; }
+.theme-light :is([class*="border-amber-"], [class*="border-yellow-"]) { border-color: #ead8aa !important; }
+.theme-light :is([class*="border-red-"], [class*="border-rose-"]) { border-color: #edc5c1 !important; }
+
+/* Form controls and editable scientific query fields. */
+.theme-light :is(input, textarea, select) {
+  color: #1c2430 !important;
+  background-color: #ffffff !important;
+  border-color: #cbd1da !important;
+}
+.theme-light :is(input, textarea, select)::placeholder {
+  color: #788292 !important;
+  opacity: 1;
+}
+.theme-light option { color: #1c2430; background: #ffffff; }
+
+/* Readable source snippets, JSON inspectors and code panels. */
+.theme-light :is(pre, code) { color: #334155; }
+.theme-light pre {
+  background-color: #f3f5f8 !important;
+  border-color: #d9dce2 !important;
+}
+.theme-light svg text { fill: #586273; }
+
+/* Filled accent controls retain white foregrounds for strong button contrast. */
+.theme-light :is(
+  button, a, [role="button"]
+):is([class*="bg-cyan-"], [class*="bg-sky-"], [class*="bg-indigo-"],
+     [class*="bg-purple-"], [class*="bg-emerald-"], [class*="bg-blue-"]) {
+  color: #ffffff !important;
+}
+.theme-light :is(button, a, [role="button"]):hover {
+  filter: brightness(.97);
+}
+.theme-light :is(button, a, input, textarea, select):focus-visible {
+  outline-color: #08758a;
+}
+
+/* Retain the deliberate dark NASA astronaut image and its white editorial copy. */
+.theme-light .editorial-astronaut-hero {
+  color: #f4f8fc !important;
+  background: #050a12 !important;
+  border-color: rgba(154, 190, 216, .2) !important;
+}
+.theme-light .editorial-astronaut-hero :is(
+  h1, h2, h3, p, span, small, strong, a, button
+) { color: #f8fafc !important; }
+.theme-light .editorial-astronaut-hero .editorial-astronaut-copy p {
+  color: rgba(248, 250, 252, .84) !important;
+}
+.theme-light .editorial-astronaut-hero .editorial-astronaut-primary {
+  color: #07111c !important;
+}
+.theme-light .editorial-astronaut-hero .editorial-astronaut-primary:hover {
+  color: #02070d !important;
+}
+
+/* Dark-stop gradients (e.g. architecture headers and system panels) also
+   need a light surface; leave intentional saturated CTA gradients untouched. */
+.theme-light :not(button):not(a):not([role="button"]):is(
+  [class*="from-slate-"], [class*="via-slate-"], [class*="to-slate-"],
+  [class*="from-gray-900"], [class*="via-gray-900"], [class*="to-gray-900"],
+  [class*="from-purple-950"], [class*="via-purple-950"], [class*="to-purple-950"],
+  [class*="from-indigo-950"], [class*="via-indigo-950"], [class*="to-indigo-950"],
+  [class*="from-[#050"], [class*="via-[#050"], [class*="to-[#050"]
+) {
+  background-image: linear-gradient(115deg, #ffffff 0%, #f5f3ed 100%) !important;
 }

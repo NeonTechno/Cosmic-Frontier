@@ -5,7 +5,7 @@
  * BLACK STAR ORBIT — Navigation & Mission Control Bar
  */
 
-import { Telescope, Orbit, Database, Sparkles, Activity, Globe, FlaskConical, Compass, Keyboard } from 'lucide-react';
+import { Telescope, Orbit, Database, Activity, Globe, FlaskConical, Compass, Keyboard } from 'lucide-react';
 import { BlackStarLogo } from './common/BlackStarLogo.tsx';
 import { useTheme } from '../context/ThemeContext.tsx';
 
@@ -213,8 +213,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'bg-gradient-to-r from-cyan-500 to-indigo-500 text-white hover:from-cyan-400 hover:to-indigo-400 shadow-md shadow-indigo-900/30 border-cyan-300/25'
             }`}
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>AI Scientific Intel</span>
+            <Telescope className="h-3.5 w-3.5" />
+            <span>Scientific Intel</span>
           </button>
         </div>
       </div>
