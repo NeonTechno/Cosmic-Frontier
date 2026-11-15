@@ -56,7 +56,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
   };
 
   const exportSedCsv = () => {
@@ -302,7 +302,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
 
         <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
           <span className="text-slate-400 flex items-center gap-1 text-[11px]">
-            <Clock className="h-3 w-3 text-emerald-400" /> Obs Date (UTC)
+            <Clock className="h-3 w-3 text-emerald-400" /> {isDemo ? "Simulated Epoch Date" : "Obs Date (UTC)"}
           </span>
           <span className="text-white font-semibold mt-1 block truncate">
             {String(observation.fitsHeader['DATE-OBS'] || observation.epochs?.[0]?.timestamp || 'Not recorded').split('T')[0]}
@@ -433,7 +433,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
           <div className="flex items-center justify-between text-slate-300">
             <span className="font-semibold text-cyan-400 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
               <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Contamination & Quality Flags</span>
+              <span>{isDemo ? "Simulated Demo Flags" : "Contamination & Quality Flags"}</span>
             </span>
             <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/40">
               {observation.dataQualityFlag}
