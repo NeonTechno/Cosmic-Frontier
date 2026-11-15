@@ -886,8 +886,16 @@ export async function pingExternalEndpoint(serviceId: string): Promise<{
 }> {
   const endpoints: Record<string, { url: string; label: string }> = {
     'irsa-spherex-sia': {
-      url: 'https://irsa.ipac.caltech.edu/SIA?POS=circle+269.4521+4.6934+0.02&COLLECTION=spherex_dr1',
-      label: 'NASA/IPAC IRSA SPHEREx DR1/QR3 SIAv2',
+      url: (() => {
+        const params = new URLSearchParams({
+          COLLECTION: 'spherex_qr3',
+          POS: 'CIRCLE 269.4521 4.6934 0.01',
+          RESPONSEFORMAT: 'VOTABLE',
+          MAXREC: '1',
+        });
+        return `https://irsa.ipac.caltech.edu/SIA?${params.toString()}`;
+      })(),
+      label: 'NASA/IPAC IRSA SPHEREx QR3 SIAv2',
     },
     'irsa-spherex-tap': {
       url: 'https://irsa.ipac.caltech.edu/TAP/tables',
@@ -919,7 +927,7 @@ export async function pingExternalEndpoint(serviceId: string): Promise<{
 
   const t0 = Date.now();
   try {
-    const res = await fetch(target.url, { signal: AbortSignal.timeout(7000) });
+    const res = await fetch(target.url, { signal: AbortSignal.timeout(serviceId === 'irsa-spherex-sia' ? 15000 : 7000) });
     const dt = Date.now() - t0;
     return {
       reachable: res.ok,
