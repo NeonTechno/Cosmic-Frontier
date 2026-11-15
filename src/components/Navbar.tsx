@@ -32,12 +32,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { isLight } = useTheme();
 
   return (
-    <header className={`sticky top-0 z-40 w-full transition-colors duration-200 ${
+    <header className={`mission-control-navbar sticky top-0 z-40 w-full transition-colors duration-200 ${
       isLight
         ? 'bg-[#fdfcf8]/95 border-b border-[#1a1a1a]/12 backdrop-blur-md shadow-xs'
         : 'border-b border-cyan-500/20 bg-[#060914]/90 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.35)]'
     }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 grid grid-cols-1 xl:grid-cols-[minmax(260px,1fr)_auto_auto] gap-3 items-center">
+      <div className="mission-control-navbar__inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 grid grid-cols-1 xl:grid-cols-[minmax(260px,1fr)_auto_auto] gap-3 items-center">
         
         {/* Brand & Mission Title */}
         <button
@@ -67,7 +67,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* Module Switcher Tabs */}
-        <nav className={`flex items-center gap-1 p-1 rounded-xl border max-w-full overflow-x-auto nav-scroll ${
+        <nav className={`mission-control-navbar__tabs flex items-center gap-1 p-1 rounded-xl border max-w-full overflow-x-auto nav-scroll ${
           isLight
             ? 'bg-[#f4f1ea] border-[#1a1a1a]/15'
             : 'bg-slate-900/60 border-white/[0.08]'
