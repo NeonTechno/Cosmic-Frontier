@@ -2127,3 +2127,60 @@ body.theme-light {
 .astrobiology-light :is([class*="text-cyan-"],[class*="text-sky-"]) { color: #08758a !important; }
 .astrobiology-light :is([class*="text-indigo-"],[class*="text-violet-"]) { color: #59439b !important; }
 .astrobiology-light :is([class*="text-emerald-"]) { color: #087a50 !important; }
+
+
+/* SPHEREx Light Mode: fixed light hex text colours used by the spectrum
+   visualizer and charts must be dark on the light panels below. */
+.theme-light .spherex-viewer :not(button):not(a):is(
+  [class*="text-[#F8FAFC"], [class*="text-[#F1F5F9"],
+  [class*="text-[#E2E8F0"], [class*="text-[#CBD5E1"],
+  [class*="text-[#94A3B8"], [class*="text-[#A0AEC0"],
+  [class*="text-[#B8C4D6"]
+) {
+  color: #263447 !important;
+  -webkit-text-fill-color: #263447 !important;
+}
+.theme-light .spherex-viewer :not(button):not(a):is(
+  [class*="text-[#64748B"], [class*="text-[#718096"],
+  [class*="text-[#788292"]
+) {
+  color: #58677a !important;
+  -webkit-text-fill-color: #58677a !important;
+}
+.theme-light .spherex-viewer :is(
+  [class*="bg-[#0B1630"], [class*="bg-[#090F24"]
+) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #263447 !important;
+  border-color: #d7dee7 !important;
+  box-shadow: 0 8px 24px rgba(31, 45, 61, .07) !important;
+}
+.theme-light .spherex-viewer :is(
+  [class*="bg-[#050B1A"], [class*="bg-[#050b1a"]
+) {
+  background-color: #f1f4f7 !important;
+  color: #263447 !important;
+  border-color: #d7dee7 !important;
+}
+.theme-light .spherex-viewer :is(
+  .recharts-cartesian-axis-tick-value, .recharts-label,
+  .recharts-legend-item-text, .recharts-text
+) {
+  fill: #536174 !important;
+  color: #536174 !important;
+}
+.theme-light .spherex-viewer .recharts-cartesian-grid line {
+  stroke: #d9e0e8 !important;
+}
+.theme-light .spherex-viewer input,
+.theme-light .spherex-viewer select,
+.theme-light .spherex-viewer textarea {
+  color: #202b3a !important;
+  background-color: #ffffff !important;
+  border-color: #c7d0dc !important;
+}
+.theme-light .spherex-viewer input::placeholder {
+  color: #748196 !important;
+  opacity: 1 !important;
+}
