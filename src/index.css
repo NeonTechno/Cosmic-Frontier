@@ -3009,3 +3009,41 @@ body.theme-light {
 .theme-light .cf-module--planetx .cf-surface {
   box-shadow: 0 12px 34px rgba(23,42,62,.09), inset 0 1px rgba(255,255,255,.55);
 }
+
+/* Planet X — consistent neutral surfaces, subtle motion, and matched themes */
+.cf-module--planetx{--px-ink:#e5eaf0;--px-line:rgba(151,166,180,.2);--px-panel:#171f28;font-family:Inter,"SF Pro Display","Segoe UI",sans-serif;color:var(--px-ink)}
+.cf-module--planetx .cf-module-hero h1{color:var(--px-ink)!important;text-shadow:none!important}
+.cf-module--planetx .cf-module-hero>div:first-child{color:#c1ccd6!important;background:rgba(148,163,184,.075)!important;border:1px solid var(--px-line)!important}
+.cf-module--planetx .cf-module-hero>p:nth-of-type(1){color:#bdc7d0!important}
+.cf-module--planetx .cf-notice{background:#1b242e!important;border:1px solid var(--px-line)!important;box-shadow:inset 3px 0 #8798a8,0 8px 24px rgba(0,0,0,.12)!important}
+.cf-module--planetx .cf-module-hero [class*="grid"]>div{background:var(--px-panel)!important;border:1px solid var(--px-line)!important;box-shadow:none!important}
+.cf-module--planetx .cf-surface{background:var(--px-panel)!important;border:1px solid var(--px-line)!important;box-shadow:0 12px 32px rgba(0,0,0,.13)!important;transition:border-color .22s ease,transform .22s ease,box-shadow .22s ease}
+.cf-module--planetx .cf-surface:hover{border-color:rgba(170,185,199,.38)!important}
+.cf-module--planetx .cf-surface :is(h2,h3){color:#e3e9ee!important}
+.cf-module--planetx .cf-surface p{color:#aeb9c4}
+.cf-module--planetx button{transition:background-color .2s ease,border-color .2s ease,color .2s ease,transform .2s ease!important}
+.cf-module--planetx button:not(:disabled):hover{transform:translateY(-1px);filter:none!important}
+.cf-module--planetx .cf-surface button{border-color:rgba(151,166,180,.24)}
+.cf-module--planetx canvas{border-radius:10px;animation:px-canvas-enter .65s ease both}
+.cf-module--planetx .cf-module-hero{animation:px-section-enter .55s ease both}
+.cf-module--planetx>*:nth-child(n+2){animation:px-section-enter .55s ease both;animation-delay:.06s}
+@keyframes px-section-enter{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes px-canvas-enter{from{opacity:.65}to{opacity:1}}
+.theme-light .cf-module--planetx{--px-ink:#202c37;--px-line:#d9e0e6;--px-panel:#fff;color:var(--px-ink)!important}
+.theme-light .cf-module--planetx .cf-module-hero{border-color:#dce3e8!important}
+.theme-light .cf-module--planetx .cf-module-hero h1{color:#202c37!important}
+.theme-light .cf-module--planetx .cf-module-hero>p:nth-of-type(1),.theme-light .cf-module--planetx .cf-module-hero>p:last-of-type{color:#657381!important}
+.theme-light .cf-module--planetx .cf-notice{color:#344352!important;background:#f2f5f7!important;border-color:#d9e0e6!important;box-shadow:inset 3px 0 #8798a8,0 8px 24px rgba(28,43,56,.045)!important}
+.theme-light .cf-module--planetx .cf-notice :is(span,svg){color:#526779!important}
+.theme-light .cf-module--planetx .cf-module-hero [class*="grid"]>div{background:#fff!important;border-color:#dce3e8!important;box-shadow:0 5px 16px rgba(28,43,56,.035)!important}
+.theme-light .cf-module--planetx .cf-surface{color:#344352!important;background:#fff!important;border-color:#dce3e8!important;box-shadow:0 10px 28px rgba(28,43,56,.055)!important}
+.theme-light .cf-module--planetx .cf-surface :is(h2,h3){color:#263541!important}
+.theme-light .cf-module--planetx .cf-surface p{color:#63717e!important}
+.theme-light .cf-module--planetx .cf-surface :is(button,[role="button"]){color:#40515f;border-color:#d8e0e6}
+.theme-light .cf-module--planetx .cf-surface :is(button,[role="button"]):hover{background:#f1f4f6!important;border-color:#b9c5ce!important}
+.theme-light .cf-module--planetx :is(.text-white,.text-slate-50,.text-slate-100){color:#263541!important}
+.theme-light .cf-module--planetx :is(.text-slate-300,.text-slate-400,.text-gray-400){color:#63717e!important}
+.theme-light .cf-module--planetx :is([class*="bg-[#0"],[class*="bg-[#1"],[class*="bg-[#10"],[class*="bg-[#11"]){background:#f5f7f8!important}
+.theme-light .cf-module--planetx canvas{border:1px solid #d8e0e6;box-shadow:0 8px 24px rgba(28,43,56,.06)}
+@media(max-width:767px){.cf-module--planetx .cf-module-hero{padding-bottom:20px}.cf-module--planetx .cf-surface{box-shadow:0 8px 22px rgba(0,0,0,.07)!important}}
+@media(prefers-reduced-motion:reduce){.cf-module--planetx .cf-module-hero,.cf-module--planetx>*,.cf-module--planetx canvas{animation:none!important}.cf-module--planetx *{transition-duration:.01ms!important}}
