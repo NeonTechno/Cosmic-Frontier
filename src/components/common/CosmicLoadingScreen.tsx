@@ -88,13 +88,13 @@ export const CosmicLoadingScreen: React.FC<CosmicLoadingScreenProps> = ({
       {/* Cinematic deep-space background */}
       <div className="absolute inset-0 -z-20 overflow-hidden bg-[#03050b]">
         <img
-          src="https://images-assets.nasa.gov/image/iss075e0085813/iss075e0085813~orig.jpg"
+          src="/assets/Astronaut%20Facing%20a%20Glowing%20Black%20Hole.png"
           alt=""
           aria-hidden="true"
           className="splash-bg absolute inset-0 h-full w-full scale-110 object-cover opacity-30 blur-2xl"
         />
         <img
-          src="https://images-assets.nasa.gov/image/iss075e0085813/iss075e0085813~orig.jpg"
+          src="/assets/Astronaut%20Facing%20a%20Glowing%20Black%20Hole.png"
           alt="Astronaut aboard the International Space Station"
           aria-hidden="true"
           className="splash-hero absolute inset-0 h-full w-full object-contain object-center opacity-90"
