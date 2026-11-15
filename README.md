@@ -44,7 +44,7 @@ The demo exercises the existing viewer controls: 102-band selection, image stret
 ## Baseline Assessment & Key Scientific Improvements
 
 During technical due diligence of the initial prototype:
-- **Resolved Simulated-Only SPHEREx Data**: Removed synthetic SPHEREx fallbacks. The API and client no longer populate the scientific viewer with generated benchmark observations; FITS pixels are required for an epoch to be displayed.
+- **Separated Scientific Data from UI Simulation**: Removed implicit synthetic observations from the archive/API path. Verified archive observations still require parsed FITS pixels; generated values are available only through the visibly labelled `SIMULATED_DEMO` interface-preview mode and are never treated as measurements.
 - **Replaced Fake Difference Imaging**: Replaced synthetic star-loop subtraction (`Math.random()` noise) in `DifferenceOverlay.tsx` with variance-weighted, WCS-aligned pixel subtraction (`computeRealFrameDifference`).
 - **Corrected Candidate Vetting Claims**: Replaced `"Confirm PX"` / `"Confirmed High-Priority Planet X Candidate"` wording with honest citizen-science triage (`"Flag Priority"` / unconfirmed follow-up queue).
 - **Fixed Plate Scale & Roll Alignment**: Handled SPHEREx `PC + CDELT` WCS rotations so multi-epoch blink comparisons align background stars cleanly.
