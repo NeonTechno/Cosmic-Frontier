@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { BlackStarLogo } from '../../components/common/BlackStarLogo';
 import { assetUrl } from '../../utils/assetUrl';
+import cosmicDustHorizonImage from '../../assets/images/cosmic_dust_universe_1793131593946.jpg';
 
 interface NovaCommandHeroProps {
   onNavigate: (page: AppPage) => void;
@@ -25,7 +26,7 @@ export const NovaCommandHero: FC<NovaCommandHeroProps> = ({ onNavigate }) => {
       {/* Background Official Launching Image & Subtle Nebular Gradients */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <img
-          src={assetUrl('assets/cosmic-dust-universe.jpg')}
+          src={cosmicDustHorizonImage}
           alt="Black Star Orbit Cosmic Dust Deep Universe"
           className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen scale-105 select-none"
         />
@@ -170,7 +171,7 @@ export const NovaCommandHero: FC<NovaCommandHeroProps> = ({ onNavigate }) => {
           <div className="relative w-full max-w-xl aspect-16/9 sm:aspect-16/10 rounded-2xl overflow-hidden border border-cyan-500/40 shadow-[0_0_55px_rgba(56,189,248,0.35)] group bg-[#070D1E]">
             {/* Launching & Intro Cosmic Dust Image */}
             <img
-              src={assetUrl('assets/cosmic-dust-universe.jpg')}
+              src={cosmicDustHorizonImage}
               alt="Black Star Orbit Cosmic Dust Deep Universe Presentation"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out select-none"
             />
