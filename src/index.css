@@ -2500,3 +2500,299 @@ body.theme-light {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* COSMIC DUST HORIZON — EDITORIAL JOURNAL, LIGHT + DARK */
+.editorial-root {
+  --journal-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--journal-font) !important;
+}
+.editorial-root :is(h1,h2,h3,h4,h5,h6,p,button,a,input,select,textarea,span,strong,small,label,th,td) {
+  font-family: var(--journal-font);
+}
+.editorial-root .editorial-label,
+.editorial-root .editorial-astronaut-kicker,
+.editorial-root .editorial-astronaut-frame,
+.editorial-root .editorial-astronaut-caption,
+.editorial-root .editorial-astronaut-panel-top,
+.editorial-root .editorial-astronaut-metric > span,
+.editorial-root .editorial-astronaut-study > span {
+  font-family: "JetBrains Mono", ui-monospace, monospace !important;
+  letter-spacing: .095em;
+}
+.editorial-root .editorial-header {
+  min-height: 84px;
+  padding-top: 22px;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+.editorial-root .editorial-title {
+  font-family: var(--journal-font) !important;
+  font-size: clamp(17px,1.65vw,22px);
+  font-weight: 760;
+  letter-spacing: .055em;
+}
+.editorial-root .editorial-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px !important;
+}
+.editorial-root .editorial-header nav button {
+  min-height: 38px;
+  padding: 9px 12px !important;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .015em;
+  text-transform: none;
+}
+.editorial-root .editorial-header nav button:hover { transform: translateY(-1px); }
+.editorial-root .editorial-header nav button:focus-visible,
+.editorial-root .editorial-container button:focus-visible,
+.editorial-root .editorial-container input:focus-visible {
+  outline: 2px solid #20bcd8;
+  outline-offset: 3px;
+}
+.editorial-root .editorial-index,
+.editorial-root #editorial-overview,
+.editorial-root #editorial-catalog,
+.editorial-root #editorial-habitable,
+.editorial-root #editorial-sources { scroll-margin-top: 26px; }
+
+/* Editorial index / filter strip */
+.editorial-root .editorial-container > div:has(> div > div > button:first-child) {
+  border-radius: 12px;
+  padding: 12px 14px !important;
+  margin-bottom: 30px !important;
+}
+.editorial-root .editorial-container > div:has(> div > div > button:first-child) button {
+  min-height: 32px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-family: var(--journal-font);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.editorial-root .editorial-container > div:has(> div > div > button:first-child) input {
+  min-height: 36px;
+  border-radius: 8px;
+  font-family: var(--journal-font);
+  font-size: 11px;
+}
+
+/* Dust Horizon feature image */
+.editorial-astronaut-hero {
+  min-height: clamp(560px, 57vw, 710px);
+  border-radius: 20px;
+  border-color: rgba(120,180,205,.25);
+  box-shadow: 0 26px 76px rgba(0,0,0,.25), inset 0 1px rgba(255,255,255,.06);
+}
+.editorial-astronaut-image.editorial-dust-horizon-image {
+  object-fit: cover;
+  object-position: center 48%;
+  filter: saturate(1.08) contrast(1.04) brightness(.9);
+}
+.editorial-astronaut-shade {
+  background:
+    linear-gradient(90deg, rgba(3,8,17,.94) 0%, rgba(3,8,17,.78) 28%, rgba(3,8,17,.22) 58%, rgba(3,8,17,.58) 78%, rgba(3,8,17,.88) 100%),
+    linear-gradient(0deg, rgba(3,8,17,.88), transparent 42%);
+}
+.editorial-astronaut-copy h2 {
+  font-family: var(--journal-font) !important;
+  font-size: clamp(44px,5.2vw,76px) !important;
+  font-weight: 740 !important;
+  line-height: .99 !important;
+  letter-spacing: -.065em !important;
+}
+.editorial-astronaut-copy h2 span {
+  color: #8deaff !important;
+  font-weight: 620;
+  letter-spacing: -.06em;
+}
+.editorial-astronaut-copy p {
+  font-family: var(--journal-font) !important;
+  font-size: 14px !important;
+  line-height: 1.78 !important;
+}
+.editorial-astronaut-actions { gap: 10px; }
+.editorial-astronaut-actions button,
+.editorial-astronaut-spec-link {
+  min-height: 43px;
+  padding: 0 15px;
+  border-radius: 8px;
+  font-family: var(--journal-font);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+.editorial-astronaut-telemetry {
+  padding: 19px;
+  border-radius: 13px;
+  background: linear-gradient(145deg,rgba(7,18,32,.88),rgba(5,12,23,.84));
+  border-color: rgba(159,202,226,.24);
+  box-shadow: 0 18px 50px rgba(0,0,0,.26),inset 0 1px rgba(255,255,255,.06);
+}
+.editorial-astronaut-metric { padding: 14px 0; }
+.editorial-astronaut-metric strong,
+.editorial-astronaut-study strong { font-family: var(--journal-font); }
+.editorial-astronaut-study { border-radius: 9px; padding: 13px; }
+.editorial-astronaut-caption { letter-spacing: .065em; }
+
+/* Catalog, habitable-zone and sources sections */
+.editorial-root #editorial-catalog {
+  padding-top: 38px;
+}
+.editorial-root #editorial-catalog h2,
+.editorial-root #editorial-catalog h3,
+.editorial-root .editorial-h2 {
+  font-family: var(--journal-font) !important;
+  font-weight: 700;
+  letter-spacing: -.045em;
+}
+.editorial-root #editorial-catalog h2 { font-size: clamp(24px,2.6vw,34px); }
+.editorial-root #editorial-catalog h3 { font-size: clamp(21px,2.2vw,29px); }
+.editorial-root #editorial-catalog input {
+  min-height: 40px;
+  border-radius: 9px;
+  font-family: var(--journal-font);
+}
+.editorial-root #editorial-catalog button { font-family: var(--journal-font); }
+.editorial-root #editorial-catalog .freeze-table-wrap {
+  border-radius: 12px;
+  overflow: auto;
+}
+.editorial-root #editorial-catalog .editorial-planet-art {
+  border-radius: 50%;
+  box-shadow: inset 0 0 30px rgba(0,217,245,.08),0 0 24px rgba(0,217,245,.05);
+}
+.editorial-root .editorial-habitable-block {
+  border-radius: 16px;
+  padding: clamp(20px,3vw,34px);
+}
+.editorial-root .editorial-habitable-block h3 {
+  font-family: var(--journal-font) !important;
+  font-weight: 700;
+}
+.editorial-root .editorial-habitable-block p,
+.editorial-root .editorial-footer-info p,
+.editorial-root .editorial-footer-info li { line-height: 1.7; }
+
+/* Light journal: clean observatory-paper palette, with the hero intentionally dark. */
+.editorial-light {
+  background:
+    radial-gradient(ellipse at 78% 4%,rgba(47,137,171,.08),transparent 30%),
+    linear-gradient(180deg,#fbfcfd 0%,#f2f6f9 100%) !important;
+  color: #172638 !important;
+}
+.editorial-light .editorial-header { border-color: #d8e1e8 !important; }
+.editorial-light .editorial-label { color: #63778a !important; }
+.editorial-light .editorial-title { color: #122235 !important; }
+.editorial-light .editorial-header nav button {
+  color: #34475a;
+  border: 1px solid transparent;
+}
+.editorial-light .editorial-header nav button:hover {
+  color: #087d99;
+  background: #eaf4f7;
+  border-color: #cce3e9;
+}
+.editorial-light .editorial-header nav button:last-of-type {
+  color: #086e88;
+  background: #e7f4f7;
+  border-color: #b9dce5;
+}
+.editorial-light .editorial-container > div:has(> div > div > button:first-child) {
+  background: rgba(255,255,255,.82) !important;
+  border: 1px solid #dce5eb !important;
+  box-shadow: 0 8px 24px rgba(25,48,68,.045);
+}
+.editorial-light .editorial-container > div:has(> div > div > button:first-child) button {
+  color: #405469;
+  border-color: #dce5eb;
+  background: #fff;
+}
+.editorial-light .editorial-container > div:has(> div > div > button:first-child) button:hover {
+  color: #075f78;
+  border-color: #a9d2dc;
+  background: #edf7f9;
+}
+.editorial-light .editorial-container > div:has(> div > div > button:first-child) input {
+  color: #1b2d3e;
+  border-color: #d2dce4;
+  background: #fff;
+}
+.editorial-light #editorial-catalog { border-color: #d7e1e8 !important; }
+.editorial-light #editorial-catalog .freeze-table-wrap {
+  border: 1px solid #dce5eb;
+  box-shadow: 0 12px 32px rgba(25,48,68,.045);
+}
+.editorial-light #editorial-catalog .editorial-planet-art {
+  border-color: #cbdde6 !important;
+  background-color: #f6fafc;
+}
+.editorial-light .editorial-habitable-block {
+  border: 1px solid #dbe4ea;
+  background: linear-gradient(145deg,#fff,#f3f7fa);
+  box-shadow: 0 14px 36px rgba(25,48,68,.05);
+}
+.editorial-light .editorial-footer-info {
+  background: #142437;
+  color: #dce7ef;
+}
+.editorial-light .editorial-astronaut-hero {
+  color: #f4f8fc !important;
+  background: #050a12 !important;
+  border-color: rgba(154,190,216,.2) !important;
+}
+.editorial-light .editorial-astronaut-hero :is(h2,p,strong,small,span,a,button) {
+  color: inherit;
+}
+.editorial-light .editorial-astronaut-copy h2 { color: #f7fbff !important; }
+.editorial-light .editorial-astronaut-copy h2 span { color: #8deaff !important; }
+.editorial-light .editorial-astronaut-copy p { color: rgba(224,235,245,.84) !important; }
+.editorial-light .editorial-astronaut-telemetry {
+  background: linear-gradient(145deg,rgba(7,18,32,.9),rgba(5,12,23,.88));
+}
+.editorial-light .editorial-astronaut-telemetry :is(strong,small) { color: #edf6fc !important; }
+.editorial-light .editorial-astronaut-telemetry :is(span) { color: #9fb5c7 !important; }
+.editorial-light .editorial-astronaut-study { background: rgba(166,195,216,.08); }
+.editorial-light .editorial-astronaut-study strong { color: #f2f7fb !important; }
+.editorial-light .editorial-astronaut-caption { color: rgba(206,222,235,.72) !important; }
+.editorial-light .editorial-astronaut-caption a { color: #dbe9f4 !important; }
+
+/* Responsive behavior */
+@media (max-width: 900px) {
+  .editorial-astronaut-layout {
+    grid-template-columns: minmax(0,1fr) minmax(230px,.78fr);
+  }
+}
+@media (max-width: 767px) {
+  .editorial-root .editorial-header { padding-top: 17px; padding-bottom: 15px; margin-bottom: 22px; }
+  .editorial-root .editorial-header > div { align-items: flex-start; gap: 15px; }
+  .editorial-root .editorial-header nav { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding: 3px 0 7px; scrollbar-width: none; }
+  .editorial-root .editorial-header nav::-webkit-scrollbar { display: none; }
+  .editorial-root .editorial-header nav button { flex: 0 0 auto; white-space: nowrap; }
+  .editorial-root .editorial-container > div:has(> div > div > button:first-child) { padding: 9px !important; margin-bottom: 20px !important; }
+  .editorial-astronaut-hero { min-height: 0; border-radius: 15px; }
+  .editorial-astronaut-image.editorial-dust-horizon-image { height: 390px; object-position: 52% 45%; }
+  .editorial-astronaut-shade {
+    background: linear-gradient(180deg,rgba(3,8,17,.06) 0%,rgba(3,8,17,.18) 30%,#050a12 390px,#050a12 100%);
+  }
+  .editorial-astronaut-layout { grid-template-columns: minmax(0,1fr); gap: 21px; padding: 285px 17px 19px; }
+  .editorial-astronaut-copy h2 { font-size: clamp(39px,11vw,58px) !important; }
+  .editorial-astronaut-copy p { font-size: 13px !important; margin-top: 15px; }
+  .editorial-astronaut-actions button { width: 100%; justify-content: center; }
+  .editorial-astronaut-telemetry { border-radius: 11px; padding: 15px; }
+  .editorial-astronaut-caption { padding: 11px 16px; font-size: 7px; }
+  .editorial-root #editorial-catalog { padding-top: 28px; }
+  .editorial-root .editorial-habitable-block { padding: 19px; border-radius: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .editorial-root *, .editorial-root *::before, .editorial-root *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
