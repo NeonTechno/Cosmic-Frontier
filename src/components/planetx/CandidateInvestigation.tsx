@@ -88,7 +88,8 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     const cy = h / 2;
 
     // Clear
-    ctx.fillStyle = '#050814';
+    const lightCanvas = Boolean(canvas.closest('.theme-light')) || document.documentElement.classList.contains('theme-light');
+    ctx.fillStyle = lightCanvas ? '#F4F6F8' : '#111820';
     ctx.fillRect(0, 0, w, h);
 
     const currentObs = candidate.observationHistory[activeEpochIdx] || candidate.observationHistory[0];
@@ -103,7 +104,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     ];
 
     fixedStars.forEach((star) => {
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = lightCanvas ? '#788692' : '#D7E0E7';
       ctx.beginPath();
       ctx.arc(star.x * w, star.y * h, star.r, 0, 2 * Math.PI);
       ctx.fill();
@@ -131,8 +132,8 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
 
     // Candidate Point Source
     const isColdCandidate = candidate.colorW1W2 > 1.8;
-    ctx.fillStyle = isColdCandidate ? '#f43f5e' : '#facc15';
-    ctx.shadowColor = isColdCandidate ? '#fb7185' : '#fde047';
+    ctx.fillStyle = lightCanvas ? '#526779' : '#C4D0DA';
+    ctx.shadowColor = lightCanvas ? '#8495A3' : '#AAB8C5';
     ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.arc(objX, objY, 4.5, 0, 2 * Math.PI);
@@ -140,7 +141,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     ctx.shadowBlur = 0;
 
     // Crosshair Reticle
-    ctx.strokeStyle = '#38bdf8';
+    ctx.strokeStyle = lightCanvas ? '#607487' : '#AABAC8';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(objX, objY, 14, 0, 2 * Math.PI);
@@ -158,14 +159,14 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     ctx.stroke();
 
     // Scale bar: 0.1 arcsec
-    ctx.strokeStyle = '#94a3b8';
+    ctx.strokeStyle = lightCanvas ? '#71808D' : '#8796A4';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(w - 70, h - 20);
     ctx.lineTo(w - 70 + 0.1 * 140, h - 20);
     ctx.stroke();
 
-    ctx.fillStyle = '#94a3b8';
+    ctx.fillStyle = lightCanvas ? '#596A78' : '#AAB6C2';
     ctx.font = '9px JetBrains Mono';
     ctx.fillText('0.1″', w - 55, h - 24);
 
@@ -183,7 +184,8 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     const cx = w / 2;
     const cy = h / 2;
 
-    ctx.fillStyle = '#030712';
+    const lightCanvas = Boolean(canvas.closest('.theme-light')) || document.documentElement.classList.contains('theme-light');
+    ctx.fillStyle = lightCanvas ? '#F4F6F8' : '#111820';
     ctx.fillRect(0, 0, w, h);
 
     const fit = calculateAstrometricTrajectory(candidate);
@@ -203,7 +205,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
       h - pad - ((dec - minDec) / (maxDec - minDec || 0.0001)) * (h - 2 * pad);
 
     // Grid lines
-    ctx.strokeStyle = '#1e293b';
+    ctx.strokeStyle = lightCanvas ? '#DCE3E8' : '#2B3742';
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
@@ -215,7 +217,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     ctx.setLineDash([]);
 
     // Draw model reflex loop curve
-    ctx.strokeStyle = '#a855f7';
+    ctx.strokeStyle = lightCanvas ? '#718394' : '#AAB8C5';
     ctx.lineWidth = 2;
     ctx.beginPath();
     fit.modelTrajectory.forEach((pt, i) => {
@@ -231,21 +233,21 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
       const x = toPxX(pt.ra);
       const y = toPxY(pt.dec);
 
-      ctx.fillStyle = '#f59e0b';
-      ctx.strokeStyle = '#ffffff';
+      ctx.fillStyle = lightCanvas ? '#526779' : '#C4D0DA';
+      ctx.strokeStyle = lightCanvas ? '#FFFFFF' : '#202B35';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.arc(x, y, 4, 0, 2 * Math.PI);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#cbd5e1';
+      ctx.fillStyle = lightCanvas ? '#40515F' : '#D2DCE4';
       ctx.font = '9px JetBrains Mono';
       ctx.fillText(`Ep ${i + 1}`, x + 6, y - 4);
     });
 
     // Titles
-    ctx.fillStyle = '#94a3b8';
+    ctx.fillStyle = lightCanvas ? '#596A78' : '#AAB6C2';
     ctx.font = '10px JetBrains Mono';
     ctx.fillText(`Reflex Ellipse: π = ${fit.parallaxAmplitudeArcsec}″`, 12, 18);
     ctx.fillText(`Proper Motion: μ = ${fit.linearProperMotionArcsecYr}″/yr`, 12, 32);
