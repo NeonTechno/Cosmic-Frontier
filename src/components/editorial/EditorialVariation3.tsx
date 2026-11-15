@@ -223,7 +223,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
         <section id="editorial-overview" className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28">
           <img
             className="editorial-astronaut-image editorial-dust-horizon-image"
-            src={assetUrl('/assets/JWST%20Messier%2016%20processed.jpg')}
+            src={assetUrl('/assets/JWST Messier 16 processed.jpg')}
             alt="JWST NIRCam infrared image of the Pillars of Creation in the Eagle Nebula (Messier 16)."
             loading="eager"
             fetchPriority="high"
