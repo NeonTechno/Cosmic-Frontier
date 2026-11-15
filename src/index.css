@@ -1462,3 +1462,294 @@ h1, h2, h3, h4, h5, h6,
 code, pre, .font-mono, .font-editorial-mono {
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
 }
+
+
+/* Cinematic NASA astronaut editorial cover */
+.editorial-astronaut-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-height: clamp(590px, 68vw, 760px);
+  overflow: hidden;
+  color: #f4f8fc;
+  background: #050a12;
+  border: 1px solid rgba(154, 190, 216, .2);
+  border-radius: 24px;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .42), inset 0 1px rgba(255,255,255,.045);
+}
+.editorial-astronaut-image {
+  position: absolute;
+  z-index: -3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 44%;
+  filter: saturate(.72) contrast(1.08) brightness(.78);
+}
+.editorial-astronaut-shade {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3,7,14,.97) 0%, rgba(3,7,14,.86) 25%, rgba(3,7,14,.24) 52%, rgba(3,7,14,.62) 72%, rgba(3,7,14,.94) 100%),
+    linear-gradient(0deg, rgba(3,7,14,.94) 0%, transparent 34%, rgba(3,7,14,.14) 100%);
+}
+.editorial-astronaut-grid {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: .28;
+  background-image:
+    linear-gradient(rgba(194,218,235,.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(194,218,235,.14) 1px, transparent 1px);
+  background-size: 76px 76px;
+  mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,.8) 68%, transparent 100%);
+}
+.editorial-astronaut-frame {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: rgba(225,238,248,.56);
+  font: 9px/1.4 'Space Mono', monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.editorial-astronaut-layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, .72fr) minmax(250px, .78fr);
+  align-items: center;
+  gap: clamp(14px, 2.2vw, 34px);
+  flex: 1;
+  padding: clamp(62px, 6vw, 88px) clamp(24px, 4.2vw, 64px) 34px;
+}
+.editorial-astronaut-copy {
+  max-width: 520px;
+  align-self: center;
+}
+.editorial-astronaut-kicker {
+  display: block;
+  margin-bottom: 22px;
+  color: #a9c3d7;
+  font: 10px/1.5 'Space Mono', monospace;
+  letter-spacing: .18em;
+}
+.editorial-astronaut-copy h2 {
+  margin: 0;
+  max-width: 620px;
+  color: #f7fbff !important;
+  font: 650 clamp(48px, 5.6vw, 82px)/.94 Inter, ui-sans-serif, sans-serif !important;
+  letter-spacing: -.075em !important;
+  text-shadow: 0 4px 32px rgba(0,0,0,.38);
+}
+.editorial-astronaut-copy h2 span {
+  display: block;
+  color: #b9d4e8 !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  font-weight: 450;
+  letter-spacing: -.07em;
+}
+.editorial-astronaut-copy p {
+  max-width: 440px !important;
+  margin-top: 24px;
+  color: rgba(224,235,245,.78) !important;
+  font: 14px/1.8 Inter, ui-sans-serif, sans-serif !important;
+}
+.editorial-astronaut-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+.editorial-astronaut-actions button,
+.editorial-astronaut-spec-link {
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid rgba(198,220,237,.34);
+  border-radius: 3px;
+  color: #edf7ff;
+  background: rgba(8,18,31,.58);
+  font: 600 9px/1.3 'Space Mono', monospace;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.editorial-astronaut-actions button:hover,
+.editorial-astronaut-spec-link:hover {
+  border-color: rgba(202,233,255,.8);
+  background: rgba(58,91,118,.38);
+  transform: translateY(-1px);
+}
+.editorial-astronaut-actions .editorial-astronaut-primary {
+  border-color: rgba(205,228,245,.62);
+  color: #07111c;
+  background: #e4edf4;
+}
+.editorial-astronaut-actions .editorial-astronaut-primary:hover {
+  color: #02070d;
+  background: #fff;
+}
+.editorial-astronaut-actions .editorial-astronaut-primary span { margin-left: 10px; }
+.editorial-astronaut-spec-link {
+  min-height: auto;
+  margin-top: 15px;
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(207,225,240,.35);
+  border-radius: 0;
+  color: rgba(219,233,244,.7);
+  background: transparent;
+}
+.editorial-astronaut-center-space { min-height: 260px; }
+.editorial-astronaut-telemetry {
+  align-self: center;
+  padding: 20px;
+  border: 1px solid rgba(195,218,235,.22);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(8,17,29,.78), rgba(5,12,22,.76));
+  box-shadow: 0 18px 55px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.06);
+  backdrop-filter: blur(16px);
+}
+.editorial-astronaut-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(195,218,235,.16);
+  color: #9fb5c7;
+  font: 9px/1.4 'Space Mono', monospace;
+  letter-spacing: .12em;
+}
+.editorial-astronaut-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #d6e4ed;
+  font-size: 8px;
+}
+.editorial-astronaut-live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9bbca8;
+  box-shadow: 0 0 10px rgba(155,188,168,.6);
+}
+.editorial-astronaut-metric {
+  display: grid;
+  gap: 6px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(195,218,235,.13);
+}
+.editorial-astronaut-metric > span,
+.editorial-astronaut-study > span {
+  color: #8ea5b8;
+  font: 8px/1.5 'Space Mono', monospace;
+  letter-spacing: .13em;
+}
+.editorial-astronaut-metric strong {
+  color: #f0f6fb;
+  font: 600 17px/1.25 Inter, ui-sans-serif, sans-serif;
+  letter-spacing: -.035em;
+}
+.editorial-astronaut-metric small,
+.editorial-astronaut-study small {
+  color: #91a6b7;
+  font: 10px/1.5 Inter, ui-sans-serif, sans-serif;
+}
+.editorial-astronaut-study {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px;
+  border: 1px solid rgba(195,218,235,.2);
+  border-radius: 4px;
+  text-align: left;
+  background: rgba(166,195,216,.055);
+  cursor: pointer;
+}
+.editorial-astronaut-study:hover { border-color: rgba(205,228,245,.58); background: rgba(166,195,216,.1); }
+.editorial-astronaut-study strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #f2f7fb;
+  font: 600 12px/1.4 Inter, ui-sans-serif, sans-serif;
+}
+.editorial-astronaut-study strong b { color: #b9d4e8; }
+.editorial-astronaut-caption {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px clamp(24px, 4.2vw, 64px);
+  border-top: 1px solid rgba(195,218,235,.18);
+  color: rgba(206,222,235,.62);
+  background: rgba(3,8,15,.52);
+  font: 8px/1.5 'Space Mono', monospace;
+  letter-spacing: .1em;
+}
+.editorial-astronaut-caption a { color: rgba(219,233,244,.78); text-decoration: none; }
+.editorial-astronaut-caption a:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.editorial-dark #editorial-overview::before,
+.editorial-dark #editorial-overview::after { content: none; display: none; }
+@media (max-width: 900px) {
+  .editorial-astronaut-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(230px, .78fr);
+  }
+  .editorial-astronaut-center-space { display: none; }
+  .editorial-astronaut-shade {
+    background:
+      linear-gradient(90deg, rgba(3,7,14,.94), rgba(3,7,14,.58) 56%, rgba(3,7,14,.84)),
+      linear-gradient(0deg, rgba(3,7,14,.92), transparent 55%);
+  }
+}
+@media (max-width: 640px) {
+  .editorial-astronaut-hero { min-height: 0; border-radius: 16px; }
+  .editorial-astronaut-image {
+    height: 380px;
+    object-position: 48% 42%;
+  }
+  .editorial-astronaut-shade {
+    background: linear-gradient(180deg, rgba(3,7,14,.08) 0%, rgba(3,7,14,.2) 34%, #050a12 380px, #050a12 100%);
+  }
+  .editorial-astronaut-grid { background-size: 54px 54px; opacity: .2; }
+  .editorial-astronaut-frame {
+    top: 14px;
+    left: 16px;
+    right: 16px;
+    font-size: 7px;
+    letter-spacing: .1em;
+  }
+  .editorial-astronaut-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding: 290px 18px 22px;
+  }
+  .editorial-astronaut-kicker { margin-bottom: 14px; font-size: 8px; }
+  .editorial-astronaut-copy h2 { font-size: clamp(42px, 12vw, 62px) !important; }
+  .editorial-astronaut-copy p { margin-top: 16px; font-size: 13px !important; }
+  .editorial-astronaut-actions { margin-top: 20px; }
+  .editorial-astronaut-actions button { width: 100%; justify-content: center; }
+  .editorial-astronaut-telemetry { padding: 16px; }
+  .editorial-astronaut-caption {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 12px 18px;
+    font-size: 7px;
+  }
+}
