@@ -7,7 +7,7 @@
  * Built with Recharts.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,

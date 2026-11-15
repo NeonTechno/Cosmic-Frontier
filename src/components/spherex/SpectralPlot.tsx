@@ -246,8 +246,10 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
         <Info className="h-3.5 w-3.5 text-cyan-400 flex-shrink-0 mt-0.5" />
         <span>
           {isLive && hasMeasured
-            ? 'Green points represent direct aperture photometry (Zodi-subtracted) extracted from downloaded IRSA SPHEREx DR1/QR3 FITS cutouts across observed bands; unobserved channels are not interpolated.'
-            : 'Displaying calibrated synthetic benchmark SED across 0.75–5.00 µm LVF passbands ahead of live cutout retrieval.'}
+            ? observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX'
+              ? 'Green points are measured aperture fluxes from imported IRSA FITS pixels. Wavelength positions use nominal detector-band centers because this FITS header lacks explicit wavelength bounds; this is not pixel-level LVF calibration.'
+              : 'Green points represent direct aperture photometry (Zodi-subtracted) extracted from downloaded IRSA SPHEREx DR1/QR3 FITS cutouts across observed bands; unobserved channels are not interpolated.'
+            : 'No measured FITS data are available. No synthetic SED is displayed.'}
         </span>
       </div>
     </div>
