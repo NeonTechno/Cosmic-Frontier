@@ -11,7 +11,7 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
 1. **Live NASA/IPAC IRSA SPHEREx Query Engine (`src/server/astroArchiveService.ts`)**
    - Queries **IRSA SIAv2** (`https://irsa.ipac.caltech.edu/SIA`) across both **`spherex_dr1`** and **`spherex_qr3`** for any user-supplied RA/Dec (decimal or sexagesimal) or resolved object name.
    - Groups available observations chronologically across survey dates (`t_min` / `MJD`) and detector arrays (`D1`–`D6`), and fetches calibrated **Level-2 Multi-Extension FITS cutouts** (`IMAGE`, `FLAGS`, `VARIANCE`, `ZODI`) via IRSA IBE (`?center={ra},{dec}&size=64pix`).
-   - Never substitutes synthetic frames when IRSA is unavailable or returns zero rows. It reports the failure or empty result and shows no observation frames.
+   - The archive API never substitutes synthetic frames when IRSA is unavailable or returns zero rows. The viewer can open a separate, visibly labelled synthetic demo so visitors can explore the interface; it is never presented as a NASA/IPAC observation.
 
 2. **Zero-Dependency FITS Parser & WCS North-Up Reprojection (`src/server/fitsParser.ts`)**
    - Parses IEEE-754 float32 and int32 FITS HDUs (both raw and `.gz` AllWISE cutouts) directly in TypeScript inside the Node/Express server.
@@ -28,6 +28,16 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
    - **Time-lapse & Blink Comparator**: Chronological scrubber + 2-frame Blink Comparator supporting `2010 AllWISE -> 2025 SPHEREx DR1 -> 2026 SPHEREx QR3`.
    - **WCS-Aligned Difference Imaging**: Genuine pixel subtraction (`Epoch B − Epoch A`) with Zodi removal, variance-propagated SNR peak extraction, and methodological caveats.
    - **Candidate Investigation Workbench**: Triage queue distinguishing **observed signals**, **unconfirmed candidates**, and **confirmed discoveries**—never claiming Planet X has been discovered.
+
+---
+
+## SPHEREx Interactive Demo Mode (Judges / Offline Preview)
+
+When the live IRSA query is unavailable, the SPHEREx viewer opens an explicitly labelled **SIMULATED_DEMO** field so visitors can inspect the interface without mistaking generated values for mission data. The fixture contains three illustrative epochs, a synthetic star field, example transient candidates, and a 102-point illustrative spectrum.
+
+The demo exercises the existing viewer controls: 102-band selection, image stretch and colormap controls, coordinate/crosshair and survey-tile overlays, multi-epoch comparison, blink/timelapse, difference/SNR visualization, spectral plots, metadata inspection, AI explanation, and PNG export. Catalog overlays are not represented as Gaia or AllWISE matches in demo mode.
+
+**Provenance rule:** the demo is for interface walkthroughs only. Its pixels, source positions, fluxes, timestamps, candidate scores and spectral values are generated examples—not NASA/IPAC measurements, not FITS data, and not scientific detections. Verified live IRSA results and locally imported NASA/IPAC FITS products retain their separate provenance labels.
 
 ---
 
