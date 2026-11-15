@@ -4,7 +4,6 @@ import { STARTER_QUESTIONS, findVerifiedAnswer } from '../data/guideKnowledge';
 import { NaturalTextRenderer } from '../../components/common/NaturalTextRenderer';
 import { 
   Send, 
-  Bot, 
   User, 
   RotateCcw, 
   ShieldCheck, 
@@ -394,7 +393,7 @@ You can explore any of our core educational questions or inspect our interactive
                     }`}
                     aria-hidden="true"
                   >
-                    {isAssistant ? <Bot className="w-5 h-5" /> : <User className="w-5 h-5 font-bold" />}
+                    {isAssistant ? <Telescope className="w-5 h-5" /> : <User className="w-5 h-5 font-bold" />}
                   </div>
 
                   {/* Message Bubble & Supplementary Content */}
