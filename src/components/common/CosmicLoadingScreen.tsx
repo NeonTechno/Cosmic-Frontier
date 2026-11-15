@@ -86,7 +86,7 @@ export const CosmicLoadingScreen: React.FC<CosmicLoadingScreenProps> = ({
       {/* Cinematic deep-space background */}
       <div className="absolute inset-0 -z-20">
         <img
-          src={assetUrl('assets/cosmic-dust-universe.jpg')}
+          src="https://images-assets.nasa.gov/image/iss075e0085813/iss075e0085813~orig.jpg"
           alt=""
           aria-hidden="true"
           className="splash-bg h-full w-full object-cover object-[center_42%] opacity-65"
