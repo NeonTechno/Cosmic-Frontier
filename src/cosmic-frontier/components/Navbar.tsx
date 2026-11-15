@@ -1,7 +1,6 @@
 import { useState, type ReactNode, type FC } from 'react';
 import type { AppPage } from '../types';
 import { 
-  Home,
   Telescope, 
   Orbit,
   MessageCircleQuestion, 
@@ -44,9 +43,6 @@ export const Navbar: FC<NavbarProps> = ({
 
 
   const navItems: { page: AppPage; label: string; icon: ReactNode }[] = [
-    { page: 'home', label: 'Home', icon: <Home className="w-4 h-4" /> },
-    { page: 'spherex', label: 'SPHEREx', icon: <Telescope className="w-4 h-4" /> },
-    { page: 'planet-x', label: 'Planet X', icon: <Orbit className="w-4 h-4" /> },
     { page: 'mission-control', label: 'Mission', icon: <Radio className="w-4 h-4" /> },
     { page: 'observatory', label: 'Live', icon: <Telescope className="w-4 h-4" /> },
     { page: 'universe', label: '3D', icon: <Globe className="w-4 h-4" /> },
