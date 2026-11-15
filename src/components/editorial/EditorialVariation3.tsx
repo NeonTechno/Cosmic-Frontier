@@ -223,16 +223,16 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
         <section id="editorial-overview" className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28">
           <img
             className="editorial-astronaut-image editorial-dust-horizon-image"
-            src="https://photojournal.jpl.nasa.gov/jpeg/PIA26352.jpg"
-            alt="NASA SPHEREx infrared observation revealing interstellar dust clouds in the Large Magellanic Cloud"
+            src={assetUrl('/assets/JWST%20Messier%2016%20processed.jpg')}
+            alt="JWST NIRCam infrared image of the Pillars of Creation in the Eagle Nebula (Messier 16)."
             loading="eager"
             fetchPriority="high"
           />
           <div className="editorial-astronaut-shade" aria-hidden="true" />
           <div className="editorial-astronaut-grid" aria-hidden="true" />
           <div className="editorial-astronaut-frame" aria-hidden="true">
-            <span>SPHEREX / INFRARED FIELD 01</span>
-            <span>INTERSTELLAR DUST SURVEY</span>
+            <span>JWST NIRCAM / MESSIER 16</span>
+            <span>PILLARS OF CREATION / EAGLE NEBULA</span>
           </div>
 
           <div className="editorial-astronaut-layout">
@@ -243,7 +243,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                 <span>Horizon.</span>
               </h2>
               <p>
-                Explore the infrared universe through calibrated all-sky observations, exoplanet records and orbital research. Every scientific workflow is grounded in traceable mission data and published astronomical sources.
+                Explore the infrared universe through SPHEREx survey tools, archival telescope imagery, exoplanet records and orbital research. This featured JWST view reveals the sculpted pillars of gas and dust inside the Eagle Nebula.
               </p>
               <div className="editorial-astronaut-actions">
                 <button onClick={() => onNavigate('spherex')} className="editorial-astronaut-primary">
@@ -291,9 +291,9 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
           </div>
 
           <footer className="editorial-astronaut-caption">
-            <span>FIG. 01 — INTERSTELLAR DUST IN THE LARGE MAGELLANIC CLOUD</span>
-            <a href="https://science.nasa.gov/photojournal/spherexs-dust-cloud-reveal/" target="_blank" rel="noreferrer">
-              IMAGE: NASA / JPL-CALTECH · SPHEREX PIA26352 ↗
+            <span>FIG. 01 — PILLARS OF CREATION · MESSIER 16</span>
+            <a href="https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-compass-image/" target="_blank" rel="noreferrer">
+              IMAGE: NASA / ESA / CSA / STScI · JWST NIRCAM ↗
             </a>
           </footer>
         </section>
