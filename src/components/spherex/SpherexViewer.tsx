@@ -287,10 +287,10 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
     } else {
       // Automatically pull real IRSA DR1/QR3 cutouts for Barnard's Star on entry
       fetchLiveTimeMachine({
-        q: "Barnard's Star",
-        ra: 269.4521,
-        dec: 4.6934,
-        fov: 6.5,
+        q: 'WISE 0855-0714',
+        ra: 133.7951,
+        dec: -7.2451,
+        fov: 5.0,
       });
     }
   }, [fetchLiveTimeMachine]);
@@ -677,8 +677,8 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         {liveSearchError && <p className="text-xs text-amber-300 max-w-xl">{liveSearchError}</p>}
         <div className="w-full max-w-4xl">
           <CelestialCoordinateSearch
-            currentRa={269.4521} currentDec={4.6934} currentFovArcmin={6.5}
-            activeTargetName="Barnard's Star" selectedDetectorBand={selectedDetectorBand}
+            currentRa={133.7951} currentDec={-7.2451} currentFovArcmin={5.0}
+            activeTargetName="WISE 0855-0714" selectedDetectorBand={selectedDetectorBand}
             isSearchingLive={isSearchingLive} onChangeDetectorBand={handleChangeDetectorBand}
             onSelectBenchmark={handleSelectBenchmark} onSearchCoordinates={handleSearchCoordinates}
             onSearchTargetName={handleSearchTargetName} isLight={isLight}
