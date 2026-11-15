@@ -122,8 +122,7 @@ export const CelestialCoordinateSearch: React.FC<CelestialCoordinateSearchProps>
   };
 
   const aladinUrl = `https://aladin.cds.unistra.fr/AladinLite/?target=${currentRa.toFixed(4)}%20${currentDec.toFixed(4)}&fov=${(currentFovArcmin / 60).toFixed(3)}&survey=P%2FALLWISE%2Fcolor`;
-  const wiseViewUrl = `https://byw.tools/wiseview-v2#ra=${currentRa.toFixed(5)}&dec=${currentDec.toFixed(5)}&size=180&band=3&speed=125`;
-  const irsaFinderUrl = `https://irsa.ipac.caltech.edu/applications/finderchart/?__action=layout.showDropDown&view=Search&location=${currentRa.toFixed(5)},${currentDec.toFixed(5)}`;
+  const spherexExplorerUrl = 'https://irsa.ipac.caltech.edu/applications/SPHEREx/';
 
   return (
     <div
@@ -191,34 +190,10 @@ export const CelestialCoordinateSearch: React.FC<CelestialCoordinateSearchProps>
             <span>{copiedLink ? 'Copied' : 'Share'}</span>
           </button>
 
-          <a
-            href={wiseViewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition border cursor-pointer ${
-              isLight
-                ? 'bg-white border-[#1a1a1a]/20 text-[#1a1a1a] hover:border-[#1a1a1a]'
-                : 'bg-slate-900 border-white/10 text-amber-300 hover:border-amber-500/40'
-            }`}
-            title="Open field in Backyard Worlds WiseView v2 blink comparator"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>WiseView</span>
-          </a>
-
-          <a
-            href={irsaFinderUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition border cursor-pointer ${
-              isLight
-                ? 'bg-white border-[#1a1a1a]/20 text-[#1a1a1a] hover:border-[#1a1a1a]'
-                : 'bg-slate-900 border-white/10 text-cyan-300 hover:border-cyan-500/40'
-            }`}
-            title="Inspect archival plates in NASA/IPAC IRSA FinderChart"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">IRSA FinderChart</span>
+          <a href={spherexExplorerUrl} target="_blank" rel="noopener noreferrer"
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono transition border cursor-pointer ${isLight ? 'bg-white border-[#1a1a1a]/20 text-[#1a1a1a] hover:border-[#1a1a1a]' : 'bg-slate-900 border-white/10 text-cyan-300 hover:border-cyan-500/40'}`}
+            title="Search and download real SPHEREx observations from NASA/IPAC IRSA">
+            <ExternalLink className="w-3.5 h-3.5" /><span>SPHEREx Data Explorer</span>
           </a>
 
           <a

@@ -34,7 +34,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
   const [showFullFits, setShowFullFits] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const isLive = observation.dataSourceStatus === 'LIVE_IRSA_SPHEREX';
+  const isLive = observation.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX';
 
   const copyFitsText = () => {
     const lines = Object.entries(observation.fitsHeader).map(
@@ -142,22 +142,14 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             </div>
           )}
           <div className="flex flex-wrap gap-2 pt-1 text-[10px]">
-            <a
-              href={observation.archiveSummary.wiseViewUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-amber-300 hover:underline inline-flex items-center gap-1"
-            >
-              WiseView <ExternalLink className="h-2.5 w-2.5" />
+            <a href="https://irsa.ipac.caltech.edu/applications/SPHEREx/" target="_blank" rel="noreferrer" className="text-cyan-300 hover:underline inline-flex items-center gap-1">
+              SPHEREx Data Explorer <ExternalLink className="h-2.5 w-2.5" />
             </a>
-            <a
-              href={observation.archiveSummary.irsaFinderUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-cyan-300 hover:underline inline-flex items-center gap-1"
-            >
-              IRSA FinderChart <ExternalLink className="h-2.5 w-2.5" />
-            </a>
+            {observation.archiveSummary.aladinUrl && (
+              <a href={observation.archiveSummary.aladinUrl} target="_blank" rel="noreferrer" className="text-slate-300 hover:underline inline-flex items-center gap-1">
+                Aladin Lite <ExternalLink className="h-2.5 w-2.5" />
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -187,7 +179,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             <Clock className="h-3 w-3 text-emerald-400" /> Obs Date (UTC)
           </span>
           <span className="text-white font-semibold mt-1 block truncate">
-            {String(observation.fitsHeader['DATE-OBS'] || observation.epochs?.[0]?.timestamp || '2025-05-15').split('T')[0]}
+            {String(observation.fitsHeader['DATE-OBS'] || observation.epochs?.[0]?.timestamp || 'Not recorded').split('T')[0]}
           </span>
         </div>
 
@@ -196,7 +188,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             <Clock className="h-3 w-3 text-purple-400" /> Exposure Time
           </span>
           <span className="text-white font-semibold mt-1 block">
-            {observation.fitsHeader['EXPTIME'] ?? observation.epochs?.[0]?.exposureTimeSec ?? 180} s
+            {observation.fitsHeader['EXPTIME'] ?? observation.epochs?.[0]?.exposureTimeSec ?? 'Not recorded in FITS'}{observation.fitsHeader['EXPTIME'] !== undefined || observation.epochs?.[0]?.exposureTimeSec !== undefined ? ' s' : ''}
           </span>
         </div>
 
@@ -205,7 +197,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             <Thermometer className="h-3 w-3 text-red-400" /> FPA Temp
           </span>
           <span className="text-white font-semibold mt-1 block">
-            {observation.detectorTempK} K
+            {observation.detectorTempK !== undefined ? `${observation.detectorTempK} K` : 'Not recorded in FITS'}
           </span>
         </div>
 

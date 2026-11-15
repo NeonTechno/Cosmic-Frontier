@@ -163,7 +163,7 @@ export const ArchitectureView: React.FC = () => {
             Pairs SPHEREx (2025–2026) with 2010 AllWISE W1/W2 coadds (15-year motion baseline) and live ESA Gaia DR3 proper motions. Strictly distinguishes observed residuals, unconfirmed candidates, and confirmed discoveries.
           </p>
           <div className="pt-2 border-t border-slate-800/80 font-mono text-[11px] text-indigo-400">
-            Gaia DR3 TAP + AllWISE IBE + WiseView
+            Gaia DR3 TAP + AllWISE IBE + IRSA Image Server
           </div>
         </div>
 

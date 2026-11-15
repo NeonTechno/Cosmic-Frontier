@@ -40,10 +40,10 @@ const SPACE_APPS_RESOURCES = [
   {
     group: 'NASA data and resources',
     agency: 'Backyard Worlds',
-    title: 'WiseView',
-    description: 'Public blink-viewer reference for comparing earlier WISE/NEOWISE epochs and checking whether a source moves.',
-    url: 'https://byw.tools/wiseview',
-    tag: 'COMPARISON TOOL',
+    title: 'IRSA Image Server & Browsable Directories',
+    description: 'Programmatic image metadata, direct FITS downloads, image cutouts, and browsable archive directories.',
+    url: 'https://irsa.ipac.caltech.edu/ibe/',
+    tag: 'DIRECT FITS ACCESS',
   },
   {
     group: 'NASA data and resources',
@@ -147,15 +147,15 @@ export const DataIntegrationModal: React.FC<DataIntegrationModalProps> = ({
           </button>
         </div>
 
-        {/* Live vs Fallback Data Boundary Banner */}
+        {/* Live and local verified data boundary */}
         <div className="bg-emerald-950/35 border-b border-emerald-800/40 px-4 py-3 text-xs text-emerald-100 flex items-start space-x-3 font-mono">
           <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
             <div className="font-bold text-emerald-300 uppercase tracking-wide">
-              LIVE IRSA SPHEREx DR1 &amp; QR3 PIPELINE + HONEST FALLBACK
+              LIVE IRSA + LOCAL FITS DATA PIPELINE
             </div>
             <p className="leading-relaxed text-emerald-100/85 font-sans">
-              Black Star Orbit queries NASA/IPAC IRSA SIAv2 (<code>spherex_dr1</code> &amp; <code>spherex_qr3</code>), downloads calibrated Level-2 Multi-Extension FITS cutouts (IMAGE, FLAGS, VARIANCE, ZODI), and cross-matches ESA Gaia DR3 &amp; AllWISE W1/W2 coadds. Whenever a region lacks live coverage or an external endpoint times out, the UI explicitly displays a <code>FALLBACK_SIMULATED</code> or <code>SIMULATED_BENCHMARK</code> badge.
+              Black Star Orbit queries NASA/IPAC IRSA SIAv2 (<code>spherex_dr1</code> &amp; <code>spherex_qr3</code>), downloads calibrated Level-2 Multi-Extension FITS cutouts (IMAGE, FLAGS, VARIANCE, ZODI), and cross-matches ESA Gaia DR3 &amp; AllWISE W1/W2 coadds. When live retrieval fails or no matching local files exist, the viewer displays no observation frames and guides users through collecting and indexing genuine archive data.
             </p>
           </div>
         </div>
