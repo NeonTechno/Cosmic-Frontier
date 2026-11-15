@@ -41,7 +41,7 @@ import {
 import { ShieldCheck, Compass, ExternalLink, ArrowUpRight, Orbit, Telescope, Activity, FlaskConical, ImageIcon, Globe, Moon, Sun } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite'>('cosmic-suite');
   const [serverOk, setServerOk] = useState<boolean>(true);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [showIntroModal, setShowIntroModal] = useState<boolean>(false);
@@ -200,8 +200,22 @@ export default function App() {
   const handleInitialEnter = useCallback(() => {
     setIsInitialLoading(false);
     try {
-      const completed = window.localStorage.getItem('black-star-orbit-project-tour-completed') === 'true';
-      if (!completed) setShowProjectTour(true);
+      const tourCompleted =
+        window.localStorage.getItem('black-star-orbit-project-tour-completed') === 'true';
+
+      // Existing visitors have a workspace footprint from earlier versions.
+      // Preserve their flow: take them straight into the Cosmic Frontier Suite.
+      const hasVisitedBefore =
+        window.localStorage.getItem('blackstar_orbit_theme') !== null ||
+        window.localStorage.getItem('blackstar_discovery_bookmarks') !== null;
+
+      if (tourCompleted || hasVisitedBefore) {
+        window.localStorage.setItem('black-star-orbit-project-tour-completed', 'true');
+        setActiveTab('cosmic-suite');
+        setShowProjectTour(false);
+      } else {
+        setShowProjectTour(true);
+      }
     } catch {
       // If browser storage is unavailable, offer the tour for this visit.
       setShowProjectTour(true);
