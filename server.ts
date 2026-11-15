@@ -196,23 +196,14 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 // Unified AI & NASA runtime status endpoint (used by Cosmic AI Guide)
 app.get('/api/status', (_req: Request, res: Response) => {
-  const isNasaConfigured = Boolean(process.env.NASA_API_KEY && process.env.NASA_API_KEY !== 'DEMO_KEY');
+  const configuredNasaKey = Boolean((process.env.NASA_API_KEY || '').trim()) && (process.env.NASA_API_KEY || '').trim() !== 'DEMO_KEY';
   res.json({
-    isAiConfigured: !!nvidiaApiKey,
-    isNasaConfigured,
-    nasaApiConnected: true,
-    mode: nvidiaApiKey ? 'live' : 'demonstration',
-    provider: 'NVIDIA NIM',
-    model: nvidiaModel,
-    message: nvidiaApiKey
-      ? `Live NVIDIA NIM inference active via ${nvidiaModel}.`
-      : `Operating in verified demonstration mode. Set NVIDIA_API_KEY to enable live ${nvidiaModel} reasoning.`,
+    isAiConfigured: !!nvidiaApiKey, isNasaConfigured: configuredNasaKey, nasaApiConnected: false,
+    mode: nvidiaApiKey ? 'live' : 'demonstration', provider: 'NVIDIA NIM', model: nvidiaModel,
+    message: nvidiaApiKey ? `NVIDIA NIM configured via ${nvidiaModel}.` : 'Educational fallback active.',
     services: {
-      nasaOpenData: {
-        status: isNasaConfigured ? 'authenticated' : 'demo_key',
-        source: 'api.nasa.gov & Caltech/IPAC IRSA',
-        authenticated: isNasaConfigured,
-      },
+      nasaOpenData: { status: configuredNasaKey ? 'key_configured_unverified' : 'using_demo_key', source: 'api.nasa.gov', authenticated: configuredNasaKey, note: 'SPHEREx IRSA access is independent of NASA_API_KEY.' },
+      spherexIrsa: { status: 'not_checked', source: 'NASA/IPAC IRSA SIA', requiresApiKey: false },
     },
   });
 });
@@ -534,14 +525,15 @@ app.get('/api/data-status/ping', async (req: Request, res: Response) => {
 // (NASA api.nasa.gov, OpenWeatherMap, Agromonitoring)
 // ==========================================
 
-const NASA_KEY = process.env.NASA_API_KEY || 'DEMO_KEY';
+const NASA_KEY = (process.env.NASA_API_KEY || '').trim() || 'DEMO_KEY';
+const NASA_KEY_IS_CUSTOM = NASA_KEY !== 'DEMO_KEY';
 const OWM_KEY = process.env.WEATHER_DATA || process.env.OPENWEATHER_API || '';
 const AGRO_KEY = process.env.AGRO_API || '';
 
 // Diagnostic test endpoint verifying all configured API connections
 app.get('/api/system/api-status', async (_req: Request, res: Response) => {
   const results: Record<string, any> = {
-    nasa: { configured: !!process.env.NASA_API_KEY, status: 'unknown' },
+    nasa: { configured: NASA_KEY_IS_CUSTOM, keyType: NASA_KEY_IS_CUSTOM ? 'custom' : 'DEMO_KEY', status: 'unknown' },
     openweathermap: { configured: !!OWM_KEY, status: 'unknown' },
     agromonitoring: { configured: !!AGRO_KEY, status: 'unknown' },
     nvidia: {
@@ -578,7 +570,9 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
   try {
     const r = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=${NASA_KEY}`);
     results.nasa.status = r.ok ? 'connected' : `http_${r.status}`;
+    results.nasa.connected = r.ok;
     results.nasa.testedEndpoint = 'api.nasa.gov/neo/rest/v1';
+    results.nasa.message = r.ok ? 'NASA NeoWs responded successfully.' : 'NASA NeoWs request failed; check HTTP status, key and quota.';
   } catch (e: any) {
     results.nasa.status = `error: ${e.message}`;
   }
@@ -620,27 +614,31 @@ app.get('/api/nasa/apod', async (req: Request, res: Response) => {
       service_version: 'v1',
       copyright: 'NASA Astronomy Public Archive',
     },
-    source: 'Verified NASA Archive (api.nasa.gov fallback)',
+    source: 'Bundled NASA APOD fallback',
     isLive: false,
+    dataStatus: 'ARCHIVED_FALLBACK',
+    warning: 'NASA APOD could not be reached. This archived record is not today\'s live APOD.',
   });
 });
 
-// NASA: SPHEREx & Mission Photos
-app.get('/api/nasa/spherex', (_req: Request, res: Response) => {
-  res.json({
-    photos: [
-      {
-        id: 'spherex-hardware-01',
-        title: 'SPHEREx Linear Variable Filter Focal Plane Arrays',
-        camera: 'Hawaii-2RG Infrared Detector FPA 1-6',
-        rover: 'SPHEREx Observatory Payload',
-        img_src: '/assets/cosmic-dust-universe.jpg',
-        earth_date: '2025-02-15',
-        description: 'Spectral calibration of 6 detector focal plane arrays spanning 0.75 - 5.00 µm.',
-      },
-    ],
-    source: 'NASA/JPL-Caltech Science Data Center',
-  });
+// NASA Image and Video Library: live SPHEREx mission imagery (no NASA_API_KEY required)
+app.get('/api/nasa/spherex', async (_req: Request, res: Response) => {
+  try {
+    const response = await fetch('https://images-api.nasa.gov/search?q=SPHEREx&media_type=image&page_size=12');
+    if (!response.ok) throw new Error(`NASA Images API returned HTTP ${response.status}`);
+    const payload: any = await response.json();
+    const items = Array.isArray(payload?.collection?.items) ? payload.collection.items : [];
+    const photos = items.map((item: any) => {
+      const data = item?.data?.[0] || {};
+      const links = Array.isArray(item?.links) ? item.links : [];
+      const preview = links.find((link: any) => link.rel === 'preview' && link.href) || links.find((link: any) => link.href);
+      return { nasaId: data.nasa_id || item?.href, title: data.title || 'SPHEREx mission image', description: data.description || 'NASA Image and Video Library record.', dateCreated: data.date_created || '', center: data.center || 'NASA', thumb: preview?.href || '', nasaUrl: item?.href || '' };
+    }).filter((photo: any) => photo.thumb);
+    res.json({ photos, source: 'NASA Image and Video Library', isLive: true, dataStatus: 'LIVE', retrievedAt: new Date().toISOString(), count: photos.length });
+  } catch (err: any) {
+    console.warn('[Server] NASA SPHEREx image search failed:', err?.message);
+    res.status(502).json({ photos: [], source: 'NASA Image and Video Library', isLive: false, dataStatus: 'UNAVAILABLE', error: 'Live NASA SPHEREx imagery is temporarily unavailable.' });
+  }
 });
 
 // NASA: NeoWs Asteroids & Planetary Defense Feed
