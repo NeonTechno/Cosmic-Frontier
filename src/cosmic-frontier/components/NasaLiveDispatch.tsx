@@ -10,7 +10,7 @@ import {
   Layers, 
   ChevronDown,
   ChevronUp,
-  Sparkles,
+  MessageCircleQuestion,
   ShieldCheck,
   Calendar,
   Satellite
@@ -268,8 +268,8 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
                       onClick={() => onNavigate('ai-guide')}
                       className="px-4 py-2 rounded-xl bg-[#8B5CF6]/15 hover:bg-[#8B5CF6]/25 border border-[#8B5CF6]/40 text-[#A78BFA] hover:text-[#FFFFFF] text-xs font-mono font-bold transition-all flex items-center gap-2 cursor-pointer"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Ask AI Guide About This</span>
+                      <MessageCircleQuestion className="w-3.5 h-3.5" />
+                      <span>Ask Guide About This</span>
                     </button>
                   )}
                 </div>
