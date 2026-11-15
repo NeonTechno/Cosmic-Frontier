@@ -117,6 +117,36 @@ function bandCenterMicrons(band: string, emMin: number, emMax: number): number {
   return defaults[band] || 3.05;
 }
 
+function parseCsvRows(csv: string): Record<string, string>[] {
+  const records: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let quoted = false;
+  for (let i = 0; i < csv.length; i++) {
+    const ch = csv[i];
+    if (quoted) {
+      if (ch === '"' && csv[i + 1] === '"') { cell += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else cell += ch;
+    } else if (ch === '"' && cell.length === 0) quoted = true;
+    else if (ch === ',') { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && csv[i + 1] === '\n') i++;
+      row.push(cell); cell = '';
+      if (row.some((value) => value.trim() !== '')) records.push(row);
+      row = [];
+    } else cell += ch;
+  }
+  if (cell.length || row.length) { row.push(cell); records.push(row); }
+  if (records.length < 2) return [];
+  const headers = records[0].map((value) => value.replace(/^\\uFEFF/, '').trim().toLowerCase());
+  return records.slice(1).map((values) => {
+    const item: Record<string, string> = {};
+    headers.forEach((header, index) => { item[header] = (values[index] || '').trim(); });
+    return item;
+  });
+}
+
 function decodeXmlText(value: string): string {
   return value
     .replace(/&amp;/gi, '&')
@@ -170,7 +200,7 @@ export async function queryIrsaSpherexSia(
   const query = new URLSearchParams({
     COLLECTION: collection,
     POS: `CIRCLE ${raDeg.toFixed(5)} ${decDeg.toFixed(5)} ${radiusDeg}`,
-    RESPONSEFORMAT: 'VOTABLE',
+    RESPONSEFORMAT: 'CSV',
     MAXREC: '5000',
   });
   const url = `https://irsa.ipac.caltech.edu/SIA?${query.toString()}`;
@@ -178,8 +208,10 @@ export async function queryIrsaSpherexSia(
   if (!res.ok) {
     throw new Error(`IRSA SIA ${collection} HTTP ${res.status}`);
   }
-  const xml = await res.text();
-  const parsed = parseVotableRows(xml);
+  const responseBody = await res.text();
+  const parsed = /<\\?xml|<VOTABLE/i.test(responseBody)
+    ? parseVotableRows(responseBody)
+    : parseCsvRows(responseBody);
   const rows: SiaObservationRow[] = parsed
     .filter((r) => r.access_url && (r.dataproduct_type || '').toLowerCase() === 'image')
     .map((r) => ({
@@ -200,7 +232,9 @@ export async function queryIrsaSpherexSia(
     }))
     .sort((a, b) => a.tMinMjd - b.tMinMjd);
 
-  setCached(cacheKey, rows);
+  // Never persist an empty result: an earlier parser/temporary archive miss
+  // must not mask newly available observations for the full cache lifetime.
+  if (rows.length > 0) setCached(cacheKey, rows);
   return rows;
 }
 
@@ -510,19 +544,19 @@ export async function querySpherexTimeMachine(options: {
   // IRSA recommends DR1 + QR3; their deep collections are separate and must
   // be queried explicitly or targets in deep fields can be missed.
   const [dr1Res, qr3Res, dr1DeepRes, qr3DeepRes, gaiaSources, allWiseCutouts] = await Promise.all([
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1', 0.03).catch((err) => {
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1', Math.max(0.1, fovArcmin / 60)).catch((err) => {
       console.warn('[AstroArchive] DR1 wide SIA error:', err.message);
       return [] as SiaObservationRow[];
     }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3', 0.03).catch((err) => {
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3', Math.max(0.1, fovArcmin / 60)).catch((err) => {
       console.warn('[AstroArchive] QR3 wide SIA error:', err.message);
       return [] as SiaObservationRow[];
     }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1_deep', 0.03).catch((err) => {
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1_deep', Math.max(0.1, fovArcmin / 60)).catch((err) => {
       console.warn('[AstroArchive] DR1 deep SIA error:', err.message);
       return [] as SiaObservationRow[];
     }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3_deep', 0.03).catch((err) => {
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3_deep', Math.max(0.1, fovArcmin / 60)).catch((err) => {
       console.warn('[AstroArchive] QR3 deep SIA error:', err.message);
       return [] as SiaObservationRow[];
     }),
