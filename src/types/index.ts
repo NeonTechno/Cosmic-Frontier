@@ -181,6 +181,14 @@ export interface SpherexObservation {
     queryLatencyMs: number;
     cached: boolean;
     limitations: string[];
+    collectionResults?: {
+      collection: string;
+      status: 'success' | 'error';
+      rowCount: number;
+      attempts: number;
+      latencyMs: number;
+      error?: string;
+    }[];
     wiseViewUrl: string;
     irsaFinderUrl: string;
     aladinUrl: string;

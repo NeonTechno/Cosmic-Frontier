@@ -212,11 +212,15 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
 
       const res = await fetch(`/api/spherex/time-machine?${qs.toString()}`);
       const contentType = res.headers.get('content-type') || '';
+      const payload = contentType.includes('application/json')
+        ? await res.json().catch(() => null)
+        : null;
       if (!res.ok || !contentType.includes('application/json')) {
-        throw new Error(`HTTP ${res.status}`);
+        const code = payload?.code ? `${payload.code}: ` : '';
+        const details = payload?.details || payload?.error || `HTTP ${res.status}`;
+        throw new Error(`${code}${details}`);
       }
-      const data = await res.json();
-      const obs = data as SpherexObservation;
+      const obs = payload as SpherexObservation;
       setLocalObservations((prev) => {
         const filtered = prev.filter(
           (o) =>
@@ -262,7 +266,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         fallbackObs = {
           ...fallbackObs,
           dataSourceStatus: 'FALLBACK_SIMULATED',
-          dataSourceLabel: `SIMULATED OFFLINE BENCHMARK — live IRSA query failed: ${reason}`,
+          dataSourceLabel: reason.includes('IRSA_ARCHIVE_UNAVAILABLE')
+            ? `SIMULATED OFFLINE BENCHMARK — SPHEREx archive unavailable; sky coverage is unknown. ${reason}`
+            : `SIMULATED OFFLINE BENCHMARK — live IRSA query failed; these frames are not archive observations. ${reason}`,
         };
         const resolvedObs = fallbackObs;
         setLocalObservations((prev) => {
