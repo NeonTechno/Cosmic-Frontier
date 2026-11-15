@@ -206,11 +206,11 @@ export async function queryIrsaSpherexSia(
       accessFormat: row.access_format || 'image/fits',
     };
   }).sort((a, b) => a.tMinMjd - b.tMinMjd);
-  setCached(cacheKey, rows);
+  if (rows.length) setCached(cacheKey, rows);
   return rows;
 }
 function parseCsvRows(csv: string): Record<string, string>[] {
-  const lines = csv.replace(/^\\uFEFF/, '').split(/\\r?\\n/).filter((line) => line.trim());
+  const lines = csv.replace(/^\uFEFF/, '').split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
   const parseLine = (line: string): string[] => {
     const cells: string[] = []; let value = ''; let quoted = false;
@@ -242,7 +242,7 @@ export async function querySpherexTap(
   const cacheKey = `spherex_tap_v1_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${radiusDeg}`;
   const cached = getCached<SiaObservationRow[]>(cacheKey);
   if (cached) return cached;
-  const adql = `SELECT TOP 2000 a.uri AS uri, p.time_bounds_lower AS t_min, p.time_bounds_upper AS t_max, p.energy_bandpassname AS bandpass, p.em_min AS em_min, p.em_max AS em_max FROM spherex.artifact a JOIN spherex.plane p ON a.planeid = p.planeid WHERE 1 = CONTAINS(POINT('ICRS', ${raDeg.toFixed(6)}, ${decDeg.toFixed(6)}), p.poly) AND 1 = INTERSECTS(CIRCLE('ICRS', ${raDeg.toFixed(6)}, ${decDeg.toFixed(6)}, ${radiusDeg.toFixed(5)}), p.poly) ORDER BY p.time_bounds_lower`;
+  const adql = `SELECT TOP 2000 a.uri AS uri, p.time_bounds_lower AS t_min, p.time_bounds_upper AS t_max, p.energy_bandpassname AS bandpass, p.em_min AS em_min, p.em_max AS em_max FROM spherex.artifact a JOIN spherex.plane p ON a.planeid = p.planeid WHERE 1 = CONTAINS(POINT('ICRS', ${raDeg.toFixed(6)}, ${decDeg.toFixed(6)}), p.poly) ORDER BY p.time_bounds_lower`;
   const params = new URLSearchParams({ REQUEST: 'doQuery', LANG: 'ADQL', FORMAT: 'csv', QUERY: adql });
   const url = `https://irsa.ipac.caltech.edu/TAP/sync?${params.toString()}`;
   const res = await fetch(url, { headers: { Accept: 'text/csv' }, signal: AbortSignal.timeout(25000) });
@@ -254,16 +254,16 @@ export async function querySpherexTap(
   const parsed = parseCsvRows(csv);
   const rows: SiaObservationRow[] = parsed.map((row) => {
     const uri = row.uri || row.access_url || '';
-    const accessUrl = uri.startsWith('http') ? uri : `https://irsa.ipac.caltech.edu/${uri.replace(/^\\/+/, '')}`;
+    const accessUrl = uri.startsWith('http') ? uri : `https://irsa.ipac.caltech.edu/${uri.replace(/^\/+/, '')}`;
     const path = accessUrl.split('?')[0];
-    const collection = path.match(/\\/spherex\\/(dr1|qr3)\\//i)?.[1]?.toLowerCase() || 'spherex_tap';
+    const collection = path.match(/\/spherex\/(dr1|qr3)\//i)?.[1]?.toLowerCase() || 'spherex_tap';
     const tMin = Number.parseFloat(row.t_min);
     const tMax = Number.parseFloat(row.t_max);
     const emMin = Number.parseFloat(row.em_min);
     const emMax = Number.parseFloat(row.em_max);
     return {
-      obsId: path.split('/').pop()?.replace(/\\.fits(?:\\.gz)?$/i, '') || `tap-${collection}-${tMin}`,
-      obsCollection: `spherex_${collection}` === 'spherex_tap' ? 'spherex_tap' : `spherex_${collection}` ,
+      obsId: path.split('/').pop()?.replace(/\.fits(?:\.gz)?$/i, '') || `tap-${collection}-${tMin}`,
+      obsCollection: collection === 'spherex_tap' ? 'spherex_tap' : `spherex_${collection}`,
       bandpassName: row.bandpass || row.energy_bandpassname || 'SPHEREx',
       sRa: raDeg, sDec: decDeg,
       tMinMjd: Number.isFinite(tMin) ? tMin : 60800,
