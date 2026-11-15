@@ -10,7 +10,7 @@ import React, { useState } from 'react';
 import { AiExplanationResponse } from '../../types/index.ts';
 import { NaturalTextRenderer } from '../common/NaturalTextRenderer.tsx';
 import {
-  Sparkles,
+  Telescope,
   ShieldCheck,
   Send,
   X,
@@ -147,7 +147,7 @@ export const CosmicAiAssistant: React.FC<CosmicAiAssistantProps> = ({
         <div className="p-4 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-lg bg-gradient-to-tr from-cyan-600 to-indigo-600 text-white shadow-md">
-              <Sparkles className="h-5 w-5" />
+              <Telescope className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
