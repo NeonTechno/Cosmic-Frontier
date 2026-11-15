@@ -2861,3 +2861,151 @@ body.theme-light {
     padding: 275px 17px 19px !important;
   }
 }
+
+
+/* Planet X investigation lab — refined observatory UI */
+.cf-module--planetx {
+  --px-font: "Inter", "SF Pro Display", "Segoe UI", sans-serif;
+  --px-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  font-family: var(--px-font) !important;
+  font-size: 14px;
+  letter-spacing: -0.012em;
+  color: #eaf1fb;
+}
+.cf-module--planetx :is(h1,h2,h3,h4,p,span,button,label,strong) {
+  font-family: var(--px-font);
+}
+.cf-module--planetx :is(.font-mono,[class*="font-mono"]) {
+  font-family: var(--px-mono) !important;
+  letter-spacing: .015em;
+}
+.cf-module--planetx .cf-module-hero {
+  padding: 12px 0 25px;
+  border-color: rgba(148,163,184,.19);
+}
+.cf-module--planetx .cf-module-hero h1 {
+  font-size: clamp(2.15rem, 4.3vw, 3.65rem);
+  line-height: 1.04;
+  letter-spacing: -.058em;
+  font-weight: 760;
+  max-width: 900px;
+}
+.cf-module--planetx .cf-module-hero > p:nth-of-type(1) {
+  font-size: clamp(.95rem,1.4vw,1.12rem);
+  letter-spacing: -.018em;
+}
+.cf-module--planetx .cf-module-hero > p:last-of-type {
+  font-size: .94rem;
+  line-height: 1.8;
+  color: #aebdd0;
+}
+.cf-module--planetx .cf-notice {
+  max-width: 100%;
+  border-radius: 12px;
+  background: linear-gradient(110deg,rgba(35,43,68,.82),rgba(16,26,46,.94)) !important;
+  border-color: rgba(168,150,224,.24) !important;
+  box-shadow: inset 3px 0 0 rgba(168,139,250,.8), 0 10px 28px rgba(0,0,0,.12);
+  padding: 14px 16px;
+}
+.cf-module--planetx .cf-module-hero [class*="grid"] > div {
+  min-height: 54px;
+  padding: 14px 16px;
+  border-radius: 11px;
+  background: linear-gradient(145deg,rgba(17,34,59,.96),rgba(9,20,37,.98));
+  box-shadow: inset 0 1px rgba(255,255,255,.035);
+}
+.cf-module--planetx .cf-surface {
+  border-radius: 15px;
+}
+.cf-module--planetx button {
+  font-weight: 560;
+  letter-spacing: -.01em;
+}
+.cf-module--planetx button:focus-visible,
+.cf-module--planetx canvas:focus-visible,
+.cf-module--planetx input:focus-visible {
+  outline: 2px solid #8b7cf6 !important;
+  outline-offset: 3px;
+}
+.cf-module--planetx .cf-surface button:not(:disabled):hover {
+  filter: brightness(1.12);
+}
+.cf-module--planetx canvas {
+  min-height: 390px;
+  touch-action: none;
+}
+.cf-module--planetx .cf-surface:has(> canvas),
+.cf-module--planetx .cf-surface:has(> div > canvas) {
+  border-color: rgba(108,135,178,.28) !important;
+  box-shadow: 0 22px 54px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.05);
+}
+.cf-module--planetx .cf-surface :is(h2,h3) {
+  letter-spacing: -.035em;
+  font-weight: 680;
+}
+.cf-module--planetx .cf-surface p {
+  line-height: 1.72;
+}
+.cf-module--planetx .cf-surface [class*="grid"] > div {
+  transition: border-color .2s ease, background-color .2s ease, transform .2s ease;
+}
+.cf-module--planetx .cf-surface [class*="grid"] > div:hover {
+  border-color: rgba(121,216,236,.28);
+}
+.cf-module--planetx :is(.text-\[10px\],.text-\[11px\]) {
+  letter-spacing: .025em;
+}
+.cf-module--planetx .cf-module-hero + .cf-surface {
+  padding: 16px;
+}
+@media (max-width: 767px) {
+  .cf-module--planetx {
+    padding-top: 20px;
+    padding-bottom: 28px;
+    gap: 22px;
+  }
+  .cf-module--planetx .cf-module-hero h1 {
+    font-size: clamp(2rem,9vw,2.8rem);
+    line-height: 1.05;
+  }
+  .cf-module--planetx .cf-module-hero > p:last-of-type {
+    font-size: .88rem;
+  }
+  .cf-module--planetx .cf-module-hero [class*="grid"] > div {
+    min-height: 52px;
+  }
+  .cf-module--planetx .cf-surface {
+    border-radius: 13px;
+  }
+  .cf-module--planetx canvas {
+    min-height: 340px;
+  }
+  .cf-module--planetx .cf-module-hero + .cf-surface {
+    padding: 13px;
+    align-items: flex-start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-module--planetx *,
+  .cf-module--planetx *::before,
+  .cf-module--planetx *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
+.theme-light .cf-module--planetx {
+  color: #17283a;
+}
+.theme-light .cf-module--planetx .cf-module-hero h1 {
+  color: #142438;
+  text-shadow: none;
+}
+.theme-light .cf-module--planetx .cf-module-hero > p:last-of-type {
+  color: #53677d;
+}
+.theme-light .cf-module--planetx .cf-notice {
+  color: #e7edf7;
+}
+.theme-light .cf-module--planetx .cf-surface {
+  box-shadow: 0 12px 34px rgba(23,42,62,.09), inset 0 1px rgba(255,255,255,.55);
+}
