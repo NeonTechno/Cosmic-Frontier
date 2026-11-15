@@ -2218,3 +2218,285 @@ body.theme-light {
   color: #748196 !important;
   opacity: 1 !important;
 }
+
+
+/* =========================================================================
+   BLACK STAR ORBIT — OVERVIEW WORKSPACE FINISH
+   Visual-only refinement. Existing React state, data, links and actions remain intact.
+   ========================================================================= */
+.editorial-root {
+  --overview-accent: #72e5f7;
+  --overview-accent-strong: #22c8e8;
+  --overview-line: rgba(128, 177, 205, .18);
+  --overview-panel: rgba(10, 20, 36, .82);
+  --overview-muted: #9aafc2;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+.editorial-root :is(h1,h2,h3,h4,h5,h6,p,button,a,input,span,strong,small,label,th,td) {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.editorial-root :is(button,a,input) { transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.editorial-container { max-width: 1600px; }
+.editorial-dark .editorial-header {
+  padding-top: 25px;
+  padding-bottom: 22px;
+  margin-bottom: 34px;
+  border-color: var(--overview-line);
+}
+.editorial-dark .editorial-header > div { align-items: center; }
+.editorial-dark .editorial-logo-box {
+  width: 54px; height: 54px; border-radius: 16px;
+  background: linear-gradient(145deg, #10263b, #091322);
+  border-color: rgba(114,229,247,.28);
+}
+.editorial-dark .editorial-title { letter-spacing: .075em; font-size: clamp(16px,1.5vw,21px); }
+.editorial-dark .editorial-label { font-family: Inter, sans-serif; font-size: 9px; letter-spacing: .13em; }
+.editorial-dark .editorial-header nav { gap: 5px !important; }
+.editorial-dark .editorial-header nav button {
+  min-height: 38px; padding: 9px 13px !important;
+  font-family: Inter, sans-serif; font-size: 10px; font-weight: 600;
+  letter-spacing: .035em; text-transform: none;
+}
+.editorial-dark .editorial-header nav button:last-of-type { font-weight: 700; }
+.editorial-dark .editorial-header nav button:focus-visible,
+.editorial-dark #editorial-overview button:focus-visible,
+.editorial-dark #editorial-catalog button:focus-visible,
+.editorial-dark #editorial-catalog input:focus-visible {
+  outline: 2px solid #72e5f7; outline-offset: 3px;
+}
+.editorial-dark .editorial-header nav button:not(:last-of-type):hover { transform: translateY(-1px); }
+.editorial-dark .editorial-index,
+.editorial-dark #editorial-catalog,
+.editorial-dark #editorial-habitable { scroll-margin-top: 28px; }
+
+/* Index controls: a clear, compact navigation strip rather than a second header. */
+.editorial-dark .editorial-container > div:has(> div > div > button:first-child) {
+  border-color: var(--overview-line) !important;
+  background: rgba(7, 15, 27, .58) !important;
+  border-radius: 14px;
+  padding: 11px 14px !important;
+  margin-bottom: 34px !important;
+}
+.editorial-dark .editorial-container > div:has(> div > div > button:first-child) button {
+  border-radius: 8px;
+  font-family: Inter, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .015em;
+}
+.editorial-dark .editorial-container > div:has(> div > div > button:first-child) button:hover {
+  background: rgba(114,229,247,.09);
+}
+
+/* Hero: cinematic image stays, with cleaner content hierarchy and a more legible panel. */
+.editorial-astronaut-hero {
+  min-height: clamp(570px, 58vw, 700px);
+  border-radius: 22px;
+  border-color: rgba(120,190,220,.22);
+  box-shadow: 0 30px 90px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.06);
+}
+.editorial-astronaut-image { object-position: center 42%; }
+.editorial-astronaut-shade {
+  background:
+    linear-gradient(90deg, rgba(3,7,14,.96) 0%, rgba(3,7,14,.84) 28%, rgba(3,7,14,.25) 58%, rgba(3,7,14,.58) 78%, rgba(3,7,14,.88) 100%),
+    linear-gradient(0deg, rgba(3,7,14,.88), transparent 42%);
+}
+.editorial-astronaut-layout {
+  grid-template-columns: minmax(0,1.08fr) minmax(40px,.34fr) minmax(260px,.72fr);
+  gap: clamp(18px,2vw,30px);
+  padding-left: clamp(28px,4vw,58px);
+  padding-right: clamp(28px,4vw,58px);
+}
+.editorial-astronaut-kicker {
+  font-family: Inter, sans-serif;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: .15em;
+  color: #a9d8e7;
+}
+.editorial-astronaut-copy h2 {
+  font-family: Inter, sans-serif !important;
+  font-size: clamp(46px,5.1vw,74px) !important;
+  font-weight: 720 !important;
+  line-height: .99 !important;
+  letter-spacing: -.065em !important;
+}
+.editorial-astronaut-copy h2 span {
+  font-weight: 620;
+  letter-spacing: -.06em;
+}
+.editorial-astronaut-copy p {
+  font-family: Inter, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.75 !important;
+  max-width: 480px !important;
+}
+.editorial-astronaut-actions { gap: 10px; }
+.editorial-astronaut-actions button,
+.editorial-astronaut-spec-link {
+  min-height: 44px;
+  padding: 0 17px;
+  border-radius: 9px;
+  font-family: Inter, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .035em;
+}
+.editorial-astronaut-actions .editorial-astronaut-primary {
+  box-shadow: 0 8px 24px rgba(0,190,230,.12);
+}
+.editorial-astronaut-telemetry {
+  padding: 20px 21px;
+  border-radius: 15px;
+  border-color: rgba(150,196,222,.23);
+  background: linear-gradient(150deg, rgba(8,19,33,.88), rgba(5,12,23,.82));
+  box-shadow: 0 20px 60px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.06);
+}
+.editorial-astronaut-panel-top,
+.editorial-astronaut-metric > span,
+.editorial-astronaut-study > span {
+  font-family: Inter, sans-serif;
+  letter-spacing: .11em;
+}
+.editorial-astronaut-metric strong,
+.editorial-astronaut-study strong,
+.editorial-astronaut-metric small,
+.editorial-astronaut-study small { font-family: Inter, sans-serif; }
+.editorial-astronaut-metric { padding: 15px 0; }
+.editorial-astronaut-study { border-radius: 10px; padding: 14px; }
+.editorial-astronaut-caption {
+  font-family: Inter, sans-serif;
+  letter-spacing: .07em;
+}
+
+/* Catalog: more breathing room, clearer actions and a consistent Inter type system. */
+.editorial-dark #editorial-catalog {
+  padding-top: 42px;
+  border-color: var(--overview-line) !important;
+}
+.editorial-dark #editorial-catalog h2,
+.editorial-dark #editorial-catalog .editorial-h2 {
+  font-family: Inter, sans-serif !important;
+  font-size: clamp(24px,2.6vw,34px);
+  font-weight: 680;
+  letter-spacing: -.045em;
+}
+.editorial-dark #editorial-catalog .editorial-label {
+  font-family: Inter, sans-serif;
+  letter-spacing: .12em;
+}
+.editorial-dark #editorial-catalog input {
+  min-height: 42px;
+  border-radius: 10px;
+  font-family: Inter, sans-serif;
+}
+.editorial-dark #editorial-catalog button { font-family: Inter, sans-serif; }
+.editorial-dark #editorial-catalog .freeze-table-wrap {
+  border-radius: 14px;
+  overflow: auto;
+  box-shadow: 0 14px 40px rgba(0,0,0,.16);
+}
+.editorial-dark #editorial-catalog .freeze-table-wrap th {
+  font-family: Inter, sans-serif;
+  letter-spacing: .08em;
+}
+.editorial-dark #editorial-catalog .editorial-planet-art {
+  border-radius: 50%;
+  border: 1px solid rgba(114,229,247,.18);
+  box-shadow: inset 0 0 35px rgba(0,217,245,.08), 0 0 28px rgba(0,217,245,.06);
+}
+.editorial-dark #editorial-catalog .divide-y > div {
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+.editorial-dark #editorial-catalog h3 {
+  font-family: Inter, sans-serif !important;
+  font-size: clamp(22px,2.3vw,30px) !important;
+  font-weight: 680;
+  letter-spacing: -.045em;
+}
+.editorial-dark #editorial-catalog p,
+.editorial-dark #editorial-catalog span,
+.editorial-dark #editorial-catalog td { font-family: Inter, sans-serif; }
+.editorial-dark #editorial-catalog .font-mono { font-family: "JetBrains Mono", monospace !important; }
+
+/* Habitable-zone information and source footer. */
+.editorial-dark .editorial-habitable-block {
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 18px;
+  padding: clamp(22px,3vw,36px);
+  gap: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.18);
+}
+.editorial-dark .editorial-habitable-block h3 {
+  font-family: Inter, sans-serif !important;
+  font-size: 19px !important;
+  font-weight: 650;
+  letter-spacing: -.03em;
+}
+.editorial-dark .editorial-habitable-block p { font-family: Inter, sans-serif; line-height: 1.7; }
+.editorial-dark .editorial-footer-info { background: rgba(3,8,16,.78); }
+.editorial-dark .editorial-footer-info h4 { font-family: Inter, sans-serif !important; letter-spacing: -.04em; }
+.editorial-dark .editorial-footer-info p,
+.editorial-dark .editorial-footer-info li,
+.editorial-dark .editorial-footer-info span,
+.editorial-dark .editorial-footer-info button { font-family: Inter, sans-serif; }
+
+/* Paper theme receives the same structure and hierarchy, not a separate visual language. */
+.editorial-light {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(67,133,165,.08), transparent 36%),
+    linear-gradient(180deg,#fbfcfd 0%,#f4f7fa 100%) !important;
+  color: #172334 !important;
+}
+.editorial-light .editorial-header { border-color: #dce4eb !important; }
+.editorial-light .editorial-title { font-family: Inter, sans-serif !important; font-weight: 750; letter-spacing: .06em; }
+.editorial-light .editorial-header nav button {
+  font-family: Inter, sans-serif; font-weight: 600; border-radius: 999px;
+}
+.editorial-light .editorial-container > div:has(> div > div > button:first-child) {
+  border: 1px solid #dce4eb;
+  border-radius: 14px;
+  background: rgba(255,255,255,.78);
+  padding: 11px 14px !important;
+}
+.editorial-light .editorial-container > div:has(> div > div > button:first-child) button {
+  border-radius: 8px; font-family: Inter, sans-serif; font-weight: 600;
+}
+.editorial-light #editorial-catalog { border-color: #d7e0e8 !important; }
+.editorial-light #editorial-catalog h2,
+.editorial-light #editorial-catalog h3 { font-family: Inter, sans-serif !important; letter-spacing: -.04em; }
+.editorial-light #editorial-catalog input { min-height: 42px; border-radius: 10px; }
+.editorial-light .editorial-habitable-block { border-radius: 18px; padding: clamp(22px,3vw,36px); }
+.editorial-light .editorial-habitable-block h3 { font-family: Inter, sans-serif !important; }
+.editorial-light .editorial-footer-info { background: #111c2b; }
+
+/* Responsive polish: prevent crowded controls and keep the hero readable. */
+@media (max-width: 900px) {
+  .editorial-astronaut-layout { grid-template-columns: minmax(0,1fr) minmax(230px,.78fr); }
+  .editorial-astronaut-copy { max-width: 100%; }
+}
+@media (max-width: 767px) {
+  .editorial-dark .editorial-header { padding-top: 18px; padding-bottom: 16px; }
+  .editorial-dark .editorial-header > div { gap: 16px; }
+  .editorial-dark .editorial-header nav { gap: 5px !important; padding-bottom: 7px; }
+  .editorial-dark .editorial-header nav button { min-height: 36px; padding: 8px 11px !important; font-size: 10px; }
+  .editorial-dark .editorial-container > div:has(> div > div > button:first-child) {
+    margin-bottom: 22px !important; padding: 10px !important;
+  }
+  .editorial-astronaut-hero { border-radius: 17px; }
+  .editorial-astronaut-layout { padding: 285px 18px 20px; gap: 22px; }
+  .editorial-astronaut-copy h2 { font-size: clamp(40px,11vw,58px) !important; }
+  .editorial-astronaut-telemetry { border-radius: 13px; }
+  .editorial-astronaut-caption { gap: 7px; line-height: 1.6; }
+  .editorial-dark #editorial-catalog { padding-top: 30px; }
+  .editorial-dark #editorial-catalog .min-w-\[260px\] { min-width: 100%; }
+  .editorial-dark .editorial-habitable-block,
+  .editorial-light .editorial-habitable-block { border-radius: 14px; padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .editorial-root *, .editorial-root *::before, .editorial-root *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
