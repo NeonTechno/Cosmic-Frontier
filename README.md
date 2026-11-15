@@ -11,7 +11,7 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
 1. **Live NASA/IPAC IRSA SPHEREx Query Engine (`src/server/astroArchiveService.ts`)**
    - Queries **IRSA SIAv2** (`https://irsa.ipac.caltech.edu/SIA`) across both **`spherex_dr1`** and **`spherex_qr3`** for any user-supplied RA/Dec (decimal or sexagesimal) or resolved object name.
    - Groups available observations chronologically across survey dates (`t_min` / `MJD`) and detector arrays (`D1`–`D6`), and fetches calibrated **Level-2 Multi-Extension FITS cutouts** (`IMAGE`, `FLAGS`, `VARIANCE`, `ZODI`) via IRSA IBE (`?center={ra},{dec}&size=64pix`).
-   - Falls back cleanly and explicitly (`FALLBACK_SIMULATED` / `SIMULATED_BENCHMARK`) only if external IRSA endpoints time out or return zero coverage—never disguising synthetic data as real mission imagery.
+   - Never substitutes synthetic frames when IRSA is unavailable or returns zero rows. It reports the failure or empty result and shows no observation frames.
 
 2. **Zero-Dependency FITS Parser & WCS North-Up Reprojection (`src/server/fitsParser.ts`)**
    - Parses IEEE-754 float32 and int32 FITS HDUs (both raw and `.gz` AllWISE cutouts) directly in TypeScript inside the Node/Express server.
@@ -21,7 +21,7 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
 3. **Multi-Catalog Cross-Matching**
    - **ESA Gaia DR3 TAP (`gea.esac.esa.int`)**: Live ADQL cone searches returning proper motions (`pmra`, `pmdec`), parallaxes, and G magnitudes overlaid on the SPHEREx FOV.
    - **NASA/IPAC AllWISE IBE**: Live W1 (`3.35 µm`) and W2 (`4.60 µm`) 2010 coadd FITS cutouts integrated directly into the **Time-lapse & Blink Comparator** for a ~15-year proper-motion baseline.
-   - **External Deep-Links**: Direct coordinate handoff to **Backyard Worlds WiseView v2**, **IRSA FinderChart**, and **CDS Aladin Lite**.
+   - **External Deep-Links**: Uses the official **IRSA SPHEREx Data Explorer** for product search/download and **CDS Aladin Lite** for independent sky inspection.
 
 4. **Time Machine & Candidate Vetting Modules**
    - **Sky Viewer**: `asinh` / `log` / `linear` / `sqrt` stretching, astronomical colormaps, `−Zodi` toggle, variance-weighted `SNR` map toggle, coordinate readout, and high-res PNG export.
@@ -34,7 +34,7 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
 ## Baseline Assessment & Key Scientific Improvements
 
 During technical due diligence of the initial prototype:
-- **Resolved Simulated-Only SPHEREx Data**: Replaced synthetic-only target generators with live IRSA SIAv2 (`spherex_dr1` + `spherex_qr3`) + IBE FITS cutout ingestion while retaining explicit `FALLBACK_SIMULATED` labeling when offline.
+- **Resolved Simulated-Only SPHEREx Data**: Removed synthetic SPHEREx fallbacks. The API and client no longer populate the scientific viewer with generated benchmark observations; FITS pixels are required for an epoch to be displayed.
 - **Replaced Fake Difference Imaging**: Replaced synthetic star-loop subtraction (`Math.random()` noise) in `DifferenceOverlay.tsx` with variance-weighted, WCS-aligned pixel subtraction (`computeRealFrameDifference`).
 - **Corrected Candidate Vetting Claims**: Replaced `"Confirm PX"` / `"Confirmed High-Priority Planet X Candidate"` wording with honest citizen-science triage (`"Flag Priority"` / unconfirmed follow-up queue).
 - **Fixed Plate Scale & Roll Alignment**: Handled SPHEREx `PC + CDELT` WCS rotations so multi-epoch blink comparisons align background stars cleanly.
@@ -49,7 +49,10 @@ During technical due diligence of the initial prototype:
 
 ---
 
-## Validation Across the 5 Challenge Targets
+## Validation Targets
+
+The five challenge targets are query presets, not claims of archive coverage. For each target, the application retrieves actual IRSA metadata and FITS products or reports that coverage is unknown / no matching data were returned. The local dataset collector can be used when direct downloads are available even if a live query service is temporarily unavailable.
+
 
 - **Barnard's Star** (`17h57m48.50s, +04°41′36.2″`, `μ = 10.33″/yr`): Multi-epoch DR1 (2025) + QR3 (2026) coverage (>1 year baseline) + AllWISE 2010 W2 baseline.
 - **Epsilon Indi B** (`22h04m10.52s, -56°47′09.5″`, `μ = 4.70″/yr`): DR1 + QR3 epochs + Gaia DR3 / AllWISE comparison.
