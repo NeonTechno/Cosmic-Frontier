@@ -3264,3 +3264,112 @@ body.theme-light {
 /* Absolute hero layers must not inherit the section's vertical stack spacing. */
 .cf-home-hero > .cf-home-hero__image,
 .cf-home-hero > .cf-home-hero__shade { margin: 0 !important; }
+
+/* =========================================================================
+   APPLICATION COMPONENT INTERACTION PASS
+   Applies to the mission dashboards, observatory, catalogues, labs and tools.
+   ========================================================================= */
+.cf-navbar {
+  box-shadow: 0 8px 30px rgba(0,0,0,.14);
+  transition: background-color .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+.cf-navbar :is(a, button) {
+  position: relative;
+  isolation: isolate;
+  transition: color .22s ease, background-color .22s ease, border-color .22s ease, transform .22s ease, box-shadow .22s ease;
+}
+.cf-navbar :is(a, button):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 18px rgba(56,189,248,.12);
+}
+.cf-navbar :is(a, button):focus-visible,
+main :is(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid #67e8f9;
+  outline-offset: 3px;
+}
+.animate-page-enter {
+  position: relative;
+  isolation: isolate;
+  animation: cfPageReveal .58s cubic-bezier(.2,.7,.2,1) both;
+}
+.animate-page-enter::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: .2;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(186,230,253,.75) 50%, transparent 100%),
+    radial-gradient(1px 1px at 78% 12%, rgba(165,243,252,.7) 50%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 48% 42%, rgba(255,255,255,.65) 50%, transparent 100%),
+    radial-gradient(1px 1px at 88% 68%, rgba(186,230,253,.7) 50%, transparent 100%);
+  background-size: 420px 360px;
+  mask-image: linear-gradient(180deg, #000, transparent 78%);
+}
+@keyframes cfPageReveal {
+  from { opacity: 0; filter: blur(3px); transform: translateY(9px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+/* Reusable science-card treatment for the app's many Tailwind-built panels. */
+main :is(
+  .cf-surface, .mission-console, .hud-panel, .electric-glass,
+  .glass-panel, .data-card, .object-card, .planet-card,
+  .galaxy-card, .discovery-card, .observatory-card
+) {
+  transition:
+    transform .28s cubic-bezier(.2,.75,.25,1),
+    border-color .28s ease,
+    box-shadow .28s ease,
+    background-color .28s ease;
+}
+main :is(
+  .cf-surface, .mission-console, .hud-panel, .electric-glass,
+  .glass-panel, .data-card, .object-card, .planet-card,
+  .galaxy-card, .discovery-card, .observatory-card
+):hover {
+  transform: translateY(-3px);
+  border-color: rgba(103,232,249,.42);
+  box-shadow: 0 16px 38px rgba(0,0,0,.2), 0 0 22px rgba(34,211,238,.075);
+}
+/* Buttons feel like instrument controls, not generic web buttons. */
+main button:not(:disabled) {
+  transition:
+    transform .2s cubic-bezier(.2,.75,.25,1),
+    box-shadow .2s ease,
+    border-color .2s ease,
+    background-color .2s ease,
+    color .2s ease;
+}
+main button:not(:disabled):active {
+  transform: translateY(1px) scale(.985);
+}
+main button:not(:disabled):hover {
+  box-shadow: 0 5px 18px rgba(34,211,238,.1);
+}
+main :is(input, select, textarea) {
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+main :is(input, select, textarea):focus {
+  border-color: rgba(103,232,249,.72) !important;
+  box-shadow: 0 0 0 3px rgba(34,211,238,.1), 0 0 20px rgba(34,211,238,.07);
+}
+/* Soft scanning highlight for charts, data visualizations and media frames. */
+main :is(canvas, svg):not([aria-hidden="true"]) {
+  transition: filter .28s ease;
+}
+main :is(.recharts-wrapper, .recharts-surface, .astronomical-image-frame, .visualization-panel) {
+  transition: filter .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+main :is(.recharts-wrapper, .astronomical-image-frame, .visualization-panel):hover {
+  filter: drop-shadow(0 0 12px rgba(56,189,248,.12));
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-enter { animation: none !important; }
+  .animate-page-enter::before { opacity: .1; }
+  .cf-navbar :is(a, button),
+  main :is(button, a, input, select, textarea, .cf-surface, .mission-console, .hud-panel, .electric-glass, .glass-panel, .data-card, .object-card, .planet-card, .galaxy-card, .discovery-card, .observatory-card) {
+    transition-duration: .01ms !important;
+  }
+  main button:not(:disabled):active { transform: none; }
+}
