@@ -48,9 +48,9 @@ export const Navbar: FC<NavbarProps> = ({
     { page: 'spherex', label: 'SPHEREx', icon: <Telescope className="w-4 h-4" /> },
     { page: 'planet-x', label: 'Planet X', icon: <Orbit className="w-4 h-4" /> },
     { page: 'mission-control', label: 'Mission', icon: <Radio className="w-4 h-4" /> },
-    { page: 'observatory', label: 'Observatory', icon: <Telescope className="w-4 h-4" /> },
+    { page: 'observatory', label: 'Live', icon: <Telescope className="w-4 h-4" /> },
     { page: 'universe', label: '3D', icon: <Globe className="w-4 h-4" /> },
-    { page: 'exoplanets', label: 'Exoplanets', icon: <Disc className="w-4 h-4" /> },
+    { page: 'exoplanets', label: 'Worlds', icon: <Disc className="w-4 h-4" /> },
     { page: 'galaxies', label: 'Galaxies', icon: <Sparkles className="w-4 h-4" /> },
     { page: 'asteroid-watch', label: 'NEOs', icon: <Compass className="w-4 h-4" /> },
     { page: 'data-centre', label: 'Data', icon: <Database className="w-4 h-4" /> },
@@ -78,14 +78,15 @@ export const Navbar: FC<NavbarProps> = ({
             className="flex items-center gap-2.5 text-left group focus:outline-none rounded-lg p-1 cursor-pointer"
             aria-label="Black Star Orbit Home"
           >
-            <div>
-              <div className="flex items-center gap-2">
-              </div>
-            </div>
+            <BlackStarLogo size="sm" showGlow={false} />
+            <span className="flex flex-col leading-none">
+              <span className="text-[11px] sm:text-xs font-semibold tracking-[0.16em] text-[#edf4fc]">COSMIC FRONTIER</span>
+              <span className="mt-1 text-[8px] font-mono tracking-[0.18em] text-[#8193ad]">ASTRONOMY WORKSPACE</span>
+            </span>
           </button>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1" aria-label="Main Navigation">
+          <nav className="cf-nav-scroll hidden lg:flex items-center gap-0.5 xl:gap-1" aria-label="Main Navigation">
             {navItems.map((item, index) => {
               const isActive = currentPage === item.page || 
                 (item.page === 'ai-guide' && currentPage === 'guide');
