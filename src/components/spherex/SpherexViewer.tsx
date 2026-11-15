@@ -64,6 +64,7 @@ import { DownloadViewModal } from './DownloadViewModal.tsx';
 import { FreezePaneButton } from '../common/FreezePaneButton.tsx';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { SpherexDataCollectionGuide } from './SpherexDataCollectionGuide.tsx';
+import { createSpherexDemoObservation } from './spherexDemoData.ts';
 
 interface SpherexViewerProps {
   observations: SpherexObservation[];
@@ -233,7 +234,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       setSelectedFov(obs.fieldOfViewArcmin);
     } catch (err) {
       const reason = err instanceof Error ? err.message : 'Unknown network or API error';
-      setLiveSearchError(`No verified SPHEREx FITS observation could be loaded (${reason}). No synthetic data has been substituted.`);
+      setLiveSearchError(`No verified SPHEREx FITS observation could be loaded (${reason}). The viewer has switched to a clearly labelled synthetic demonstration so its analysis tools remain explorable; no simulated values are represented as NASA data.`);\n      const demoObservation = createSpherexDemoObservation();\n      setLocalObservations((prev) => prev.length > 0 ? prev : [demoObservation]);\n      setSelectedObsId((current) => current || demoObservation.id);\n      setSelectedEpochIdx(0);
     } finally {
       setIsSearchingLive(false);
     }
@@ -317,7 +318,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
     setSelectedObsId(nextId);
     setSelectedEpochIdx(0);
     const chosen = localObservations.find((o) => o.id === nextId);
-    if (chosen && chosen.dataSourceStatus !== 'LIVE_IRSA_SPHEREX' && chosen.dataSourceStatus !== 'LOCAL_IRSA_SPHEREX') {
+    if (chosen && chosen.dataSourceStatus !== 'LIVE_IRSA_SPHEREX' && chosen.dataSourceStatus !== 'LOCAL_IRSA_SPHEREX' && chosen.dataSourceStatus !== 'SIMULATED_DEMO') {
       fetchLiveTimeMachine({
         q: chosen.targetName,
         ra: chosen.raDeg,
@@ -610,7 +611,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
   }
 
   // Error State
-  if (error) {
+  if (error && localObservations.length === 0) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center p-8 bg-slate-950 border border-red-900/50 rounded-2xl space-y-4 text-center">
         <AlertCircle className="h-12 w-12 text-red-400" />
