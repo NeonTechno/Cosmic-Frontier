@@ -584,21 +584,8 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
 
               {candidate && (
                 <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-800 text-[11px] font-mono">
-                  <a
-                    href={`https://byw.tools/wiseview-v2#ra=${candidate.raDeg.toFixed(5)}&dec=${candidate.decDeg.toFixed(5)}&size=180&band=3&speed=125`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-amber-300 hover:underline inline-flex items-center gap-1"
-                  >
-                    WiseView <ExternalLink className="w-3 h-3" />
-                  </a>
-                  <a
-                    href={`https://irsa.ipac.caltech.edu/applications/finderchart/?__action=layout.showDropDown&view=Search&location=${candidate.raDeg.toFixed(5)},${candidate.decDeg.toFixed(5)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-cyan-300 hover:underline inline-flex items-center gap-1"
-                  >
-                    IRSA FinderChart <ExternalLink className="w-3 h-3" />
+                  <a href="https://irsa.ipac.caltech.edu/applications/SPHEREx/" target="_blank" rel="noreferrer" className="text-cyan-300 hover:underline inline-flex items-center gap-1">
+                    SPHEREx Data Explorer <ExternalLink className="w-3 h-3" />
                   </a>
                   <a
                     href={`https://aladin.cds.unistra.fr/AladinLite/?target=${candidate.raDeg.toFixed(4)}%20${candidate.decDeg.toFixed(4)}&fov=0.1&survey=P%2FALLWISE%2Fcolor`}

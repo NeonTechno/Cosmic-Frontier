@@ -31,7 +31,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
   if (!data || data.length === 0) return null;
 
   const hasMeasured = data.some((d) => d.isMeasured);
-  const isLive = observation.dataSourceStatus === 'LIVE_IRSA_SPHEREX';
+  const isLive = observation.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX';
 
   const width = 680;
   const height = 220;
@@ -77,7 +77,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
                 : 'bg-amber-950/70 border-amber-700/50 text-amber-300'
             }`}
           >
-            {hasMeasured ? `${data.length} IRSA FITS Bands` : 'Synthetic Reference'}
+            {hasMeasured ? `${data.length} IRSA FITS Bands` : 'No measured FITS data'}
           </span>
         </div>
 

@@ -17,8 +17,6 @@ import { CelestialCoordinateSearch } from './CelestialCoordinateSearch.tsx';
 import {
   CHALLENGE_BENCHMARK_TARGETS,
   ChallengeBenchmarkTarget,
-  generateBenchmarkObservation,
-  generateObservationAtCoordinates,
 } from '../../science/spherexCoordinates.ts';
 import { BandSelector } from './BandSelector.tsx';
 import { MetadataPanel } from './MetadataPanel.tsx';
@@ -65,6 +63,7 @@ import { exportHighResAstronomicalMap, exportGenericCanvasPNG } from '../../scie
 import { DownloadViewModal } from './DownloadViewModal.tsx';
 import { FreezePaneButton } from '../common/FreezePaneButton.tsx';
 import { useTheme } from '../../context/ThemeContext.tsx';
+import { SpherexDataCollectionGuide } from './SpherexDataCollectionGuide.tsx';
 
 interface SpherexViewerProps {
   observations: SpherexObservation[];
@@ -178,6 +177,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         const liveOnes = prev.filter(
           (p) =>
             p.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ||
+            p.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ||
             p.id.startsWith('IRSA-SPHEREX') ||
             p.id.startsWith('SPHEREX-IRSA') ||
             p.id.startsWith('SPHEREX-CUSTOM')
@@ -223,12 +223,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       const obs = payload as SpherexObservation;
       setLocalObservations((prev) => {
         const filtered = prev.filter(
-          (o) =>
-            o.id !== obs.id &&
-            !(
-              o.dataSourceStatus === 'SIMULATED_BENCHMARK' &&
-              o.targetName.toLowerCase() === obs.targetName.toLowerCase()
-            )
+          (o) => o.id !== obs.id && o.targetName.toLowerCase() !== obs.targetName.toLowerCase()
         );
         return [obs, ...filtered];
       });
@@ -238,50 +233,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       setSelectedFov(obs.fieldOfViewArcmin);
     } catch (err) {
       const reason = err instanceof Error ? err.message : 'Unknown network or API error';
-      setLiveSearchError(`Live NASA/IPAC IRSA query failed (${reason}). Showing a clearly labelled simulated benchmark instead.`);
-      // Offline fallback is for exploration only and must never be mistaken for archive observations.
-      const qLower = (params.q || '').trim().toLowerCase();
-      const matchedTarget =
-        CHALLENGE_BENCHMARK_TARGETS.find(
-          (t) =>
-            (qLower && (t.name.toLowerCase().includes(qLower) || t.designation.toLowerCase().includes(qLower) || t.id.toLowerCase() === qLower)) ||
-            (params.ra !== undefined && params.dec !== undefined && Math.hypot(t.raDeg - params.ra, t.decDeg - params.dec) < 0.15)
-        );
-
-      let fallbackObs: SpherexObservation | null = null;
-      if (matchedTarget) {
-        fallbackObs = generateBenchmarkObservation(matchedTarget);
-      } else if (params.ra !== undefined && params.dec !== undefined) {
-        fallbackObs = generateObservationAtCoordinates(
-          params.ra,
-          params.dec,
-          params.q,
-          params.fov || selectedFov || 6.5
-        );
-      } else {
-        fallbackObs = generateBenchmarkObservation(CHALLENGE_BENCHMARK_TARGETS[0]);
-      }
-
-      if (fallbackObs) {
-        fallbackObs = {
-          ...fallbackObs,
-          dataSourceStatus: 'FALLBACK_SIMULATED',
-          dataSourceLabel: reason.includes('IRSA_ARCHIVE_UNAVAILABLE')
-            ? `SIMULATED OFFLINE BENCHMARK — SPHEREx archive unavailable; sky coverage is unknown. ${reason}`
-            : `SIMULATED OFFLINE BENCHMARK — live IRSA query failed; these frames are not archive observations. ${reason}`,
-        };
-        const resolvedObs = fallbackObs;
-        setLocalObservations((prev) => {
-          const filtered = prev.filter((o) => o.id !== resolvedObs.id);
-          return [resolvedObs, ...filtered];
-        });
-        markObservationAdded(resolvedObs.id);
-        setSelectedObsId(resolvedObs.id);
-        setSelectedEpochIdx(0);
-        setSelectedFov(resolvedObs.fieldOfViewArcmin);
-      } else {
-        setLiveSearchError('Live IRSA backend unavailable in static mode; enter RA/Dec coordinates to inspect sky fields locally.');
-      }
+      setLiveSearchError(`No verified SPHEREx FITS observation could be loaded (${reason}). No synthetic data has been substituted.`);
     } finally {
       setIsSearchingLive(false);
     }
@@ -365,7 +317,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
     setSelectedObsId(nextId);
     setSelectedEpochIdx(0);
     const chosen = localObservations.find((o) => o.id === nextId);
-    if (chosen && chosen.dataSourceStatus !== 'LIVE_IRSA_SPHEREX') {
+    if (chosen && chosen.dataSourceStatus !== 'LIVE_IRSA_SPHEREX' && chosen.dataSourceStatus !== 'LOCAL_IRSA_SPHEREX') {
       fetchLiveTimeMachine({
         q: chosen.targetName,
         ra: chosen.raDeg,
@@ -678,20 +630,26 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
   }
 
   // Empty State
-  if (!observations || observations.length === 0) {
+  if (!localObservations || localObservations.length === 0) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center p-8 bg-slate-950 border border-slate-800 rounded-2xl space-y-3 text-center">
         <Telescope className="h-12 w-12 text-slate-600" />
         <h3 className="text-base font-semibold text-white">No Observations Available</h3>
-        <p className="text-xs text-slate-400 font-mono">
-          Ensure synthetic pipeline generators or IRSA endpoints are active.
+        <p className="text-xs text-slate-400 font-mono max-w-xl">
+          No verified observation is currently loaded. Search the live archive or collect genuine IRSA FITS products and index them locally.
         </p>
-        <button
-          onClick={onRetry}
-          className="px-4 py-2 bg-cyan-600 text-white rounded-lg text-xs font-mono hover:bg-cyan-500 transition"
-        >
-          Load Default Benchmark Field
-        </button>
+        {liveSearchError && <p className="text-xs text-amber-300 max-w-xl">{liveSearchError}</p>}
+        <div className="w-full max-w-4xl">
+          <CelestialCoordinateSearch
+            currentRa={269.4521} currentDec={4.6934} currentFovArcmin={6.5}
+            activeTargetName="Barnard's Star" selectedDetectorBand={selectedDetectorBand}
+            isSearchingLive={isSearchingLive} onChangeDetectorBand={handleChangeDetectorBand}
+            onSelectBenchmark={handleSelectBenchmark} onSearchCoordinates={handleSearchCoordinates}
+            onSearchTargetName={handleSearchTargetName} isLight={isLight}
+          />
+        </div>
+        <SpherexDataCollectionGuide />
+        <button onClick={onRetry} className="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-mono hover:bg-slate-700 transition">Refresh dataset status</button>
       </div>
     );
   }
@@ -713,12 +671,12 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         isLight={isLight}
       />
 
-      {/* Live vs Fallback Provenance & Archive Status Banner */}
+      {/* Verified live and local archive provenance banner */}
       <div
         className={`rounded-xl px-4 py-2.5 border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono ${
           isSearchingLive
             ? 'bg-cyan-950/35 border-cyan-700/50 text-cyan-200'
-            : activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX'
+            : (activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || activeObs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX')
             ? 'bg-emerald-950/35 border-emerald-700/50 text-emerald-200'
             : 'bg-slate-900/80 border-amber-700/40 text-amber-200'
         }`}
@@ -726,7 +684,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         <div className="flex items-center gap-2 min-w-0">
           {isSearchingLive ? (
             <Loader2 className="w-4 h-4 text-cyan-400 animate-spin shrink-0" />
-          ) : activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ? (
+          ) : (activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || activeObs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX') ? (
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
           ) : (
             <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
@@ -760,7 +718,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           {activeObs.allWiseCutouts && activeObs.allWiseCutouts.length > 0 && (
             <span className="text-amber-300">AllWISE: {activeObs.allWiseCutouts.length} bands</span>
           )}
-          {!isSearchingLive && activeObs.dataSourceStatus !== 'LIVE_IRSA_SPHEREX' && (
+          {!isSearchingLive && activeObs.dataSourceStatus !== 'LIVE_IRSA_SPHEREX' && activeObs.dataSourceStatus !== 'LOCAL_IRSA_SPHEREX' && (
             <button
               onClick={() =>
                 fetchLiveTimeMachine({
@@ -857,7 +815,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             >
               {localObservations.map((obs) => (
                 <option key={obs.id} value={obs.id}>
-                  {obs.targetName} [{obs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ? 'LIVE IRSA' : 'BENCHMARK'}]
+                  {obs.targetName} [{obs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ? 'LIVE IRSA' : obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'LOCAL FITS' : 'REFERENCE'}]
                 </option>
               ))}
             </select>
@@ -1012,7 +970,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
               const rowKey = `${obs.id}::${ver}`;
               const isNewRow = animatingObsKeys.has(rowKey);
               const isSelected = obs.id === activeObs?.id;
-              const isLive = obs.dataSourceStatus === 'LIVE_IRSA_SPHEREX';
+              const isLive = obs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX';
 
               return (
                 <button
@@ -1068,7 +1026,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                             : 'text-amber-300'
                       }
                     >
-                      {isLive ? 'Live IRSA' : obs.dataSourceStatus === 'FALLBACK_SIMULATED' ? 'Offline Fallback' : 'Benchmark'}
+                      {obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Local FITS' : isLive ? 'Live IRSA' : 'Archive'}
                     </span>
                   </div>
                 </button>

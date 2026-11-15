@@ -32,7 +32,6 @@ import {
   ExtremeTNO,
   PlanetXHypothesisParams,
 } from './types/index.ts';
-import { generateSyntheticSpherexObservations } from './science/spherexEngine.ts';
 import {
   VERIFIED_ETNO_CATALOG,
   DEFAULT_PLANET_X_HYPOTHESIS,
@@ -81,10 +80,11 @@ export default function App() {
       const obsRes = await fetch('/api/spherex/observations');
       if (isJsonOk(obsRes)) {
         const obsData = await obsRes.json();
-        setSpherexObservations(obsData.observations || []);
+        setSpherexObservations(Array.isArray(obsData.observations) ? obsData.observations : []);
+        setSpherexError(null);
       } else {
-        // Fallback to client-side scientific generator
-        setSpherexObservations(generateSyntheticSpherexObservations());
+        setSpherexObservations([]);
+        setSpherexError(`SPHEREx API unavailable (HTTP ${obsRes.status}). No synthetic observations are loaded.`);
       }
 
       // Planet X candidates
@@ -106,8 +106,9 @@ export default function App() {
         setEtnoCatalog(VERIFIED_ETNO_CATALOG);
       }
     } catch (err: unknown) {
-      console.warn('Backend fetch failed, utilizing client-side scientific fallback:', err);
-      setSpherexObservations(generateSyntheticSpherexObservations());
+      console.warn('Backend fetch failed; SPHEREx observations remain empty rather than being simulated:', err);
+      setSpherexObservations([]);
+      setSpherexError(err instanceof Error ? err.message : 'SPHEREx backend unavailable. No synthetic observations are loaded.');
       setCandidates(INITIAL_CANDIDATE_QUEUE);
       setEtnoCatalog(VERIFIED_ETNO_CATALOG);
     } finally {

@@ -124,7 +124,7 @@ export interface ObservationFrame {
   timestamp: string;
   epochIndex: number;
   bandWavelengthMicrons: number;
-  exposureTimeSec: number;
+  exposureTimeSec?: number;
   backgroundLevelMJySr: number;
   stars: SyntheticStar[];
   transients: TransientCandidate[];
@@ -154,10 +154,10 @@ export interface SpherexObservation {
   glatDeg: number;
   fieldOfViewArcmin: number;
   detectorArray: string;
-  detectorTempK: number;
+  detectorTempK?: number;
   pixelScaleArcsec: number;
   dataQualityFlag: 'CALIBRATED_NOMINAL' | 'HIGH_BACKGROUND_ZODIACAL' | 'PASSING_CALIBRATION';
-  dataSourceStatus: 'LIVE_IRSA_SPHEREX' | 'SIMULATED_BENCHMARK' | 'FALLBACK_SIMULATED' | 'REAL_MISSION_ARCHIVAL';
+  dataSourceStatus: 'LIVE_IRSA_SPHEREX' | 'LOCAL_IRSA_SPHEREX' | 'REAL_MISSION_ARCHIVAL';
   dataSourceLabel: string;
   documentationUrl: string;
   fitsHeader: Record<string, string | number>;
@@ -189,9 +189,9 @@ export interface SpherexObservation {
       latencyMs: number;
       error?: string;
     }[];
-    wiseViewUrl: string;
-    irsaFinderUrl: string;
-    aladinUrl: string;
+    wiseViewUrl?: string;
+    irsaFinderUrl?: string;
+    aladinUrl?: string;
   };
   gaiaSources?: GaiaSourceRecord[];
   allWiseCutouts?: AllWiseCutoutRecord[];

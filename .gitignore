@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local NASA/IPAC IRSA SPHEREx downloads and manifest (do not commit raw FITS)
+data/spherex/
