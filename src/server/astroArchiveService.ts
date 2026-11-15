@@ -216,13 +216,17 @@ export async function fetchAndParseSpherexCutout(
   sizePix = 64,
   fovArcmin?: number
 ) {
-  const cacheKey = `fits_cutout_${accessUrl.split('/').pop()}_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${sizePix}_${fovArcmin || 'nat'}`;
+  const cacheKey = `fits_cutout_v2_${accessUrl.split('/').pop()}_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${sizePix}_${fovArcmin || 'nat'}`;
   const cached = getCached<ReturnType<typeof parseAndReprojectFitsCutout>>(cacheKey);
   if (cached) return cached;
 
-  const sep = accessUrl.includes('?') ? '&' : '?';
-  const cutoutUrl = `${accessUrl}${sep}center=${raDeg.toFixed(6)},${decDeg.toFixed(6)}&size=${sizePix}pix`;
-  const res = await fetch(cutoutUrl, { signal: AbortSignal.timeout(14000) });
+  // IBE expects a sky-coordinate center in degrees and an angular cutout size.
+  // A size in pixels is valid only when center is also supplied in parent-image pixels.
+  const cutoutUrl = new URL(accessUrl);
+  cutoutUrl.searchParams.set('center', `${raDeg.toFixed(6)},${decDeg.toFixed(6)}`);
+  const cutoutSizeDeg = (sizePix * 6.15) / 3600;
+  cutoutUrl.searchParams.set('size', cutoutSizeDeg.toFixed(5));
+  const res = await fetch(cutoutUrl.toString(), { signal: AbortSignal.timeout(20000) });
   if (!res.ok) {
     throw new Error(`IRSA IBE cutout HTTP ${res.status}`);
   }
@@ -475,7 +479,7 @@ export async function querySpherexTimeMachine(options: {
   fovArcmin?: number;
 }): Promise<SpherexObservation> {
   const { raDeg, decDeg, band, fovArcmin = 6.5 } = options;
-  const cacheKey = `timemachine_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${band || 'AUTO'}_${fovArcmin.toFixed(1)}`;
+  const cacheKey = `timemachine_v2_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${band || 'AUTO'}_${fovArcmin.toFixed(1)}`;
   const cached = getCached<SpherexObservation>(cacheKey);
   if (cached) {
     return {
