@@ -117,66 +117,98 @@ function bandCenterMicrons(band: string, emMin: number, emMax: number): number {
   return defaults[band] || 3.05;
 }
 
+function decodeXmlValue(value: string): string {
+  return value.replace(/<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>/g, '$1')
+    .replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&#(\\d+);/g, (_m, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([\\da-f]+);/gi, (_m, code) => String.fromCodePoint(parseInt(code, 16))).trim();
+}
+
 function parseVotableRows(xml: string): Record<string, string>[] {
-  const fields = [...xml.matchAll(/<FIELD[^>]*name="([^"]+)"/g)].map((m) => m[1]);
-  if (fields.length === 0) return [];
+  const fields = [...xml.matchAll(/<FIELD\\b([^>]*)\\/?\\s*>/gi)]
+    .map((m) => m[1].match(/name=["']([^"']+)["']/i)?.[1].toLowerCase())
+    .filter((name): name is string => Boolean(name));
+  if (!fields.length) return [];
   const rows: Record<string, string>[] = [];
-  for (const trMatch of xml.matchAll(/<TR>([\s\S]*?)<\/TR>/g)) {
-    const tds = [...trMatch[1].matchAll(/<TD>([\s\S]*?)<\/TD>/g)].map((td) =>
-      td[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').trim()
-    );
-    if (tds.length === fields.length) {
-      const obj: Record<string, string> = {};
-      for (let i = 0; i < fields.length; i++) {
-        obj[fields[i]] = tds[i];
-      }
-      rows.push(obj);
-    }
+  for (const tr of xml.matchAll(/<TR\\b[^>]*>([\\s\\S]*?)<\\/TR>/gi)) {
+    const cells = [...tr[1].matchAll(/<TD\\b[^>]*>([\\s\\S]*?)<\\/TD>/gi)].map((td) => decodeXmlValue(td[1]));
+    if (cells.length !== fields.length) continue;
+    const row: Record<string, string> = {};
+    fields.forEach((field, index) => { row[field] = cells[index]; });
+    rows.push(row);
   }
   return rows;
 }
-
 export async function queryIrsaSpherexSia(
   raDeg: number,
   decDeg: number,
-  collection: 'spherex_dr1' | 'spherex_qr3',
+  collection: 'spherex_dr1' | 'spherex_dr1_deep' | 'spherex_qr3' | 'spherex_qr3_deep',
   radiusDeg = 0.03
 ): Promise<SiaObservationRow[]> {
-  const cacheKey = `sia_${collection}_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${radiusDeg}`;
+  // Versioned cache prevents reuse of older empty or incompletely parsed SIA responses.
+  const cacheKey = `sia_v2_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${radiusDeg}_${collection}`;
   const cached = getCached<SiaObservationRow[]>(cacheKey);
   if (cached) return cached;
-
-  const url = `https://irsa.ipac.caltech.edu/SIA?POS=circle+${raDeg.toFixed(5)}+${decDeg.toFixed(5)}+${radiusDeg}&COLLECTION=${collection}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-  if (!res.ok) {
-    throw new Error(`IRSA SIA ${collection} HTTP ${res.status}`);
+  const params = new URLSearchParams({
+    COLLECTION: collection,
+    POS: `CIRCLE ${raDeg.toFixed(6)} ${decDeg.toFixed(6)} ${radiusDeg}`,
+    RESPONSEFORMAT: 'VOTABLE',
+    MAXREC: '2000',
+  });
+  const url = `https://irsa.ipac.caltech.edu/SIA?${params.toString()}`;
+  let xml = '';
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: 'application/x-votable+xml, application/xml, text/xml' },
+        signal: AbortSignal.timeout(attempt === 0 ? 18000 : 22000),
+      });
+      if (!res.ok) {
+        const detail = (await res.text().catch(() => '')).slice(0, 180);
+        throw new Error(`IRSA SIA ${collection} HTTP ${res.status}${detail ? `: ${detail}` : ''}`);
+      }
+      xml = await res.text();
+      if (!/<(?:\\w+:)?VOTABLE\\b/i.test(xml)) throw new Error(`IRSA SIA ${collection} returned a non-VOTable response`);
+      lastError = null;
+      break;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 350));
+    }
   }
-  const xml = await res.text();
+  if (lastError) throw lastError;
   const parsed = parseVotableRows(xml);
-  const rows: SiaObservationRow[] = parsed
-    .filter((r) => r.access_url && r.dataproduct_type === 'image')
-    .map((r) => ({
-      obsId: r.obs_id || `${collection}-obs`,
-      obsCollection: r.obs_collection || collection,
-      bandpassName: r.energy_bandpassname || 'SPHEREx',
-      sRa: parseFloat(r.s_ra) || raDeg,
-      sDec: parseFloat(r.s_dec) || decDeg,
-      tMinMjd: parseFloat(r.t_min) || 60800,
-      tMaxMjd: parseFloat(r.t_max) || parseFloat(r.t_min) || 60800,
-      emMinMicrons: (parseFloat(r.em_min) || 3e-6) * 1e6,
-      emMaxMicrons: (parseFloat(r.em_max) || 3.5e-6) * 1e6,
-      tExptime: parseFloat(r.t_exptime) || 112.5,
-      pixelScaleArcsec: parseFloat(r.s_pixel_scale) || 6.15,
-      calibLevel: parseInt(r.calib_level || '2', 10),
-      accessUrl: r.access_url,
-      accessFormat: r.access_format || 'image/fits',
-    }))
-    .sort((a, b) => a.tMinMjd - b.tMinMjd);
-
+  const rows: SiaObservationRow[] = parsed.filter((row) => {
+    const type = (row.dataproduct_type || '').toLowerCase();
+    const format = (row.access_format || '').toLowerCase();
+    return Boolean(row.access_url) && (!type || type === 'image') && (!format || format.includes('fits'));
+  }).map((row) => {
+    const tMin = Number.parseFloat(row.t_min);
+    const tMax = Number.parseFloat(row.t_max);
+    const emMin = Number.parseFloat(row.em_min);
+    const emMax = Number.parseFloat(row.em_max);
+    return {
+      obsId: row.obs_id || `${collection}-obs`,
+      obsCollection: row.obs_collection || collection,
+      bandpassName: row.energy_bandpassname || 'SPHEREx',
+      sRa: Number.isFinite(Number.parseFloat(row.s_ra)) ? Number.parseFloat(row.s_ra) : raDeg,
+      sDec: Number.isFinite(Number.parseFloat(row.s_dec)) ? Number.parseFloat(row.s_dec) : decDeg,
+      tMinMjd: Number.isFinite(tMin) ? tMin : 60800,
+      tMaxMjd: Number.isFinite(tMax) ? tMax : (Number.isFinite(tMin) ? tMin : 60800),
+      emMinMicrons: Number.isFinite(emMin) ? emMin * 1e6 : 3.0,
+      emMaxMicrons: Number.isFinite(emMax) ? emMax * 1e6 : 3.5,
+      tExptime: Number.parseFloat(row.t_exptime) || 112.5,
+      pixelScaleArcsec: Number.parseFloat(row.s_pixel_scale) || 6.15,
+      calibLevel: Number.parseInt(row.calib_level || '2', 10),
+      accessUrl: row.access_url,
+      accessFormat: row.access_format || 'image/fits',
+    };
+  }).sort((a, b) => a.tMinMjd - b.tMinMjd);
   setCached(cacheKey, rows);
   return rows;
 }
-
 export async function fetchAndParseSpherexCutout(
   accessUrl: string,
   raDeg: number,
@@ -461,21 +493,30 @@ export async function querySpherexTimeMachine(options: {
     benchmark?.name ||
     `Sky Field (${raDeg.toFixed(4)}°, ${decDeg.toFixed(4)}°)`;
 
-  // Run SIA (DR1 + QR3), Gaia DR3, and AllWISE queries concurrently
-  const [dr1Res, qr3Res, gaiaSources, allWiseCutouts] = await Promise.all([
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1', 0.03).catch((err) => {
-      console.warn('[AstroArchive] DR1 SIA error:', err.message);
-      return [] as SiaObservationRow[];
+  // Search a cone covering the selected field of view and include wide + deep surveys.
+  // IRSA recommends querying DR1 and QR3 together; both releases expose deep collections.
+  const searchRadiusDeg = Math.max(0.01, Math.min(0.25, fovArcmin / 120));
+  const [dr1Wide, dr1Deep, qr3Wide, qr3Deep, gaiaSources, allWiseCutouts] = await Promise.all([
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1', searchRadiusDeg).catch((err) => {
+      console.warn('[AstroArchive] DR1 wide SIA error:', err.message); return [] as SiaObservationRow[];
     }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3', 0.03).catch((err) => {
-      console.warn('[AstroArchive] QR3 SIA error:', err.message);
-      return [] as SiaObservationRow[];
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1_deep', searchRadiusDeg).catch((err) => {
+      console.warn('[AstroArchive] DR1 deep SIA error:', err.message); return [] as SiaObservationRow[];
+    }),
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3', searchRadiusDeg).catch((err) => {
+      console.warn('[AstroArchive] QR3 wide SIA error:', err.message); return [] as SiaObservationRow[];
+    }),
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3_deep', searchRadiusDeg).catch((err) => {
+      console.warn('[AstroArchive] QR3 deep SIA error:', err.message); return [] as SiaObservationRow[];
     }),
     queryGaiaDr3Cone(raDeg, decDeg, Math.max(3.5, fovArcmin * 0.7)),
     queryAllWiseCutouts(raDeg, decDeg, fovArcmin),
   ]);
-
-  const combinedRows = [...dr1Res, ...qr3Res].sort((a, b) => a.tMinMjd - b.tMinMjd);
+  const dr1Res = [...dr1Wide, ...dr1Deep];
+  const qr3Res = [...qr3Wide, ...qr3Deep];
+  const combinedRows = [...dr1Res, ...qr3Res]
+    .filter((row, index, all) => all.findIndex((other) => other.obsId === row.obsId) === index)
+    .sort((a, b) => a.tMinMjd - b.tMinMjd);
   const limitations: string[] = [];
 
   if (qr3Res.length === 0) {
