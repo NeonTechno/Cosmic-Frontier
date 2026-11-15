@@ -15,6 +15,7 @@ interface NavbarProps {
   onOpenAiAssistant: () => void;
   onOpenDataModal: () => void;
   onOpenIntroModal?: () => void;
+  onOpenProjectTour?: () => void;
   onOpenShortcutsHelp?: () => void;
   serverStatusOk: boolean;
 }
@@ -25,6 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAiAssistant,
   onOpenDataModal,
   onOpenIntroModal,
+  onOpenProjectTour,
   onOpenShortcutsHelp,
   serverStatusOk,
 }) => {
@@ -171,6 +173,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Quick Tools */}
         <div className="flex items-center justify-end gap-2 flex-wrap pr-12 sm:pr-14">
+          {onOpenProjectTour && (
+            <button
+              onClick={onOpenProjectTour}
+              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-semibold transition cursor-pointer whitespace-nowrap ${isLight ? 'border-[#1a1a1a]/20 bg-white text-[#1a1a1a] hover:bg-black/5' : 'border-cyan-500/25 bg-slate-900/70 text-cyan-200 hover:border-cyan-400/50 hover:bg-cyan-950/40'}`}
+              title="Replay the project guide tour"
+              aria-label="Replay project tour"
+            >
+              <Compass className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Project tour</span>
+              <span className="sm:hidden">Tour</span>
+            </button>
+          )}
           {/* Keyboard Shortcuts Cheat Sheet Button */}
           {onOpenShortcutsHelp && (
             <button
