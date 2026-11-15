@@ -139,7 +139,7 @@ function parseVotableRows(xml: string): Record<string, string>[] {
 export async function queryIrsaSpherexSia(
   raDeg: number,
   decDeg: number,
-  collection: 'spherex_dr1' | 'spherex_qr3',
+  collection: 'spherex_dr1' | 'spherex_qr3' | 'spherex_dr1_deep' | 'spherex_qr3_deep',
   radiusDeg = 0.03
 ): Promise<SiaObservationRow[]> {
   const cacheKey = `sia_${collection}_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${radiusDeg}`;
@@ -479,20 +479,32 @@ export async function querySpherexTimeMachine(options: {
     `Sky Field (${raDeg.toFixed(4)}°, ${decDeg.toFixed(4)}°)`;
 
   // Run SIA (DR1 + QR3), Gaia DR3, and AllWISE queries concurrently
-  const [dr1Res, qr3Res, gaiaSources, allWiseCutouts] = await Promise.all([
+  // Search both wide and deep fields in the current supported releases.
+  // IRSA recommends DR1 + QR3; their deep collections are separate and must
+  // be queried explicitly or targets in deep fields can be missed.
+  const [dr1Res, qr3Res, dr1DeepRes, qr3DeepRes, gaiaSources, allWiseCutouts] = await Promise.all([
     queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1', 0.03).catch((err) => {
-      console.warn('[AstroArchive] DR1 SIA error:', err.message);
+      console.warn('[AstroArchive] DR1 wide SIA error:', err.message);
       return [] as SiaObservationRow[];
     }),
     queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3', 0.03).catch((err) => {
-      console.warn('[AstroArchive] QR3 SIA error:', err.message);
+      console.warn('[AstroArchive] QR3 wide SIA error:', err.message);
+      return [] as SiaObservationRow[];
+    }),
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1_deep', 0.03).catch((err) => {
+      console.warn('[AstroArchive] DR1 deep SIA error:', err.message);
+      return [] as SiaObservationRow[];
+    }),
+    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3_deep', 0.03).catch((err) => {
+      console.warn('[AstroArchive] QR3 deep SIA error:', err.message);
       return [] as SiaObservationRow[];
     }),
     queryGaiaDr3Cone(raDeg, decDeg, Math.max(3.5, fovArcmin * 0.7)),
     queryAllWiseCutouts(raDeg, decDeg, fovArcmin),
   ]);
 
-  const combinedRows = [...dr1Res, ...qr3Res].sort((a, b) => a.tMinMjd - b.tMinMjd);
+  const combinedRows = [...dr1Res, ...qr3Res, ...dr1DeepRes, ...qr3DeepRes]
+    .sort((a, b) => a.tMinMjd - b.tMinMjd);
   const limitations: string[] = [];
 
   if (qr3Res.length === 0) {
@@ -738,8 +750,8 @@ export async function querySpherexTimeMachine(options: {
       ? sedMeasurements
       : (benchmark ? generateBenchmarkObservation(benchmark).fullSedCurve : []),
     archiveSummary: {
-      dr1ObservationCount: dr1Res.length,
-      qr3ObservationCount: qr3Res.length,
+      dr1ObservationCount: dr1Res.length + dr1DeepRes.length,
+      qr3ObservationCount: qr3Res.length + qr3DeepRes.length,
       availableBands,
       distinctMjdCount: distinctMjds.size,
       earliestDate: mjdToIso(combinedRows[0].tMinMjd).split('T')[0],
