@@ -299,20 +299,20 @@ export const SPHERExExplorer: FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 animate-fadeIn">
+    <div className="cf-module cf-module--spherex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-7 animate-fadeIn">
       {/* 1. PAGE HEADER */}
-      <div className="space-y-4 pb-6 border-b border-[#1E293B]">
+      <div className="cf-module-hero space-y-3 pb-5 border-b border-[#1E293B]">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30 text-xs font-semibold uppercase tracking-wider mb-2">
               <Telescope className="w-3.5 h-3.5" />
-              <span>NASA SPHEREx Mission Surveyor & Infrared Laboratory</span>
+              <span>SPHEREx • INFRARED OBSERVATORY</span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-[#F8FAFC] tracking-tight">
               SPHEREx Explorer
             </h1>
             <p className="text-base sm:text-lg text-[#F5C451] font-medium mt-1">
-              Multi-Wavelength Infrared Spectroscopy & Mission Data Laboratory
+              0.75–5.0 µm  ·  102 spectral channels
             </p>
           </div>
 
@@ -359,7 +359,7 @@ export const SPHERExExplorer: FC = () => {
 
         {/* Short Introduction Explaining Infrared Astronomy in Simple Language */}
         <p className="text-sm text-[#A7B4CC] leading-relaxed max-w-4xl">
-          Infrared light is a form of light invisible to human eyes with longer wavelengths than optical light. While dense cosmic dust clouds completely block visible light, infrared waves pass straight through to unveil newborn protostars, distant early galaxies, and frozen chemical compounds like water and carbon dioxide ice.
+          Explore infrared targets, compare observations, and inspect spectral signals.
         </p>
       </div>
 
@@ -368,10 +368,10 @@ export const SPHERExExplorer: FC = () => {
         <label className="text-xs font-semibold uppercase tracking-wider text-[#A7B4CC] flex items-center justify-between">
           <span className="flex items-center gap-1.5">
             <Eye className="w-3.5 h-3.5 text-[#38BDF8]" />
-            <span>Select Primary Astronomical Target (Image A):</span>
+            <span>Primary target</span>
           </span>
           <span className="text-[11px] font-mono text-[#38BDF8]">
-            {CELESTIAL_TARGETS.length} verified calibration & analog datasets
+            {CELESTIAL_TARGETS.length} available targets
           </span>
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -417,7 +417,7 @@ export const SPHERExExplorer: FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT / TOP: INTERACTIVE SKY VIEWER (lg:col-span-8) */}
         <div className="lg:col-span-8 space-y-4">
-          <div className="relative rounded-2xl bg-[#0B1630] border border-[#1E293B] shadow-2xl overflow-hidden">
+          <div className="cf-surface relative rounded-2xl bg-[#0B1630] border border-[#1E293B] shadow-2xl overflow-hidden">
             {/* Viewport Header Controls Bar */}
             <div className="bg-[#050B1A]/85 backdrop-blur-md px-4 py-3 border-b border-[#1E293B] flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2 font-mono">
@@ -777,7 +777,7 @@ export const SPHERExExplorer: FC = () => {
         {/* RIGHT / BOTTOM: CONTROLS & OBSERVATION INFO PANELS (lg:col-span-4) */}
         <div className="lg:col-span-4 space-y-6">
           {/* 4. COLOUR PALETTES, BRIGHTNESS, CONTRAST & STRETCH CONTROLS */}
-          <div className="p-6 rounded-2xl bg-[#0B1630] border border-[#1E293B] space-y-5 shadow-xl">
+          <div className="cf-surface p-5 rounded-2xl bg-[#0B1630] border border-[#1E293B] space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-[#38BDF8] font-mono flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4" />
