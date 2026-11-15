@@ -69,7 +69,7 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="planetx-dashboard space-y-4">
       {/* Frozen Topic & Subtopic Header Banner */}
       <div className={`${panesFrozen ? 'sticky top-[66px] z-30 backdrop-blur-md shadow-2xl' : 'shadow-xl'} bg-gradient-to-r from-slate-900/95 via-indigo-950/70 to-slate-900/95 border border-slate-800 rounded-xl p-3.5 sm:p-4 space-y-3 transition-all`}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
