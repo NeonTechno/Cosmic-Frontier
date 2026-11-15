@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import type { AppPage } from '../types';
+import { NasaLiveDispatch } from './NasaLiveDispatch';
 import { 
   Telescope, 
   Orbit, 
@@ -250,7 +251,9 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
-
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <NasaLiveDispatch onNavigate={onNavigate} />
+      </section>
     </div>
   );
 };
