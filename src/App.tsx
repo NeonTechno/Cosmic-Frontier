@@ -22,6 +22,7 @@ import { DataIntegrationModal } from './components/data/DataIntegrationModal.tsx
 import { AstrobiologyLab } from './components/astrobiology/AstrobiologyLab.tsx';
 import { BlackStarLogo } from './components/common/BlackStarLogo.tsx';
 import { CosmicLoadingScreen } from './components/common/CosmicLoadingScreen.tsx';
+import { ProjectTour } from './components/common/ProjectTour.tsx';
 import { EditorialVariation3 } from './components/editorial/EditorialVariation3.tsx';
 import { useTheme } from './context/ThemeContext.tsx';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.ts';
@@ -44,6 +45,7 @@ export default function App() {
   const [serverOk, setServerOk] = useState<boolean>(true);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [showIntroModal, setShowIntroModal] = useState<boolean>(false);
+  const [showProjectTour, setShowProjectTour] = useState<boolean>(false);
 
   // SPHEREx State
   const [spherexObservations, setSpherexObservations] = useState<SpherexObservation[]>([]);
@@ -185,6 +187,26 @@ export default function App() {
   };
 
   const { isLight, toggleTheme } = useTheme();
+
+  const handleProjectTourComplete = useCallback(() => {
+    try {
+      window.localStorage.setItem('black-star-orbit-project-tour-completed', 'true');
+    } catch (error) {
+      console.warn('Could not save project tour preference:', error);
+    }
+    setShowProjectTour(false);
+  }, []);
+
+  const handleInitialEnter = useCallback(() => {
+    setIsInitialLoading(false);
+    try {
+      const completed = window.localStorage.getItem('black-star-orbit-project-tour-completed') === 'true';
+      if (!completed) setShowProjectTour(true);
+    } catch {
+      // If browser storage is unavailable, offer the tour for this visit.
+      setShowProjectTour(true);
+    }
+  }, []);
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState<boolean>(false);
 
   const { lastTriggered } = useKeyboardShortcuts({
@@ -217,7 +239,7 @@ export default function App() {
       {isInitialLoading && (
         <CosmicLoadingScreen
           isLoading={isInitialLoading}
-          onEnter={() => setIsInitialLoading(false)}
+          onEnter={handleInitialEnter}
         />
       )}
 
@@ -263,6 +285,7 @@ export default function App() {
             }}
             onOpenDataModal={() => setIsDataModalOpen(true)}
             onOpenIntroModal={() => setShowIntroModal(true)}
+            onOpenProjectTour={() => setShowProjectTour(true)}
             onOpenShortcutsHelp={() => setIsShortcutsHelpOpen(true)}
             serverStatusOk={serverOk}
           />
@@ -353,6 +376,14 @@ export default function App() {
           </div>
         </div>
       </footer>
+      )}
+
+      {showProjectTour && !isInitialLoading && (
+        <ProjectTour
+          isLight={isLight}
+          onComplete={handleProjectTourComplete}
+          onNavigate={(tab) => setActiveTab(tab)}
+        />
       )}
 
       {/* AI Assistant Modal */}
