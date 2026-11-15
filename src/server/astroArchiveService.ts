@@ -163,7 +163,7 @@ export async function queryIrsaSpherexSia(
     try {
       const res = await fetch(url, {
         headers: { Accept: 'application/x-votable+xml, application/xml, text/xml' },
-        signal: AbortSignal.timeout(attempt === 0 ? 18000 : 22000),
+        signal: AbortSignal.timeout(attempt === 0 ? 10000 : 12000),
       });
       if (!res.ok) {
         const detail = (await res.text().catch(() => '')).slice(0, 180);
@@ -245,7 +245,7 @@ export async function querySpherexTap(
   const adql = `SELECT TOP 2000 a.uri AS uri, p.time_bounds_lower AS t_min, p.time_bounds_upper AS t_max, p.energy_bandpassname AS bandpass, p.em_min AS em_min, p.em_max AS em_max FROM spherex.artifact a JOIN spherex.plane p ON a.planeid = p.planeid WHERE 1 = CONTAINS(POINT('ICRS', ${raDeg.toFixed(6)}, ${decDeg.toFixed(6)}), p.poly) ORDER BY p.time_bounds_lower`;
   const params = new URLSearchParams({ REQUEST: 'doQuery', LANG: 'ADQL', FORMAT: 'csv', QUERY: adql });
   const url = `https://irsa.ipac.caltech.edu/TAP/sync?${params.toString()}`;
-  const res = await fetch(url, { headers: { Accept: 'text/csv' }, signal: AbortSignal.timeout(25000) });
+  const res = await fetch(url, { headers: { Accept: 'text/csv' }, signal: AbortSignal.timeout(18000) });
   if (!res.ok) {
     const detail = (await res.text().catch(() => '')).slice(0, 180);
     throw new Error(`IRSA TAP SPHEREx HTTP ${res.status}${detail ? `: ${detail}` : ''}`);
@@ -296,7 +296,7 @@ export async function fetchAndParseSpherexCutout(
   cutoutUrl.searchParams.set('center', `${raDeg.toFixed(6)},${decDeg.toFixed(6)}`);
   const cutoutSizeDeg = (sizePix * 6.15) / 3600;
   cutoutUrl.searchParams.set('size', cutoutSizeDeg.toFixed(5));
-  const res = await fetch(cutoutUrl.toString(), { signal: AbortSignal.timeout(20000) });
+  const res = await fetch(cutoutUrl.toString(), { signal: AbortSignal.timeout(15000) });
   if (!res.ok) {
     throw new Error(`IRSA IBE cutout HTTP ${res.status}`);
   }
