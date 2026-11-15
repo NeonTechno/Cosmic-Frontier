@@ -1863,3 +1863,25 @@ code, pre, .font-mono, .font-editorial-mono {
 .theme-light .editorial-astronaut-hero .editorial-astronaut-telemetry {
   color: #f8fafc;
 }
+
+/* Opacity-suffixed utility text is common in telemetry and editorial captions. */
+.theme-light :is(
+  [class*="text-white/"], [class*="text-slate-100/"],
+  [class*="text-slate-200/"], [class*="text-slate-300/"],
+  [class*="text-slate-400/"], [class*="text-gray-400/"],
+  [class*="text-gray-500/"]
+) {
+  color: #57534e !important;
+}
+.theme-light :is(
+  [class*="border-slate-"], [class*="border-white/"]
+) {
+  border-color: rgba(41, 37, 36, .14) !important;
+}
+/* Reassert photographic overlay contrast after the global utility corrections. */
+.theme-light .editorial-astronaut-hero :is(h1,h2,h3,p,span,small,strong,a,button) {
+  color: #f8fafc !important;
+}
+.theme-light .editorial-astronaut-hero .editorial-astronaut-copy p {
+  color: rgba(248, 250, 252, .84) !important;
+}
