@@ -185,9 +185,10 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       setSelectedObsId(obs.id);
       setSelectedEpochIdx(0);
       setSelectedFov(obs.fieldOfViewArcmin);
-    } catch {
-      // Static-site fallback (e.g., GitHub Pages without Express proxy):
-      // Synthesize a scientifically calibrated local SPHEREx dataset for the requested target/coordinates.
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : 'Unknown network or API error';
+      setLiveSearchError(`Live NASA/IPAC IRSA query failed (${reason}). Showing a clearly labelled simulated benchmark instead.`);
+      // Offline fallback is for exploration only and must never be mistaken for archive observations.
       const qLower = (params.q || '').trim().toLowerCase();
       const matchedTarget =
         CHALLENGE_BENCHMARK_TARGETS.find(
@@ -211,6 +212,11 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       }
 
       if (fallbackObs) {
+        fallbackObs = {
+          ...fallbackObs,
+          dataSourceStatus: 'FALLBACK_SIMULATED',
+          dataSourceLabel: `SIMULATED OFFLINE BENCHMARK — live IRSA query failed: ${reason}`,
+        };
         const resolvedObs = fallbackObs;
         setLocalObservations((prev) => {
           const filtered = prev.filter((o) => o.id !== resolvedObs.id);
@@ -575,7 +581,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         <div className="text-center">
           <h3 className="text-sm font-semibold text-white">Loading SPHEREx Mission Observations...</h3>
           <p className="text-xs text-slate-400 font-mono mt-1">
-            Establishing connection to calibrated Level-2/3 synthetic spectral pipeline...
+            Querying NASA/IPAC IRSA SPHEREx DR1 and QR3 archives...
           </p>
         </div>
       </div>
