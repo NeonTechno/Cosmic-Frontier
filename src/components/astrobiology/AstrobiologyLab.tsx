@@ -19,6 +19,7 @@ import {
   ExtremophileProteinTarget 
 } from '../../science/astrobiologyData';
 import { Molecular3DViewer } from './Molecular3DViewer';
+import { useTheme } from '../../context/ThemeContext';
 import { FreezePaneButton } from '../common/FreezePaneButton.tsx';
 import { 
   Dna, 
@@ -43,6 +44,7 @@ interface AstrobiologyLabProps {
 }
 
 export const AstrobiologyLab: React.FC<AstrobiologyLabProps> = ({ onNavigateToSpherex }) => {
+  const { isLight } = useTheme();
   const [selectedMolecule, setSelectedMolecule] = useState<InterstellarMolecule>(INTERSTELLAR_ICE_MOLECULES[0]);
   const [selectedExtremophile, setSelectedExtremophile] = useState<ExtremophileProteinTarget | null>(null);
   const [activeSubTab, setActiveSubTab] = useState<'interstellar-ices' | 'extremophile-biology'>('interstellar-ices');
@@ -104,7 +106,8 @@ export const AstrobiologyLab: React.FC<AstrobiologyLabProps> = ({ onNavigateToSp
   );
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-page-enter">
+    <div className={`astrobiology-workbench w-full flex flex-col gap-6 animate-page-enter ${isLight ? "astrobiology-light" : "astrobiology-dark"}`}>
+
       {/* Workbench Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-[#0B1530] via-[#091024] to-[#070C1B] border border-cyan-500/20 shadow-xl">
         <div>
