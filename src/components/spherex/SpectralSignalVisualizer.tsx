@@ -281,7 +281,7 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
 
   // Export CSV handler
   const handleExportCSV = () => {
-    const headers = 'Provenance,IsMeasured,Channel,Wavelength_um,Frequency_THz,Flux_MJy_sr,Continuum_Model,Normalized_Intensity,Optical_Depth,Uncertainty_MJy_sr\n';
+    const headers = 'Provenance,IsMeasured,Channel,Wavelength_um,Frequency_THz,' + (isDemo ? 'Illustrative_Signal_Units' : 'Flux_MJy_sr') + ',Continuum_Model,Normalized_Intensity,Optical_Depth,Uncertainty\n';
     const rows = chartData
       .map(
         (d) =>
@@ -338,7 +338,7 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
               }`}
               title={isDemo ? "Illustrative synthetic benchmark signal scale; not calibrated MJy/sr measurements" : "Calibrated Surface Brightness Intensity in MJy/sr"}
             >
-              Flux (MJy/sr)
+              {isDemo ? 'Demo Scale' : 'Flux (MJy/sr)'}
             </button>
             <button
               onClick={() => setMetricMode('normalized')}
@@ -511,7 +511,7 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
               label={{
                 value:
                   metricMode === 'flux'
-                    ? 'Spectral Intensity (MJy / sr)'
+                    ? (isDemo ? 'Illustrative Signal Scale (not calibrated)' : 'Spectral Intensity (MJy / sr)')
                     : metricMode === 'normalized'
                     ? 'Normalized Relative Intensity (I / I_max)'
                     : 'Absorption Optical Depth (τ)',
@@ -552,7 +552,7 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
                         <span className="text-amber-400">τ = {data.opticalDepth}</span>
                       </div>
                       <div className="flex justify-between gap-4">
-                        <span className="text-[#94A3B8]">SNR:</span>
+                        <span className="text-[#94A3B8]">{isDemo ? "SIM SNR ratio:" : "SNR:"}</span>
                         <span className="text-emerald-400">{data.snr}σ</span>
                       </div>
                       {data.signature && (
@@ -711,11 +711,11 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
         </div>
 
         <div className="p-3 rounded-xl bg-[#050B1A] border border-[#1E293B] space-y-0.5">
-          <span className="text-[10px] font-mono text-[#94A3B8] uppercase block">Signal Intensity</span>
+          <span className="text-[10px] font-mono text-[#94A3B8] uppercase block">{isDemo ? "Illustrative Signal" : "Signal Intensity"}</span>
           <span className="text-sm font-mono font-bold text-cyan-300">
-            {activePoint.fluxMJySr.toFixed(2)} <span className="text-xs text-[#94A3B8]">MJy/sr</span>
+            {activePoint.fluxMJySr.toFixed(2)} <span className="text-xs text-[#94A3B8]">{isDemo ? "demo units" : "MJy/sr"}</span>
           </span>
-          <span className="text-[10px] font-mono text-emerald-400 block">SNR: {activePoint.snr}σ</span>
+          <span className="text-[10px] font-mono text-emerald-400 block">{isDemo ? "SIM SNR ratio: " : "SNR: "}{activePoint.snr}σ</span>
         </div>
 
         <div className="p-3 rounded-xl bg-[#050B1A] border border-[#1E293B] space-y-0.5">
