@@ -277,12 +277,13 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
       ctx.save();
       ctx.scale(dpr, dpr);
 
-      // Deep navy background
-      ctx.fillStyle = '#050B1A';
+      // Restrained observatory palette adapts to the active app theme.
+      const lightCanvas = Boolean(canvas.closest('.theme-light')) || document.documentElement.classList.contains('theme-light');
+      ctx.fillStyle = lightCanvas ? '#F4F6F8' : '#111820';
       ctx.fillRect(0, 0, width, height);
 
       // Faint coordinate grid
-      ctx.strokeStyle = '#0E1B38';
+      ctx.strokeStyle = lightCanvas ? '#E1E6EB' : '#26313B';
       ctx.lineWidth = 1;
       const step = 80;
       for (let x = 0; x < width; x += step) {
@@ -308,12 +309,12 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
         if (rPx > 15 && rPx < width * 2) {
           ctx.beginPath();
           ctx.arc(centerX, centerY, rPx, 0, 2 * Math.PI);
-          ctx.strokeStyle = au === 30 ? 'rgba(59, 130, 246, 0.4)' : 'rgba(56, 189, 248, 0.12)';
+          ctx.strokeStyle = lightCanvas ? (au === 30 ? 'rgba(75,95,115,.55)' : 'rgba(100,116,132,.22)') : (au === 30 ? 'rgba(160,180,198,.48)' : 'rgba(148,163,184,.16)');
           ctx.lineWidth = au === 30 ? 1.5 : 1;
           ctx.setLineDash([4, 6]);
           ctx.stroke();
           ctx.setLineDash([]);
-          ctx.fillStyle = au === 30 ? '#3B82F6' : 'rgba(167, 180, 204, 0.6)';
+          ctx.fillStyle = lightCanvas ? '#657586' : '#AAB6C2';
           ctx.font = '10px monospace';
           ctx.fillText(au === 30 ? '30 AU (Neptune)' : `${au} AU`, centerX + rPx + 4, centerY - 4);
         }
@@ -356,15 +357,15 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
         if (isPlanetX) {
           // Hypothetical Planet X: Clearly differentiated dashed purple line
           ctx.setLineDash([6, 6]);
-          ctx.strokeStyle = 'rgba(139, 92, 246, 0.9)';
+          ctx.strokeStyle = lightCanvas ? 'rgba(83,101,120,.9)' : 'rgba(174,188,202,.85)';
           ctx.lineWidth = 2;
         } else if (isDistantObject) {
           ctx.setLineDash([3, 3]);
-          ctx.strokeStyle = obj.orbitalColor;
+          ctx.strokeStyle = lightCanvas ? 'rgba(113,128,143,.62)' : 'rgba(151,166,180,.48)';
           ctx.lineWidth = 1.5;
         } else {
           ctx.setLineDash([]);
-          ctx.strokeStyle = obj.orbitalColor;
+          ctx.strokeStyle = lightCanvas ? 'rgba(104,120,136,.48)' : 'rgba(151,166,180,.36)';
           ctx.lineWidth = obj.id === 'neptune' ? 2 : 1;
         }
 
@@ -377,14 +378,14 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
       const sunRadius = Math.max(4, Math.min(16, 8 * Math.sqrt(pixelsPerAU)));
       const sunGlow = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, sunRadius * 2.5);
       sunGlow.addColorStop(0, '#FFFFFF');
-      sunGlow.addColorStop(0.3, '#F5C451');
+      sunGlow.addColorStop(0.3, lightCanvas ? '#A7A18E' : '#C7B98F');
       sunGlow.addColorStop(1, 'transparent');
       ctx.fillStyle = sunGlow;
       ctx.arc(centerX, centerY, sunRadius * 2.5, 0, 2 * Math.PI);
       ctx.fill();
 
       ctx.beginPath();
-      ctx.fillStyle = '#F5C451';
+      ctx.fillStyle = lightCanvas ? '#A7A18E' : '#C7B98F';
       ctx.arc(centerX, centerY, sunRadius, 0, 2 * Math.PI);
       ctx.fill();
 
@@ -413,15 +414,15 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
         if (isSelected) {
           ctx.beginPath();
           ctx.arc(pos.x, pos.y, bodyRadius + 6, 0, 2 * Math.PI);
-          ctx.strokeStyle = '#38BDF8';
+          ctx.strokeStyle = lightCanvas ? '#536B80' : '#AFC1D0';
           ctx.lineWidth = 2;
           ctx.stroke();
         }
 
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, bodyRadius, 0, 2 * Math.PI);
-        ctx.fillStyle = obj.color;
-        ctx.shadowColor = obj.color;
+        ctx.fillStyle = lightCanvas ? (isSelected ? '#52697D' : '#84919D') : (isSelected ? '#C0CED9' : '#9AA8B5');
+        ctx.shadowColor = lightCanvas ? '#718294' : '#AAB8C5';
         ctx.shadowBlur = isSelected ? 10 : 3;
         ctx.fill();
         ctx.shadowBlur = 0;
@@ -435,7 +436,7 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
           (pixelsPerAU > 10 && (obj.id === 'jupiter' || obj.id === 'earth'));
 
         if (shouldLabel) {
-          ctx.fillStyle = isSelected ? '#38BDF8' : '#F8FAFC';
+          ctx.fillStyle = isSelected ? (lightCanvas ? '#344B60' : '#D5E0E8') : (lightCanvas ? '#344353' : '#E0E7ED');
           ctx.font = `${isSelected ? 'bold ' : ''}11px Inter, sans-serif`;
           const text = isPlanetX ? 'Planet X [Hypothetical]' : obj.name.split('(')[0].trim();
           ctx.fillText(text, pos.x + bodyRadius + 6, pos.y + 4);
