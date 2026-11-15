@@ -320,7 +320,7 @@ export interface AiExplanationResponse {
   explanation: string;
   groundedAttributes: string[];
   scientificReferences: string[];
-  dataVerificationStatus: 'GROUNDED_VERIFIED' | 'SIMULATION_GROUNDED';
+  dataVerificationStatus: 'GROUNDED_VERIFIED' | 'SIMULATION_GROUNDED' | 'REFERENCE_ONLY';
   confidenceRating: 'HIGH_PRECISION' | 'THEORETICAL_MODEL';
   modelUsed: string;
   timestamp: string;
