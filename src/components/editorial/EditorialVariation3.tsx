@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight, Search, Filter, Database, ShieldCheck, Compas
 import { useTheme } from '../../context/ThemeContext';
 import { BlackStarLogo } from '../common/BlackStarLogo';
 import { assetUrl } from '../../utils/assetUrl';
-const cosmicDustHorizonImage = '/assets/JWST%20Messier%2016%20processed.jpg';
+const cosmicDustHorizonImage = assetUrl('/assets/JWST%20Messier%2016%20processed.jpg');
 
 interface EditorialVariation3Props {
   onNavigate: (tab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite') => void;

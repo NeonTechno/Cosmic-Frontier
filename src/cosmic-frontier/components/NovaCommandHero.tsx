@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { BlackStarLogo } from '../../components/common/BlackStarLogo';
 import { assetUrl } from '../../utils/assetUrl';
-const cosmicDustHorizonImage = '/assets/JWST%20Messier%2016%20processed.jpg';
+const cosmicDustHorizonImage = assetUrl('/assets/JWST%20Messier%2016%20processed.jpg');
 
 interface NovaCommandHeroProps {
   onNavigate: (page: AppPage) => void;
