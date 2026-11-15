@@ -28,6 +28,7 @@ import {
   queryGaiaDr3Cone,
   querySpherexTimeMachine,
   resolveTargetDesignator,
+  SpherexArchiveUnavailableError,
 } from './src/server/astroArchiveService.ts';
 import {
   buildLiveEphemeris,
@@ -537,12 +538,14 @@ app.get('/api/spherex/cutout', async (req: Request, res: Response) => {
     });
     res.json(obs);
   } catch (err: any) {
-    console.warn('[Server] /api/spherex/cutout live query failed, returning explicit fallback:', err?.message);
-    const custom = generateObservationAtCoordinates(parsed.raDeg, parsed.decDeg, targetName, fov);
-    res.json({
-      ...custom,
-      dataSourceStatus: 'FALLBACK_SIMULATED',
-      dataSourceLabel: `CALIBRATED FALLBACK SIMULATION — Live IRSA error: ${err?.message || 'timeout'}`,
+    const archiveUnavailable = err instanceof SpherexArchiveUnavailableError;
+    console.warn('[Server] /api/spherex/cutout archive query failed:', err?.message);
+    res.status(archiveUnavailable ? 503 : 500).json({
+      error: archiveUnavailable ? 'SPHEREx archive temporarily unavailable' : 'SPHEREx cutout query failed',
+      code: archiveUnavailable ? 'IRSA_ARCHIVE_UNAVAILABLE' : 'SPHEREX_QUERY_FAILED',
+      details: err?.message || 'Unknown archive error',
+      retryable: archiveUnavailable,
+      ...(archiveUnavailable ? { archiveDiagnostics: err.diagnostics } : {}),
     });
   }
 });
@@ -591,7 +594,15 @@ app.get('/api/spherex/time-machine', async (req: Request, res: Response) => {
     });
     res.json(obs);
   } catch (err: any) {
-    res.status(500).json({ error: 'Time Machine archive query failed', details: err?.message });
+    const archiveUnavailable = err instanceof SpherexArchiveUnavailableError;
+    console.warn('[Server] /api/spherex/time-machine archive query failed:', err?.message);
+    res.status(archiveUnavailable ? 503 : 500).json({
+      error: archiveUnavailable ? 'SPHEREx archive temporarily unavailable' : 'Time Machine archive query failed',
+      code: archiveUnavailable ? 'IRSA_ARCHIVE_UNAVAILABLE' : 'SPHEREX_QUERY_FAILED',
+      details: err?.message || 'Unknown archive error',
+      retryable: archiveUnavailable,
+      ...(archiveUnavailable ? { archiveDiagnostics: err.diagnostics } : {}),
+    });
   }
 });
 
