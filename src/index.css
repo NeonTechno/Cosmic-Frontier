@@ -1755,133 +1755,173 @@ code, pre, .font-mono, .font-editorial-mono {
 }
 
 
+
 /* =========================================================================
-   LIGHT THEME READABILITY PASS — shared across every research module + modal
-   Keep the cinematic NASA astronaut image treatment intentionally dark.
+   APPLICATION-WIDE LIGHT THEME
+   Shared by Editorial, SPHEREx, Planet X, Astrobiology, Architecture,
+   the Cosmic Frontier suite, navigation, drawers and modal surfaces.
    ========================================================================= */
 .theme-light {
   color-scheme: light;
   --bg-primary: #fdfcf8;
   --bg-secondary: #f4f1ea;
   --bg-card: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #57534e;
-  --border-subtle: rgba(41, 37, 36, .14);
-  --border-muted: rgba(41, 37, 36, .09);
+  --text-primary: #1c2430;
+  --text-secondary: #586273;
+  --border-subtle: #d9dce2;
+  --border-muted: #e7e8ec;
 }
+
+/* Convert dark structural surfaces to clean paper/card surfaces. */
 .theme-light :is(
-  [class~="bg-slate-950"], [class~="bg-slate-950/90"], [class~="bg-slate-950/80"],
-  [class~="bg-slate-950/60"], [class~="bg-slate-900"], [class~="bg-slate-900/90"],
-  [class~="bg-slate-900/80"], [class~="bg-slate-900/60"], [class~="bg-slate-850"],
-  [class~="bg-[#050B1A]"], [class~="bg-[#0B1630]"], [class~="bg-[#0E1B38]"],
-  [class~="bg-[#060914]"], [class~="bg-[#091224]/90"], [class~="bg-[#0b1329]/80"]
+  [class*="bg-slate-950"], [class*="bg-slate-900"],
+  [class*="bg-slate-850"], [class*="bg-slate-800"],
+  [class*="bg-slate-700"], [class*="bg-gray-950"],
+  [class*="bg-gray-900"], [class*="bg-zinc-950"],
+  [class*="bg-zinc-900"], [class*="bg-neutral-950"],
+  [class*="bg-neutral-900"], [class*="bg-[#050"],
+  [class*="bg-[#060"], [class*="bg-[#070"],
+  [class*="bg-[#080"], [class*="bg-[#090"],
+  [class*="bg-[#0a"], [class*="bg-[#0b"],
+  [class*="bg-[#0B"], [class*="bg-[#0c"],
+  [class*="bg-[#0C"], [class*="bg-[#0d"],
+  [class*="bg-[#0D"], [class*="bg-[#0e"],
+  [class*="bg-[#0E"], [class*="bg-[#101"]
 ) {
   background-color: #ffffff !important;
-  background-image: none;
-}
-.theme-light :is(
-  [class~="bg-gradient-to-r"], [class~="bg-gradient-to-br"], [class~="bg-gradient-to-tr"]
-) {
-  background-image: linear-gradient(115deg, #ffffff 0%, #f7f5ef 100%) !important;
-}
-.theme-light :is(
-  [class~="text-white"], [class~="text-slate-100"], [class~="text-slate-200"],
-  [class~="text-slate-300"], [class~="text-slate-400"]
-) {
-  color: #292524 !important;
-}
-.theme-light :is(
-  [class~="text-slate-500"], [class~="text-slate-600"], [class~="text-gray-400"],
-  [class~="text-gray-500"]
-) {
-  color: #57534e !important;
-}
-.theme-light :is(
-  [class~="border-slate-800"], [class~="border-slate-800/80"],
-  [class~="border-slate-700"], [class~="border-slate-700/80"],
-  [class~="border-white/5"], [class~="border-white/[0.08]"]
-) {
-  border-color: rgba(41, 37, 36, .14) !important;
-}
-.theme-light :is(
-  [class~="text-cyan-200"], [class~="text-cyan-300"], [class~="text-cyan-400"],
-  [class~="text-sky-300"], [class~="text-sky-400"]
-) {
-  color: #08758a !important;
-}
-.theme-light :is(
-  [class~="text-purple-300"], [class~="text-purple-400"],
-  [class~="text-violet-300"], [class~="text-violet-400"],
-  [class~="text-indigo-300"], [class~="text-indigo-400"]
-) {
-  color: #5b45a5 !important;
-}
-.theme-light :is(
-  [class~="text-emerald-300"], [class~="text-emerald-400"],
-  [class~="text-green-300"], [class~="text-green-400"]
-) {
-  color: #087a50 !important;
-}
-.theme-light :is(
-  input, textarea, select
-) {
-  color: #1a1a1a;
-  background-color: #ffffff;
-  border-color: rgba(41, 37, 36, .2);
-}
-.theme-light input::placeholder,
-.theme-light textarea::placeholder {
-  color: #78716c;
-  opacity: 1;
-}
-.theme-light pre,
-.theme-light code {
-  color: #292524;
-}
-.theme-light :is(button, a):focus-visible {
-  outline-color: #08758a;
-}
-/* The astronaut photograph is deliberately cinematic; retain white overlay copy. */
-.theme-light .editorial-astronaut,
-.theme-light .editorial-astronaut * {
-  color: inherit;
-}
-.theme-light .editorial-astronaut :is(h1, h2, h3, p, span, small, strong, a) {
-  color: #f8fafc;
-}
-.theme-light .editorial-astronaut :is(.editorial-astronaut-copy p) {
-  color: rgba(248, 250, 252, .82);
+  background-image: none !important;
 }
 
-/* Correct scope: preserve contrast over the photographic editorial hero only. */
-.theme-light .editorial-astronaut-hero :is(h1,h2,h3,p,span,small,strong,a,button) {
-  color: #f8fafc;
+/* Low-contrast dark status chips become light tinted semantic chips. */
+.theme-light :is([class*="bg-cyan-950"], [class*="bg-sky-950"]) {
+  background-color: #e3f3f7 !important;
 }
-.theme-light .editorial-astronaut-hero .editorial-astronaut-copy p {
-  color: rgba(248, 250, 252, .84);
+.theme-light :is([class*="bg-indigo-950"], [class*="bg-violet-950"]) {
+  background-color: #eeebfa !important;
 }
-.theme-light .editorial-astronaut-hero .editorial-astronaut-telemetry {
-  color: #f8fafc;
+.theme-light :is([class*="bg-purple-950"]) {
+  background-color: #f2eafa !important;
+}
+.theme-light :is([class*="bg-emerald-950"], [class*="bg-green-950"]) {
+  background-color: #e5f4ec !important;
+}
+.theme-light :is([class*="bg-amber-950"], [class*="bg-yellow-950"]) {
+  background-color: #fbf1d9 !important;
+}
+.theme-light :is([class*="bg-red-950"], [class*="bg-rose-950"]) {
+  background-color: #fbe9e7 !important;
 }
 
-/* Opacity-suffixed utility text is common in telemetry and editorial captions. */
+/* Neutral text hierarchy: headings, body copy, captions and telemetry. */
 .theme-light :is(
+  [class~="text-white"], [class~="text-slate-50"],
+  [class~="text-slate-100"], [class~="text-slate-200"],
+  [class~="text-slate-300"], [class~="text-slate-400"],
+  [class~="text-gray-100"], [class~="text-gray-200"],
+  [class~="text-gray-300"], [class~="text-gray-400"],
+  [class~="text-zinc-100"], [class~="text-zinc-200"],
+  [class~="text-zinc-300"], [class~="text-zinc-400"],
+  [class~="text-neutral-100"], [class~="text-neutral-200"],
+  [class~="text-neutral-300"], [class~="text-neutral-400"],
   [class*="text-white/"], [class*="text-slate-100/"],
   [class*="text-slate-200/"], [class*="text-slate-300/"],
   [class*="text-slate-400/"], [class*="text-gray-400/"],
   [class*="text-gray-500/"]
 ) {
-  color: #57534e !important;
+  color: #263244 !important;
 }
 .theme-light :is(
-  [class*="border-slate-"], [class*="border-white/"]
+  [class~="text-slate-500"], [class~="text-slate-600"],
+  [class~="text-gray-500"], [class~="text-gray-600"],
+  [class~="text-zinc-500"], [class~="text-zinc-600"]
 ) {
-  border-color: rgba(41, 37, 36, .14) !important;
+  color: #586273 !important;
 }
-/* Reassert photographic overlay contrast after the global utility corrections. */
-.theme-light .editorial-astronaut-hero :is(h1,h2,h3,p,span,small,strong,a,button) {
-  color: #f8fafc !important;
+
+/* Keep accent colours saturated enough to remain legible on paper. */
+.theme-light :is(
+  [class*="text-cyan-"], [class*="text-sky-"]
+) { color: #08758a !important; }
+.theme-light :is(
+  [class*="text-indigo-"], [class*="text-violet-"],
+  [class*="text-purple-"]
+) { color: #59439b !important; }
+.theme-light :is(
+  [class*="text-emerald-"], [class*="text-green-"]
+) { color: #087a50 !important; }
+.theme-light :is(
+  [class*="text-amber-"], [class*="text-yellow-"]
+) { color: #8a5a08 !important; }
+.theme-light :is(
+  [class*="text-red-"], [class*="text-rose-"]
+) { color: #a83232 !important; }
+
+/* Fine borders and dividers become visible without looking heavy. */
+.theme-light :is(
+  [class*="border-slate-"], [class*="border-gray-"],
+  [class*="border-zinc-"], [class*="border-neutral-"],
+  [class*="border-white/"]
+) {
+  border-color: #d9dce2 !important;
 }
+.theme-light hr { border-color: #d9dce2 !important; }
+
+/* Pale semantic borders stay coordinated with their tinted surfaces. */
+.theme-light :is([class*="border-cyan-"], [class*="border-sky-"]) { border-color: #b7dce5 !important; }
+.theme-light :is([class*="border-indigo-"], [class*="border-violet-"], [class*="border-purple-"]) { border-color: #d6cbed !important; }
+.theme-light :is([class*="border-emerald-"], [class*="border-green-"]) { border-color: #bfe2ce !important; }
+.theme-light :is([class*="border-amber-"], [class*="border-yellow-"]) { border-color: #ead8aa !important; }
+.theme-light :is([class*="border-red-"], [class*="border-rose-"]) { border-color: #edc5c1 !important; }
+
+/* Form controls and editable scientific query fields. */
+.theme-light :is(input, textarea, select) {
+  color: #1c2430 !important;
+  background-color: #ffffff !important;
+  border-color: #cbd1da !important;
+}
+.theme-light :is(input, textarea, select)::placeholder {
+  color: #788292 !important;
+  opacity: 1;
+}
+.theme-light option { color: #1c2430; background: #ffffff; }
+
+/* Readable source snippets, JSON inspectors and code panels. */
+.theme-light :is(pre, code) { color: #334155; }
+.theme-light pre {
+  background-color: #f3f5f8 !important;
+  border-color: #d9dce2 !important;
+}
+.theme-light svg text { fill: #586273; }
+
+/* Filled accent controls retain white foregrounds for strong button contrast. */
+.theme-light :is(
+  button, a, [role="button"]
+):is([class*="bg-cyan-"], [class*="bg-sky-"], [class*="bg-indigo-"],
+     [class*="bg-purple-"], [class*="bg-emerald-"], [class*="bg-blue-"]) {
+  color: #ffffff !important;
+}
+.theme-light :is(button, a, [role="button"]):hover {
+  filter: brightness(.97);
+}
+.theme-light :is(button, a, input, textarea, select):focus-visible {
+  outline-color: #08758a;
+}
+
+/* Retain the deliberate dark NASA astronaut image and its white editorial copy. */
+.theme-light .editorial-astronaut-hero {
+  color: #f4f8fc !important;
+  background: #050a12 !important;
+  border-color: rgba(154, 190, 216, .2) !important;
+}
+.theme-light .editorial-astronaut-hero :is(
+  h1, h2, h3, p, span, small, strong, a, button
+) { color: #f8fafc !important; }
 .theme-light .editorial-astronaut-hero .editorial-astronaut-copy p {
   color: rgba(248, 250, 252, .84) !important;
+}
+.theme-light .editorial-astronaut-hero .editorial-astronaut-primary {
+  color: #07111c !important;
+}
+.theme-light .editorial-astronaut-hero .editorial-astronaut-primary:hover {
+  color: #02070d !important;
 }
