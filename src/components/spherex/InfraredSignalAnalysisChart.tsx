@@ -63,6 +63,11 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
   const [showErrorEnvelope, setShowErrorEnvelope] = useState<boolean>(true);
   const [showSpectralMarkers, setShowSpectralMarkers] = useState<boolean>(true);
   const [activeLineFilter, setActiveLineFilter] = useState<string | null>(null);
+  const hasModelFit = observation.dataSourceStatus !== 'LOCAL_IRSA_SPHEREX';
+
+  useEffect(() => {
+    if (!hasModelFit && metricMode === 'residual') setMetricMode('flux');
+  }, [hasModelFit, metricMode]);
 
   // Process data points and compute frequency distribution
   const chartData = useMemo(() => {
@@ -71,10 +76,10 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
     const raw = observation.fullSedCurve.map((pt) => {
       const freqTHz = parseFloat((C_MICRONS_THZ / pt.wavelength).toFixed(2));
       const energyFlux = parseFloat((pt.fluxMJySr * (freqTHz / 100)).toFixed(2));
-      const energyFit = parseFloat((pt.modelFit * (freqTHz / 100)).toFixed(2));
-      const residualPercent = pt.modelFit > 0
+      const energyFit = hasModelFit ? parseFloat((pt.modelFit * (freqTHz / 100)).toFixed(2)) : null;
+      const residualPercent = hasModelFit && pt.modelFit > 0
         ? parseFloat((((pt.fluxMJySr - pt.modelFit) / pt.modelFit) * 100).toFixed(2))
-        : 0;
+        : null;
 
       return {
         wavelengthUm: parseFloat(pt.wavelength.toFixed(3)),
@@ -83,7 +88,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
         fluxUpper: parseFloat((pt.fluxMJySr + pt.uncertainty).toFixed(2)),
         fluxLower: parseFloat(Math.max(0, pt.fluxMJySr - pt.uncertainty).toFixed(2)),
         uncertainty: parseFloat(pt.uncertainty.toFixed(2)),
-        modelFit: parseFloat(pt.modelFit.toFixed(2)),
+        modelFit: hasModelFit ? parseFloat(pt.modelFit.toFixed(2)) : null,
         energyFlux,
         energyFit,
         residualPercent,
@@ -95,7 +100,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
     return domainMode === 'frequency'
       ? raw.sort((a, b) => a.frequencyTHz - b.frequencyTHz)
       : raw.sort((a, b) => a.wavelengthUm - b.wavelengthUm);
-  }, [observation.fullSedCurve, domainMode]);
+  }, [observation.fullSedCurve, domainMode, hasModelFit]);
 
   // Compute summary metrics
   const stats = useMemo(() => {
@@ -139,7 +144,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
     ? 'energyFlux'
     : 'residualPercent';
 
-  const yModelKey = metricMode === 'flux'
+  const yModelKey = !hasModelFit ? null : metricMode === 'flux'
     ? 'modelFit'
     : metricMode === 'energy'
     ? 'energyFit'
@@ -225,6 +230,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
               Energy (νF_ν)
             </button>
             <button
+              disabled={!hasModelFit}
               onClick={() => setMetricMode('residual')}
               className={`px-2.5 py-1.5 rounded-lg transition ${
                 metricMode === 'residual'
@@ -379,7 +385,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
                     </div>
                     <div className="flex items-center justify-between gap-3 text-slate-400">
                       <span>Model Fit:</span>
-                      <span>{d.modelFit} MJy/sr</span>
+                      <span>{hasModelFit ? `${d.modelFit} MJy/sr` : 'Not computed for local FITS data'}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3 text-slate-400">
                       <span>Energy (νF_ν):</span>

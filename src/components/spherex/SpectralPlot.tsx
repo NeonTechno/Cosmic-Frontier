@@ -47,7 +47,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
   const scaleY = (f: number) =>
     height - padding.bottom - ((f - minFlux) / Math.max(0.01, maxFlux - minFlux)) * (height - padding.top - padding.bottom);
 
-  const modelLinePath = data.reduce((acc, pt, i) => {
+  const modelLinePath = observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? '' : data.reduce((acc, pt, i) => {
     const x = scaleX(pt.wavelength);
     const y = scaleY(pt.modelFit);
     return i === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
@@ -68,7 +68,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
         <div className="flex items-center space-x-2 flex-wrap">
           <Activity className="h-5 w-5 text-cyan-400" />
           <h3 className="text-sm font-semibold text-white tracking-wide">
-            {hasMeasured ? 'Measured Multi-Band Aperture SED' : 'Spectroscopic SED Profile'}
+            {observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Measured Aperture Flux — Nominal Band Center' : hasMeasured ? 'Measured Multi-Band Aperture SED' : 'Spectroscopic SED Profile'}
           </h3>
           <span
             className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
@@ -236,7 +236,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
               Flux: {hoveredPoint.fluxMJySr.toFixed(3)} ± {hoveredPoint.uncertainty.toFixed(3)} MJy/sr
             </div>
             <div className="text-[10px] text-slate-400">
-              {hoveredPoint.isMeasured ? 'Measured from IRSA FITS HDU' : 'Benchmark Reference Model'}
+              {observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Measured FITS flux; wavelength is nominal detector center' : hoveredPoint.isMeasured ? 'Measured from IRSA FITS HDU' : 'Reference Model'}
             </div>
           </div>
         )}
