@@ -2717,9 +2717,9 @@ body.theme-light {
   .editorial-root .editorial-header nav button { flex: 0 0 auto; white-space: nowrap; }
   .editorial-root .editorial-container > div:has(> div > div > button:first-child) { padding: 9px !important; margin-bottom: 20px !important; }
   .editorial-astronaut-hero { min-height: 0; border-radius: 15px; }
-  .editorial-astronaut-image.editorial-dust-horizon-image { height: 390px; object-position: 52% 45%; }
+  .editorial-astronaut-image.editorial-dust-horizon-image { width: 100%; height: 100%; object-fit: cover; object-position: center; }
   .editorial-astronaut-shade {
-    background: linear-gradient(180deg,rgba(3,8,17,.06) 0%,rgba(3,8,17,.18) 30%,#050a12 390px,#050a12 100%);
+    background: linear-gradient(180deg, rgba(3,8,17,.25) 0%, rgba(3,8,17,.75) 45%, #050a12 100%);
   }
   .editorial-astronaut-layout { grid-template-columns: minmax(0,1fr); gap: 21px; padding: 285px 17px 19px; }
   .editorial-astronaut-copy h2 { font-size: clamp(39px,11vw,58px) !important; }
@@ -2738,45 +2738,63 @@ body.theme-light {
 }
 
 
-/* Dust Horizon: keep the scientific image crisp, framed and secondary to the story. */
+/* Dust Horizon: allow the scientific image to cover the entire hero box with cinematic depth */
 .editorial-astronaut-hero {
-  min-height: clamp(500px, 48vw, 620px) !important;
+  min-height: clamp(520px, 50vw, 660px) !important;
   background: #050a12 !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
 .editorial-astronaut-image.editorial-dust-horizon-image {
-  z-index: -1 !important;
-  top: 11% !important;
-  left: 34% !important;
-  right: auto !important;
-  bottom: auto !important;
-  width: 39% !important;
-  height: 76% !important;
-  object-fit: contain !important;
-  object-position: center !important;
-  border: 1px solid rgba(176,218,239,.26);
-  border-radius: 12px;
-  background: #07111d;
-  box-shadow: 0 18px 48px rgba(0,0,0,.4), 0 0 32px rgba(60,180,220,.09);
-  filter: none !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center 40% !important;
+  border: none !important;
+  border-radius: inherit !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: saturate(1.1) contrast(1.05) brightness(0.92) !important;
   image-rendering: auto;
 }
 .editorial-astronaut-shade {
-  z-index: -2 !important;
+  position: absolute !important;
+  z-index: 1 !important;
+  inset: 0 !important;
+  pointer-events: none !important;
   background:
-    linear-gradient(90deg,#030811 0%,rgba(3,8,17,.96) 26%,rgba(3,8,17,.35) 46%,rgba(3,8,17,.18) 62%,rgba(3,8,17,.9) 100%),
-    linear-gradient(0deg,rgba(3,8,17,.72),transparent 32%,rgba(3,8,17,.12) 100%) !important;
+    linear-gradient(90deg, rgba(3,8,17,.95) 0%, rgba(3,8,17,.82) 26%, rgba(3,8,17,.3) 50%, rgba(3,8,17,.65) 75%, rgba(3,8,17,.92) 100%),
+    linear-gradient(0deg, rgba(3,8,17,.88) 0%, transparent 40%, rgba(3,8,17,.25) 100%) !important;
 }
-.editorial-astronaut-grid { z-index: -1; opacity: .12; }
+.editorial-astronaut-grid { z-index: 2; opacity: .12; }
+.editorial-astronaut-frame {
+  position: absolute !important;
+  z-index: 3 !important;
+}
 .editorial-astronaut-layout {
+  position: relative !important;
+  z-index: 3 !important;
   grid-template-columns: minmax(0,1fr) minmax(180px,.72fr) minmax(245px,.78fr) !important;
+}
+.editorial-astronaut-caption {
+  position: relative !important;
+  z-index: 3 !important;
 }
 @media (max-width: 900px) {
   .editorial-astronaut-hero { min-height: 570px !important; }
   .editorial-astronaut-image.editorial-dust-horizon-image {
-    left: 31% !important;
-    width: 39% !important;
-    height: 66% !important;
-    top: 16% !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
   }
   .editorial-astronaut-layout {
     grid-template-columns: minmax(0,1fr) minmax(220px,.82fr) !important;
@@ -2785,15 +2803,14 @@ body.theme-light {
 @media (max-width: 640px) {
   .editorial-astronaut-hero { min-height: 0 !important; }
   .editorial-astronaut-image.editorial-dust-horizon-image {
-    top: 52px !important;
-    left: 8% !important;
-    width: 84% !important;
-    height: 205px !important;
-    object-fit: contain !important;
-    border-radius: 10px;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
   }
   .editorial-astronaut-shade {
-    background: linear-gradient(180deg,rgba(3,8,17,.08) 0%,rgba(3,8,17,.08) 245px,#050a12 275px,#050a12 100%) !important;
+    background: linear-gradient(180deg, rgba(3,8,17,.15) 0%, rgba(3,8,17,.75) 45%, #050a12 100%) !important;
   }
   .editorial-astronaut-layout {
     grid-template-columns: minmax(0,1fr) !important;
