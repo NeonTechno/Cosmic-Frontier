@@ -223,7 +223,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
         <section id="editorial-overview" className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28">
           <img
             className="editorial-astronaut-image editorial-dust-horizon-image"
-            src="https://upload.wikimedia.org/wikipedia/commons/4/47/PIA26352-MilkyWay-DustCloudSeen-SPHEREx-Apr2025.jpg"
+            src="https://photojournal.jpl.nasa.gov/jpeg/PIA26352.jpg"
             alt="NASA SPHEREx infrared observation revealing interstellar dust clouds in the Large Magellanic Cloud"
             loading="eager"
             fetchPriority="high"
