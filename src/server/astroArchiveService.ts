@@ -191,7 +191,8 @@ export async function queryIrsaSpherexSia(
   raDeg: number,
   decDeg: number,
   collection: 'spherex_dr1' | 'spherex_qr3' | 'spherex_dr1_deep' | 'spherex_qr3_deep',
-  radiusDeg = 0.03
+  radiusDeg = 0.03,
+  timeoutMs = 7000
 ): Promise<SiaObservationRow[]> {
   const cacheKey = `sia_${collection}_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${radiusDeg}`;
   const cached = getCached<SiaObservationRow[]>(cacheKey);
@@ -204,7 +205,7 @@ export async function queryIrsaSpherexSia(
     MAXREC: '5000',
   });
   const url = `https://irsa.ipac.caltech.edu/SIA?${query.toString()}`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) {
     throw new Error(`IRSA SIA ${collection} HTTP ${res.status}`);
   }
@@ -236,6 +237,75 @@ export async function queryIrsaSpherexSia(
   // must not mask newly available observations for the full cache lifetime.
   if (rows.length > 0) setCached(cacheKey, rows);
   return rows;
+}
+
+export type SpherexCollectionName =
+  | 'spherex_dr1'
+  | 'spherex_qr3'
+  | 'spherex_dr1_deep'
+  | 'spherex_qr3_deep';
+
+export interface SpherexArchiveCollectionDiagnostic {
+  collection: SpherexCollectionName;
+  status: 'success' | 'error';
+  rowCount: number;
+  attempts: number;
+  latencyMs: number;
+  error?: string;
+}
+
+export class SpherexArchiveUnavailableError extends Error {
+  readonly diagnostics: SpherexArchiveCollectionDiagnostic[];
+
+  constructor(message: string, diagnostics: SpherexArchiveCollectionDiagnostic[]) {
+    super(message);
+    this.name = 'SpherexArchiveUnavailableError';
+    this.diagnostics = diagnostics;
+  }
+}
+
+/** Retry transient IRSA failures once and preserve the distinction between an empty result and a failed request. */
+async function querySpherexCollectionWithDiagnostics(
+  raDeg: number,
+  decDeg: number,
+  collection: SpherexCollectionName,
+  radiusDeg: number
+): Promise<{ rows: SiaObservationRow[]; diagnostic: SpherexArchiveCollectionDiagnostic }> {
+  const startedAt = Date.now();
+  let lastError = 'Unknown IRSA error';
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const rows = await queryIrsaSpherexSia(raDeg, decDeg, collection, radiusDeg, 7000);
+      return {
+        rows,
+        diagnostic: {
+          collection,
+          status: 'success',
+          rowCount: rows.length,
+          attempts: attempt,
+          latencyMs: Date.now() - startedAt,
+        },
+      };
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+      const permanentClientError = /HTTP (400|401|403|404)\b/.test(lastError);
+      if (attempt < 2 && !permanentClientError) {
+        await new Promise((resolve) => setTimeout(resolve, 350 * attempt));
+        continue;
+      }
+    }
+  }
+  return {
+    rows: [],
+    diagnostic: {
+      collection,
+      status: 'error',
+      rowCount: 0,
+      attempts: 2,
+      latencyMs: Date.now() - startedAt,
+      error: lastError,
+    },
+  };
 }
 
 export async function fetchAndParseSpherexCutout(
@@ -539,34 +609,34 @@ export async function querySpherexTimeMachine(options: {
     benchmark?.name ||
     `Sky Field (${raDeg.toFixed(4)}°, ${decDeg.toFixed(4)}°)`;
 
-  // Run SIA (DR1 + QR3), Gaia DR3, and AllWISE queries concurrently
-  // Search both wide and deep fields in the current supported releases.
-  // IRSA recommends DR1 + QR3; their deep collections are separate and must
-  // be queried explicitly or targets in deep fields can be missed.
-  const [dr1Res, qr3Res, dr1DeepRes, qr3DeepRes, gaiaSources, allWiseCutouts] = await Promise.all([
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1', Math.max(0.1, fovArcmin / 60)).catch((err) => {
-      console.warn('[AstroArchive] DR1 wide SIA error:', err.message);
-      return [] as SiaObservationRow[];
-    }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3', Math.max(0.1, fovArcmin / 60)).catch((err) => {
-      console.warn('[AstroArchive] QR3 wide SIA error:', err.message);
-      return [] as SiaObservationRow[];
-    }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1_deep', Math.max(0.1, fovArcmin / 60)).catch((err) => {
-      console.warn('[AstroArchive] DR1 deep SIA error:', err.message);
-      return [] as SiaObservationRow[];
-    }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3_deep', Math.max(0.1, fovArcmin / 60)).catch((err) => {
-      console.warn('[AstroArchive] QR3 deep SIA error:', err.message);
-      return [] as SiaObservationRow[];
-    }),
+  // Keep only two SPHEREx SIA requests in flight at once. IRSA can return
+  // transient 502s/timeouts when all four collections are queried together.
+  const [gaiaSources, allWiseCutouts] = await Promise.all([
     queryGaiaDr3Cone(raDeg, decDeg, Math.max(3.5, fovArcmin * 0.7)),
     queryAllWiseCutouts(raDeg, decDeg, fovArcmin),
   ]);
-
+  const searchRadiusDeg = Math.max(0.1, fovArcmin / 60);
+  const wideResults = await Promise.all([
+    querySpherexCollectionWithDiagnostics(raDeg, decDeg, 'spherex_dr1', searchRadiusDeg),
+    querySpherexCollectionWithDiagnostics(raDeg, decDeg, 'spherex_qr3', searchRadiusDeg),
+  ]);
+  const deepResults = await Promise.all([
+    querySpherexCollectionWithDiagnostics(raDeg, decDeg, 'spherex_dr1_deep', searchRadiusDeg),
+    querySpherexCollectionWithDiagnostics(raDeg, decDeg, 'spherex_qr3_deep', searchRadiusDeg),
+  ]);
+  const collectionDiagnostics = [...wideResults, ...deepResults].map((result) => result.diagnostic);
+  const [dr1Res, qr3Res, dr1DeepRes, qr3DeepRes] = [
+    wideResults[0].rows,
+    wideResults[1].rows,
+    deepResults[0].rows,
+    deepResults[1].rows,
+  ];
+  const failedCollections = collectionDiagnostics.filter((item) => item.status === 'error');
   const combinedRows = [...dr1Res, ...qr3Res, ...dr1DeepRes, ...qr3DeepRes]
     .sort((a, b) => a.tMinMjd - b.tMinMjd);
-  const limitations: string[] = [];
+  const limitations: string[] = collectionDiagnostics
+    .filter((item) => item.status === 'error')
+    .map((item) => `${item.collection} failed after ${item.attempts} attempts: ${item.error || 'unknown error'}`);
 
   if (qr3Res.length === 0) {
     limitations.push('No SPHEREx QR3 (2026) quick-release observations returned at these coordinates yet; using multi-pass DR1 timeline.');
@@ -575,7 +645,16 @@ export async function querySpherexTimeMachine(options: {
     limitations.push('No optical Gaia DR3 sources detected inside search cone (expected for optically faint Y-dwarfs such as WISE 0855).');
   }
 
-  // Fallback ONLY if zero live SPHEREx rows are available
+  // A failed collection is not evidence of an empty sky region. If no collection
+  // returned rows and any request failed, surface an explicit retryable outage.
+  if (combinedRows.length === 0 && failedCollections.length > 0) {
+    throw new SpherexArchiveUnavailableError(
+      'IRSA SPHEREx archive requests failed; observation coverage at these coordinates is unknown.',
+      collectionDiagnostics
+    );
+  }
+
+  // Only report "no matching observations" when every collection completed successfully.
   if (combinedRows.length === 0) {
     const baseFallback = benchmark
       ? generateBenchmarkObservation(benchmark)
@@ -586,7 +665,7 @@ export async function querySpherexTimeMachine(options: {
       ...baseFallback,
       targetName: resolvedName,
       dataSourceStatus: 'FALLBACK_SIMULATED',
-      dataSourceLabel: 'CALIBRATED FALLBACK SIMULATION — Live IRSA SPHEREx query returned 0 archival rows at these coordinates.',
+      dataSourceLabel: 'CALIBRATED FALLBACK SIMULATION — all four SPHEREx collections responded successfully but returned no matching Level-2 image rows in this search cone. This does not establish global archive non-coverage.',
       gaiaSources,
       allWiseCutouts,
       archiveSummary: {
@@ -600,8 +679,9 @@ export async function querySpherexTimeMachine(options: {
         cached: false,
         limitations: [
           ...limitations,
-          'Live IRSA SPHEREx DR1/QR3 SIA returned 0 matching Level-2 images; displaying explicitly labeled synthetic fallback.',
+          'All four SPHEREx SIA collections completed successfully and returned zero matching Level-2 image rows for the requested search cone; the displayed frames are synthetic.',
         ],
+        collectionResults: collectionDiagnostics,
         wiseViewUrl: `https://byw.tools/wiseview-v2#ra=${raDeg.toFixed(5)}&dec=${decDeg.toFixed(5)}&size=${Math.round(fovArcmin * 60)}`,
         irsaFinderUrl: `https://irsa.ipac.caltech.edu/applications/finderchart/?locstr=${raDeg.toFixed(5)}+${decDeg.toFixed(5)}&subsetsize=${fovArcmin.toFixed(1)}`,
         aladinUrl: `https://aladin.cds.unistra.fr/AladinLite/?target=${raDeg.toFixed(4)}%20${decDeg.toFixed(4)}&fov=${(fovArcmin / 60).toFixed(3)}&survey=P%2FALLWISE%2Fcolor`,
@@ -791,7 +871,7 @@ export async function querySpherexTimeMachine(options: {
     dataSourceLabel:
       realCutoutCount > 0
         ? `LIVE NASA/IPAC IRSA ARCHIVE: ${dr1Res.length} SPHEREx DR1 + ${qr3Res.length} SPHEREx QR3 exposures (${realCutoutCount} Level-2 FITS cutouts parsed & North-Up WCS aligned)`
-        : 'LIVE METADATA ONLY — Cutout pixel retrieval failed; showing metadata.',
+        : 'LIVE METADATA ONLY — Archive rows were returned, but FITS cutout pixels could not be retrieved; no synthetic pixels are being presented as observations.',
     documentationUrl: 'https://irsa.ipac.caltech.edu/Missions/spherex.html',
     fitsHeader: {
       TELESCOP: 'SPHEREx',
@@ -820,6 +900,7 @@ export async function querySpherexTimeMachine(options: {
       queryLatencyMs: latency,
       cached: false,
       limitations,
+      collectionResults: collectionDiagnostics,
       wiseViewUrl: `https://byw.tools/wiseview-v2#ra=${raDeg.toFixed(5)}&dec=${decDeg.toFixed(5)}&size=${Math.round(fovArcmin * 60)}`,
       irsaFinderUrl: `https://irsa.ipac.caltech.edu/applications/finderchart/?locstr=${raDeg.toFixed(5)}+${decDeg.toFixed(5)}&subsetsize=${fovArcmin.toFixed(1)}`,
       aladinUrl: `https://aladin.cds.unistra.fr/AladinLite/?target=${raDeg.toFixed(4)}%20${decDeg.toFixed(4)}&fov=${(fovArcmin / 60).toFixed(3)}&survey=P%2FALLWISE%2Fcolor`,
