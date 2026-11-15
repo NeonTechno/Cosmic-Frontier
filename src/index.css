@@ -576,9 +576,9 @@ body {
   --ink: #1a1a1a;
   --accent: #d44d5c;
   --muted: #8c8c8c;
-  --serif: 'Inter', sans-serif;
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --mono: 'Space Mono', monospace;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: 'Space Mono', 'JetBrains Mono', monospace;
   background-color: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
@@ -682,7 +682,7 @@ body {
 }
 
 .editorial-title {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: clamp(2.5rem, 6vw, 5rem);
   font-weight: 600;
   line-height: 0.9;
@@ -691,7 +691,7 @@ body {
 }
 
 .editorial-h2 {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 600;
   line-height: 1.05;
@@ -1546,7 +1546,7 @@ code, pre, .font-mono, .font-editorial-mono {
   margin: 0;
   max-width: 620px;
   color: #f7fbff !important;
-  font: 650 clamp(48px, 5.6vw, 82px)/.94 Inter, ui-sans-serif, sans-serif !important;
+  font: 600 clamp(48px, 5.6vw, 82px)/.94 'Cormorant Garamond', Georgia, serif !important;
   letter-spacing: -.075em !important;
   text-shadow: 0 4px 32px rgba(0,0,0,.38);
 }
@@ -1562,7 +1562,7 @@ code, pre, .font-mono, .font-editorial-mono {
   max-width: 440px !important;
   margin-top: 24px;
   color: rgba(224,235,245,.78) !important;
-  font: 14px/1.8 Inter, ui-sans-serif, sans-serif !important;
+  font: 400 15px/1.8 'Plus Jakarta Sans', 'Space Grotesk', sans-serif !important;
 }
 .editorial-astronaut-actions {
   display: flex;
