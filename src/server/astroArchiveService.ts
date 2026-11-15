@@ -210,7 +210,7 @@ export async function queryIrsaSpherexSia(
     throw new Error(`IRSA SIA ${collection} HTTP ${res.status}`);
   }
   const responseBody = await res.text();
-  const parsed = /<\\?xml|<VOTABLE/i.test(responseBody)
+  const parsed = /<\?xml|<VOTABLE/i.test(responseBody)
     ? parseVotableRows(responseBody)
     : parseCsvRows(responseBody);
   const rows: SiaObservationRow[] = parsed
@@ -273,7 +273,9 @@ async function querySpherexCollectionWithDiagnostics(
 ): Promise<{ rows: SiaObservationRow[]; diagnostic: SpherexArchiveCollectionDiagnostic }> {
   const startedAt = Date.now();
   let lastError = 'Unknown IRSA error';
+  let attempts = 0;
   for (let attempt = 1; attempt <= 2; attempt++) {
+    attempts = attempt;
     try {
       const rows = await queryIrsaSpherexSia(raDeg, decDeg, collection, radiusDeg, 7000);
       return {
@@ -282,7 +284,7 @@ async function querySpherexCollectionWithDiagnostics(
           collection,
           status: 'success',
           rowCount: rows.length,
-          attempts: attempt,
+          attempts,
           latencyMs: Date.now() - startedAt,
         },
       };
@@ -295,17 +297,16 @@ async function querySpherexCollectionWithDiagnostics(
       }
     }
   }
-  return {
-    rows: [],
-    diagnostic: {
-      collection,
-      status: 'error',
-      rowCount: 0,
-      attempts: 2,
-      latencyMs: Date.now() - startedAt,
-      error: lastError,
-    },
+  const diagnostic: SpherexArchiveCollectionDiagnostic = {
+    collection,
+    status: 'error',
+    rowCount: 0,
+    attempts,
+    latencyMs: Date.now() - startedAt,
+    error: lastError,
   };
+  console.warn('[AstroArchive] SPHEREx collection query failed:', diagnostic);
+  return { rows: [], diagnostic };
 }
 
 export async function fetchAndParseSpherexCutout(
