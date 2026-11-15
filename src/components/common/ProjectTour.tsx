@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   ArrowLeft, ArrowRight, Check, Compass, Database, FlaskConical,
-  Globe2, Orbit, Rocket, SkipForward, Telescope, X
+  Globe2, Orbit, Rocket, Telescope, X
 } from 'lucide-react';
 
 type TourTab = 'overview' | 'cosmic-suite' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture';
