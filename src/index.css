@@ -1968,3 +1968,165 @@ code, pre, .font-mono, .font-editorial-mono {
 .astrobiology-light :is(button):not([class*="bg-cyan-600"]):not([class*="bg-violet-600"]):hover { background-color: #edf2f7 !important; }
 .astrobiology-light button[class*="bg-cyan-600"], .astrobiology-light button[class*="bg-violet-600"] { color: #ffffff !important; }
 .astrobiology-light :is(svg text) { fill: #586273; }
+
+
+/* =========================================================================
+   LIGHT MODE READABILITY PASS — final shared overrides
+   Keep Dark Orbit untouched; normalize legacy dark-only module surfaces.
+   ========================================================================= */
+html.theme-light,
+body.theme-light {
+  color-scheme: light !important;
+  background: #f4f6f8 !important;
+  color: #202b3a !important;
+}
+body.theme-light {
+  background-image: none !important;
+}
+.theme-light {
+  --background: 210 25% 97%;
+  --foreground: 215 28% 17%;
+  --bg-primary: #f4f6f8;
+  --bg-secondary: #edf1f5;
+  --bg-card: #ffffff;
+  --text-primary: #202b3a;
+  --text-secondary: #536174;
+  --border-subtle: #d5dce5;
+  --border-muted: #e4e9ef;
+}
+
+/* Legacy dark panels used across the workstation and Cosmic Frontier suite. */
+.theme-light :is(
+  [class*="bg-slate-950"], [class*="bg-slate-900"], [class*="bg-slate-800"],
+  [class*="bg-slate-700"], [class*="bg-gray-950"], [class*="bg-gray-900"],
+  [class*="bg-zinc-950"], [class*="bg-zinc-900"], [class*="bg-neutral-950"],
+  [class*="bg-neutral-900"], [class*="bg-[#050"], [class*="bg-[#060"],
+  [class*="bg-[#070"], [class*="bg-[#080"], [class*="bg-[#090"],
+  [class*="bg-[#0a"], [class*="bg-[#0A"], [class*="bg-[#0b"],
+  [class*="bg-[#0B"], [class*="bg-[#0c"], [class*="bg-[#0C"],
+  [class*="bg-[#0d"], [class*="bg-[#0D"], [class*="bg-[#0e"],
+  [class*="bg-[#0E"], [class*="bg-[#101"], [class*="bg-[#111"],
+  [class*="bg-[#121"], [class*="bg-[#131"], [class*="bg-[#141"]
+) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #263447 !important;
+}
+
+/* Convert dark gradient panel stops without flattening intentional accent CTAs. */
+.theme-light :is(
+  [class*="from-slate-950"], [class*="from-slate-900"], [class*="from-slate-800"],
+  [class*="via-slate-950"], [class*="via-slate-900"], [class*="via-slate-800"],
+  [class*="to-slate-950"], [class*="to-slate-900"], [class*="to-slate-800"],
+  [class*="from-[#050"], [class*="from-[#060"], [class*="from-[#070"],
+  [class*="from-[#080"], [class*="from-[#090"], [class*="from-[#0B"],
+  [class*="from-[#0C"], [class*="via-[#050"], [class*="via-[#060"],
+  [class*="via-[#070"], [class*="via-[#080"], [class*="via-[#090"],
+  [class*="via-[#0B"], [class*="via-[#0C"], [class*="to-[#050"],
+  [class*="to-[#060"], [class*="to-[#070"], [class*="to-[#080"],
+  [class*="to-[#090"], [class*="to-[#0B"], [class*="to-[#0C"]
+) {
+  --tw-gradient-from: #ffffff var(--tw-gradient-from-position) !important;
+  --tw-gradient-via: #f7f8fa var(--tw-gradient-via-position) !important;
+  --tw-gradient-to: #eef2f6 var(--tw-gradient-to-position) !important;
+  background-image: linear-gradient(120deg, #ffffff 0%, #f7f8fa 55%, #eef2f6 100%) !important;
+}
+
+/* Dark-only custom panels that do not use Tailwind background utilities. */
+.theme-light :is(.electric-glass, .hud-panel, .mission-console) {
+  color: #263447 !important;
+  background: #ffffff !important;
+  border-color: #d5dce5 !important;
+  box-shadow: 0 10px 28px rgba(25, 42, 62, .07) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.theme-light .mission-stat {
+  background: #f1f4f7 !important;
+}
+.theme-light .mission-stat__label,
+.theme-light .mission-stat small,
+.theme-light .mission-bottomline {
+  color: #596a7e !important;
+}
+.theme-light .mission-stat strong,
+.theme-light .mission-console__footer {
+  color: #202b3a !important;
+  border-color: #dce3eb !important;
+  background-color: #f8fafc !important;
+}
+
+/* All muted light-on-dark text becomes readable on paper surfaces. */
+.theme-light :is(
+  [class~="text-white"], [class~="text-slate-50"], [class~="text-slate-100"],
+  [class~="text-slate-200"], [class~="text-slate-300"], [class~="text-slate-400"],
+  [class~="text-gray-100"], [class~="text-gray-200"], [class~="text-gray-300"],
+  [class~="text-gray-400"], [class~="text-zinc-100"], [class~="text-zinc-200"],
+  [class~="text-zinc-300"], [class~="text-zinc-400"], [class~="text-neutral-100"],
+  [class~="text-neutral-200"], [class~="text-neutral-300"], [class~="text-neutral-400"],
+  [class*="text-white/"], [class*="text-slate-100/"], [class*="text-slate-200/"],
+  [class*="text-slate-300/"], [class*="text-slate-400/"], [class*="text-gray-400/"]
+) {
+  color: #344256 !important;
+  -webkit-text-fill-color: currentColor;
+}
+.theme-light :is(
+  [class~="text-slate-500"], [class~="text-slate-600"],
+  [class~="text-gray-500"], [class~="text-gray-600"],
+  [class~="text-zinc-500"], [class~="text-zinc-600"]
+) { color: #596a7e !important; }
+
+/* Keep status colours distinct and sufficiently dark for light surfaces. */
+.theme-light :is([class*="text-cyan-"], [class*="text-sky-"]) { color: #08758a !important; }
+.theme-light :is([class*="text-indigo-"], [class*="text-violet-"], [class*="text-purple-"]) { color: #59439b !important; }
+.theme-light :is([class*="text-emerald-"], [class*="text-green-"]) { color: #087a50 !important; }
+.theme-light :is([class*="text-amber-"], [class*="text-yellow-"]) { color: #865707 !important; }
+.theme-light :is([class*="text-red-"], [class*="text-rose-"]) { color: #a83232 !important; }
+
+/* Restore readable borders, separators, table rows and data grid lines. */
+.theme-light :is(
+  [class*="border-white/"], [class*="border-slate-"], [class*="border-gray-"],
+  [class*="border-zinc-"], [class*="border-neutral-"]
+) { border-color: #d7dee7 !important; }
+.theme-light :is(hr, [role="separator"]) { border-color: #d7dee7 !important; }
+.theme-light :is(table, th, td) { border-color: #d7dee7 !important; }
+.theme-light :is(input, textarea, select) {
+  color: #202b3a !important;
+  background: #ffffff !important;
+  border-color: #c7d0dc !important;
+  caret-color: #08758a;
+}
+.theme-light :is(input, textarea, select)::placeholder { color: #748196 !important; opacity: 1 !important; }
+.theme-light option { color: #202b3a !important; background: #ffffff !important; }
+.theme-light :is(pre, code) { color: #334155; }
+.theme-light pre { background: #f1f4f7 !important; border-color: #d7dee7 !important; }
+.theme-light svg text { fill: #536174; }
+
+/* Do not wash out the deliberately photographic dark editorial cover or launch art. */
+.theme-light :is(.editorial-astronaut-hero, .mission-hero, .mission-hero *) {
+  color: revert;
+}
+.theme-light .editorial-astronaut-hero {
+  color: #f4f8fc !important;
+  background: #050a12 !important;
+}
+.theme-light .editorial-astronaut-hero :is(h1,h2,h3,p,span,small,strong,a,button) { color: #f8fafc !important; }
+.theme-light .editorial-astronaut-hero .editorial-astronaut-primary { color: #07111c !important; }
+
+/* Astrobiology has its own root class as well as the global theme class. */
+.astrobiology-light {
+  color: #263447 !important;
+  color-scheme: light;
+}
+.astrobiology-light :is(h1,h2,h3,h4,strong) { color: #202b3a !important; }
+.astrobiology-light :is(p,label,small) { color: #46566b; }
+.astrobiology-light :is([class*="bg-slate-950"],[class*="bg-slate-900"],[class*="bg-slate-800"],[class*="bg-slate-700"],[class*="bg-[#0B"],[class*="bg-[#09"],[class*="bg-[#07"],[class*="bg-[#06"]) {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #263447 !important;
+}
+.astrobiology-light :is([class*="border-white/"],[class*="border-slate-"]) { border-color: #d7dee7 !important; }
+.astrobiology-light :is([class~="text-white"],[class~="text-slate-50"],[class~="text-slate-100"],[class~="text-slate-200"],[class~="text-slate-300"],[class~="text-slate-400"]) { color: #344256 !important; }
+.astrobiology-light :is([class*="text-cyan-"],[class*="text-sky-"]) { color: #08758a !important; }
+.astrobiology-light :is([class*="text-indigo-"],[class*="text-violet-"]) { color: #59439b !important; }
+.astrobiology-light :is([class*="text-emerald-"]) { color: #087a50 !important; }
