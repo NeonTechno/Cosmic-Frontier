@@ -72,13 +72,9 @@ export const Navbar: FC<NavbarProps> = ({
           <button 
             onClick={() => handleNavClick('home')}
             className="flex items-center gap-2.5 text-left group focus:outline-none rounded-lg p-1 cursor-pointer"
-            aria-label="Black Star Orbit Home"
+            aria-label="Home"
           >
             <BlackStarLogo size="sm" showGlow={false} />
-            <span className="flex flex-col leading-none">
-              <span className="text-[11px] sm:text-xs font-semibold tracking-[0.16em] text-[#edf4fc]">COSMIC FRONTIER</span>
-              <span className="mt-1 text-[8px] font-mono tracking-[0.18em] text-[#8193ad]">ASTRONOMY WORKSPACE</span>
-            </span>
           </button>
 
           {/* Desktop Navigation Links */}
