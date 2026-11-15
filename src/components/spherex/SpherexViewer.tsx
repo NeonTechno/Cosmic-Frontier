@@ -691,7 +691,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="spherex-viewer space-y-4">
       {/* NASA Space Apps Challenge Celestial Coordinate Search & Benchmark Targets */}
       <CelestialCoordinateSearch
         currentRa={activeObs.raDeg}
