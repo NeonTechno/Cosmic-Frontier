@@ -163,7 +163,7 @@ export async function queryIrsaSpherexSia(
     try {
       const res = await fetch(url, {
         headers: { Accept: 'application/x-votable+xml, application/xml, text/xml' },
-        signal: AbortSignal.timeout(attempt === 0 ? 10000 : 12000),
+        signal: AbortSignal.timeout(attempt === 0 ? 8000 : 10000),
       });
       if (!res.ok) {
         const detail = (await res.text().catch(() => '')).slice(0, 180);
@@ -245,7 +245,7 @@ export async function querySpherexTap(
   const adql = `SELECT TOP 2000 a.uri AS uri, p.time_bounds_lower AS t_min, p.time_bounds_upper AS t_max, p.energy_bandpassname AS bandpass, p.em_min AS em_min, p.em_max AS em_max FROM spherex.artifact a JOIN spherex.plane p ON a.planeid = p.planeid WHERE 1 = CONTAINS(POINT('ICRS', ${raDeg.toFixed(6)}, ${decDeg.toFixed(6)}), p.poly) ORDER BY p.time_bounds_lower`;
   const params = new URLSearchParams({ REQUEST: 'doQuery', LANG: 'ADQL', FORMAT: 'csv', QUERY: adql });
   const url = `https://irsa.ipac.caltech.edu/TAP/sync?${params.toString()}`;
-  const res = await fetch(url, { headers: { Accept: 'text/csv' }, signal: AbortSignal.timeout(18000) });
+  const res = await fetch(url, { headers: { Accept: 'text/csv' }, signal: AbortSignal.timeout(25000) });
   if (!res.ok) {
     const detail = (await res.text().catch(() => '')).slice(0, 180);
     throw new Error(`IRSA TAP SPHEREx HTTP ${res.status}${detail ? `: ${detail}` : ''}`);
@@ -301,7 +301,7 @@ export async function fetchAndParseSpherexCutout(
   // IRSA documents transient cutout read failures; retry 502/503/504 and network timeouts once.
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const response = await fetch(cutoutUrl.toString(), { signal: AbortSignal.timeout(12000) });
+      const response = await fetch(cutoutUrl.toString(), { signal: AbortSignal.timeout(8000) });
       if (response.ok) { res = response; lastError = null; break; }
       const status = response.status;
       const detail = (await response.text().catch(() => '')).slice(0, 120);
@@ -581,45 +581,47 @@ export async function querySpherexTimeMachine(options: {
     benchmark?.name ||
     `Sky Field (${raDeg.toFixed(4)}°, ${decDeg.toFixed(4)}°)`;
 
-  // Search a cone covering the selected field of view and include wide + deep surveys.
-  // IRSA recommends querying DR1 and QR3 together; both releases expose deep collections.
+  // Prefer IRSA TAP: it is the documented path for current SPHEREx metadata and is independent of SIA's proxy failures.
   const searchRadiusDeg = Math.max(0.01, Math.min(0.25, fovArcmin / 120));
-  const [dr1Wide, dr1Deep, qr3Wide, qr3Deep, gaiaSources, allWiseCutouts] = await Promise.all([
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1', searchRadiusDeg).catch((err) => {
-      console.warn('[AstroArchive] DR1 wide SIA error:', err.message); return [] as SiaObservationRow[];
-    }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1_deep', searchRadiusDeg).catch((err) => {
-      console.warn('[AstroArchive] DR1 deep SIA error:', err.message); return [] as SiaObservationRow[];
-    }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3', searchRadiusDeg).catch((err) => {
-      console.warn('[AstroArchive] QR3 wide SIA error:', err.message); return [] as SiaObservationRow[];
-    }),
-    queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3_deep', searchRadiusDeg).catch((err) => {
-      console.warn('[AstroArchive] QR3 deep SIA error:', err.message); return [] as SiaObservationRow[];
-    }),
+  const [tapResult, gaiaSources, allWiseCutouts] = await Promise.all([
+    querySpherexTap(raDeg, decDeg, searchRadiusDeg)
+      .then((rows) => ({ rows, error: null as Error | null }))
+      .catch((error) => ({ rows: [] as SiaObservationRow[], error: error instanceof Error ? error : new Error(String(error)) })),
     queryGaiaDr3Cone(raDeg, decDeg, Math.max(3.5, fovArcmin * 0.7)),
     queryAllWiseCutouts(raDeg, decDeg, fovArcmin),
   ]);
-  const dr1Res = [...dr1Wide, ...dr1Deep];
-  const qr3Res = [...qr3Wide, ...qr3Deep];
+  const dr1Res: SiaObservationRow[] = [];
+  const qr3Res: SiaObservationRow[] = [];
   const mergeUniqueRows = () => [...dr1Res, ...qr3Res]
     .filter((row, index, all) => all.findIndex((other) => other.obsId === row.obsId) === index)
     .sort((a, b) => a.tMinMjd - b.tMinMjd);
-  let combinedRows = mergeUniqueRows();
   const limitations: string[] = [];
-  if (combinedRows.length === 0) {
-    try {
-      const tapRows = await querySpherexTap(raDeg, decDeg, searchRadiusDeg);
-      dr1Res.push(...tapRows.filter((row) => row.obsCollection === 'spherex_dr1'));
-      qr3Res.push(...tapRows.filter((row) => row.obsCollection === 'spherex_qr3'));
-      combinedRows = mergeUniqueRows();
-      if (tapRows.length) limitations.push(`SIA was unavailable; recovered ${tapRows.length} archive rows through IRSA TAP.`);
-    } catch (error) {
-      limitations.push(`IRSA SIA and TAP metadata queries both failed: ${error instanceof Error ? error.message : String(error)}`);
-      console.warn('[AstroArchive] IRSA TAP fallback failed:', error);
-    }
+  if (tapResult.rows.length > 0) {
+    dr1Res.push(...tapResult.rows.filter((row) => row.obsCollection === 'spherex_dr1'));
+    qr3Res.push(...tapResult.rows.filter((row) => row.obsCollection === 'spherex_qr3'));
+    limitations.push(`Archive metadata retrieved through IRSA TAP (${tapResult.rows.length} rows); SIA is retained as a fallback for TAP outages.`);
+  } else {
+    if (tapResult.error) console.warn('[AstroArchive] IRSA TAP primary query failed:', tapResult.error.message);
+    const [dr1Wide, dr1Deep, qr3Wide, qr3Deep] = await Promise.all([
+      queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1', searchRadiusDeg).catch((err) => {
+        console.warn('[AstroArchive] DR1 wide SIA error:', err.message); return [] as SiaObservationRow[];
+      }),
+      queryIrsaSpherexSia(raDeg, decDeg, 'spherex_dr1_deep', searchRadiusDeg).catch((err) => {
+        console.warn('[AstroArchive] DR1 deep SIA error:', err.message); return [] as SiaObservationRow[];
+      }),
+      queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3', searchRadiusDeg).catch((err) => {
+        console.warn('[AstroArchive] QR3 wide SIA error:', err.message); return [] as SiaObservationRow[];
+      }),
+      queryIrsaSpherexSia(raDeg, decDeg, 'spherex_qr3_deep', searchRadiusDeg).catch((err) => {
+        console.warn('[AstroArchive] QR3 deep SIA error:', err.message); return [] as SiaObservationRow[];
+      }),
+    ]);
+    dr1Res.push(...dr1Wide, ...dr1Deep);
+    qr3Res.push(...qr3Wide, ...qr3Deep);
+    if (mergeUniqueRows().length > 0) limitations.push('IRSA TAP was unavailable; recovered SPHEREx metadata through SIA.');
+    else limitations.push(`IRSA TAP and SIA metadata queries failed or returned no rows${tapResult.error ? `: ${tapResult.error.message}` : '.'}`);
   }
-
+  let combinedRows = mergeUniqueRows();
   if (qr3Res.length === 0) {
     limitations.push('No SPHEREx QR3 (2026) quick-release observations returned at these coordinates yet; using multi-pass DR1 timeline.');
   }
