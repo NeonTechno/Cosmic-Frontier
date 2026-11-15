@@ -3118,3 +3118,145 @@ body.theme-light {
 @media (prefers-reduced-motion: reduce) {
  .portal-nav-discovery::after,.portal-discovery-button::before,.tour-visual::before,.tour-visual::after { animation:none !important; }
 }
+
+
+/* =========================================================================
+   COSMIC FRONTIER VISUAL PASS — cinematic landing hero + restrained motion
+   ========================================================================= */
+.cf-home-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-top: clamp(24px, 4vw, 46px);
+  padding-bottom: clamp(24px, 4vw, 42px);
+  border: 1px solid rgba(125, 211, 252, .2);
+  border-radius: 26px;
+  background: #050914;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .34), inset 0 1px rgba(255,255,255,.06);
+}
+.cf-home-hero__image {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 43%;
+  opacity: .72;
+  filter: saturate(1.12) contrast(1.08) brightness(.8);
+  transform: scale(1.035);
+  animation: cfNebulaDrift 34s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.cf-home-hero__shade {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(100deg, rgba(3, 7, 17, .94) 0%, rgba(3, 7, 17, .78) 40%, rgba(3, 7, 17, .46) 100%),
+    linear-gradient(0deg, rgba(3, 7, 17, .82), transparent 58%, rgba(3, 7, 17, .28));
+}
+.cf-home-hero::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  opacity: .28;
+  background-image:
+    linear-gradient(rgba(155, 220, 255, .12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(155, 220, 255, .12) 1px, transparent 1px);
+  background-size: 62px 62px;
+  mask-image: linear-gradient(110deg, transparent 5%, #000 70%, transparent 100%);
+}
+.cf-home-hero > :not(.cf-home-hero__image):not(.cf-home-hero__shade) {
+  position: relative;
+  z-index: 2;
+}
+.cf-home-hero .cf-surface {
+  min-height: 100%;
+  background: linear-gradient(145deg, rgba(8, 19, 42, .91), rgba(5, 11, 25, .86)) !important;
+  border-color: rgba(148, 190, 220, .22) !important;
+  box-shadow: 0 18px 42px rgba(0,0,0,.25), inset 0 1px rgba(255,255,255,.055);
+  backdrop-filter: blur(14px);
+  transition: transform .35s cubic-bezier(.2,.75,.25,1), border-color .35s ease, box-shadow .35s ease;
+}
+.cf-home-hero .cf-surface:hover {
+  transform: translateY(-6px);
+  border-color: rgba(103, 232, 249, .58) !important;
+  box-shadow: 0 24px 54px rgba(0,0,0,.34), 0 0 28px rgba(34,211,238,.12);
+}
+.cf-lab-home > section {
+  animation: cfSectionArrive .72s cubic-bezier(.2,.7,.2,1) both;
+}
+.cf-lab-home > section:nth-of-type(2) { animation-delay: .08s; }
+.cf-lab-home > section:nth-of-type(3) { animation-delay: .14s; }
+.cf-lab-home > section:nth-of-type(4) { animation-delay: .2s; }
+.cf-lab-home :is(button, a) {
+  transition-property: color, background-color, border-color, box-shadow, transform;
+  transition-duration: .22s;
+  transition-timing-function: ease;
+}
+.cf-lab-home button:hover:not(:disabled) { filter: brightness(1.08); }
+.mission-console,
+.hud-panel,
+.electric-glass,
+.editorial-astronaut-telemetry,
+.editorial-astronaut-study {
+  transition: transform .32s cubic-bezier(.2,.75,.25,1), border-color .32s ease, box-shadow .32s ease, background-color .32s ease;
+}
+.mission-console:hover,
+.editorial-astronaut-telemetry:hover {
+  transform: translateY(-3px);
+  border-color: rgba(103,232,249,.38);
+  box-shadow: 0 24px 65px rgba(0,0,0,.34), 0 0 26px rgba(34,211,238,.08);
+}
+.editorial-astronaut-image { animation: cfNebulaDrift 42s ease-in-out infinite alternate; }
+.editorial-astronaut-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 12px;
+  border: 1px solid rgba(168, 218, 245, .12);
+  border-radius: 16px;
+  pointer-events: none;
+}
+.editorial-astronaut-copy,
+.editorial-astronaut-telemetry {
+  animation: cfSectionArrive .8s cubic-bezier(.2,.7,.2,1) both;
+}
+.editorial-astronaut-telemetry { animation-delay: .12s; }
+@keyframes cfNebulaDrift {
+  from { transform: scale(1.035) translate3d(-.4%, 0, 0); }
+  to { transform: scale(1.09) translate3d(.5%, -1%, 0); }
+}
+@keyframes cfSectionArrive {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@media (max-width: 640px) {
+  .cf-home-hero { border-radius: 18px; }
+  .cf-home-hero__image { object-position: 48% 40%; opacity: .58; }
+  .cf-home-hero__shade {
+    background: linear-gradient(180deg, rgba(3,7,17,.72), rgba(3,7,17,.88) 72%, rgba(3,7,17,.94));
+  }
+  .editorial-astronaut-hero::after { inset: 7px; border-radius: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-home-hero__image,
+  .editorial-astronaut-image,
+  .cf-lab-home > section,
+  .editorial-astronaut-copy,
+  .editorial-astronaut-telemetry {
+    animation: none !important;
+  }
+  .cf-home-hero .cf-surface,
+  .mission-console,
+  .hud-panel,
+  .electric-glass,
+  .editorial-astronaut-telemetry,
+  .editorial-astronaut-study {
+    transition-duration: .01ms !important;
+  }
+}
