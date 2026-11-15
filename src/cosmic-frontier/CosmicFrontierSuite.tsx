@@ -271,7 +271,7 @@ export function CosmicFrontierSuite({ onSwitchToEditorial, onNavigateTab }: Cosm
   const currentTopicMeta = COSMIC_LAB_TOPICS[currentPage] || COSMIC_LAB_TOPICS.home;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#050B1A] text-[#F8FAFC] selection:bg-[#38BDF8]/20 selection:text-[#38BDF8]">
+    <div className="cosmic-lab-shell min-h-screen flex flex-col bg-[#050B1A] text-[#F8FAFC] selection:bg-[#38BDF8]/20 selection:text-[#38BDF8]">
       {/* Global Modern Navbar with Quick Commands & Research Collection */}
       <Navbar 
         currentPage={currentPage} 
