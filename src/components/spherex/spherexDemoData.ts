@@ -156,6 +156,7 @@ function spectralProfile(target: DemoTarget) {
     const gaussian = (center: number, width: number, depth: number) =>
       1 - depth * Math.exp(-Math.pow((w - center) / width, 2));
     let continuum = 5.2 + 1.7 * Math.sin(w * 1.12 + (targetHash(target.name) % 13) / 10) + w * 1.9;
+    if (target.spectrum === 'y-dwarf') continuum *= 1.8;
     if (target.spectrum === 'galaxy') continuum = 9 + 3.5 * Math.pow(w, 0.7) + 1.2 * Math.sin(w * 2.1);
     if (target.spectrum === 'calibration') continuum = 7.5 + 0.4 * Math.sin(w * 1.5);
     let flux = continuum;
@@ -172,7 +173,7 @@ function spectralProfile(target: DemoTarget) {
     } else if (target.spectrum === 'stellar') {
       flux *= gaussian(0.85, 0.08, 0.08) * gaussian(1.28, 0.08, 0.07) * gaussian(3.30, 0.15, 0.08);
     }
-    const uncertainty = 0.08 + flux * 0.035;
+    const uncertainty = 0.08 + flux * (target.spectrum === 'y-dwarf' ? 0.06 : 0.035);
     return {
       wavelength: w,
       fluxMJySr: Number(Math.max(0.02, flux).toFixed(4)),
