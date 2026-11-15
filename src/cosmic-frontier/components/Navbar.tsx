@@ -236,7 +236,7 @@ export const Navbar: FC<NavbarProps> = ({
                 <span className={isActive ? 'text-[#38BDF8]' : 'text-[#A7B4CC]'}>
                   {item.icon}
                 </span>
-                <span>{item.page === 'planet-x' ? 'Planet X Investigation Lab' : item.label}</span>
+                <span>{item.page === 'planet-x' ? 'Planet X' : item.label}</span>
               </button>
             );
           })}
