@@ -403,7 +403,6 @@ export const DifferenceOverlay: React.FC<DifferenceOverlayProps> = ({
                         onClick={() => onExplainTransient(tr)}
                         className="flex items-center space-x-1 px-2 py-1 rounded text-[11px] bg-cyan-950 text-cyan-300 border border-cyan-700/60 hover:bg-cyan-900/60 transition cursor-pointer"
                       >
-                        <Sparkles className="h-3 w-3 text-cyan-400" />
                         <span>Analyze Signal</span>
                       </button>
                     </div>

@@ -76,7 +76,7 @@ export const Footer: FC<FooterProps> = ({ onNavigate }) => {
                   onClick={() => onNavigate('galaxies')}
                   className="hover:text-[#38BDF8] flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+                  <Globe className="w-3.5 h-3.5 text-[#38BDF8]" />
                   <span>Deep-Sky Galaxy Explorer</span>
                 </button>
               </li>
@@ -121,7 +121,7 @@ export const Footer: FC<FooterProps> = ({ onNavigate }) => {
                   onClick={() => onNavigate('ai-guide')}
                   className="hover:text-[#F5C451] flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-[#F5C451]" />
+                  <Compass className="w-3.5 h-3.5 text-[#F5C451]" />
                   <span>COSMIC AI GUIDE</span>
                 </button>
               </li>

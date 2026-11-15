@@ -134,7 +134,7 @@ export const CosmicRadarHUD: FC<CosmicRadarHUDProps> = ({ onNavigate }) => {
           <div className="flex items-center justify-between pb-4 border-b border-[#1E293B]">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-[#F5C451]/10 border border-[#F5C451]/30 flex items-center justify-center text-[#F5C451]">
-                <Sparkles className="w-4 h-4" />
+                <Telescope className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-[10px] font-mono uppercase tracking-widest text-[#F5C451] font-bold block">

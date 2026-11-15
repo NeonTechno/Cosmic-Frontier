@@ -25,6 +25,7 @@ import {
   X,
   Scale,
   FlaskConical,
+  Telescope,
 } from 'lucide-react';
 
 interface CosmicCommandPaletteProps {

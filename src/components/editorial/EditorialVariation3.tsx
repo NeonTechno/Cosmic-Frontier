@@ -3,6 +3,7 @@ import confirmedExoplanetsData from '../../cosmic-frontier/data/catalogs/confirm
 import { ArrowUpRight, Search, Sparkles, Filter, Database, ShieldCheck, Compass, Eye, RefreshCw, Moon, Sun, LayoutGrid, Table2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { BlackStarLogo } from '../common/BlackStarLogo';
+import { assetUrl } from '../../utils/assetUrl';
 
 interface EditorialVariation3Props {
   onNavigate: (tab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite') => void;
@@ -222,8 +223,8 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
         <section id="editorial-overview" className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28">
           <img
             className="editorial-astronaut-image"
-            src="https://www.nasa.gov/wp-content/uploads/2023/03/iss059e002192.jpg?w=1041"
-            alt="NASA astronaut Nick Hague conducting a spacewalk outside the International Space Station"
+            src={assetUrl('assets/editorial-astronaut.jpg')}
+            alt="Cosmic Frontier orbital astronaut conducting deep-space observations"
             loading="eager"
             fetchPriority="high"
           />

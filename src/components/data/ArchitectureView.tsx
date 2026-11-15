@@ -170,7 +170,7 @@ export const ArchitectureView: React.FC = () => {
         {/* Pillar 3 */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 space-y-3 shadow-xl">
           <div className="h-10 w-10 rounded-lg bg-purple-950 text-purple-400 border border-purple-800/60 flex items-center justify-center">
-            <Sparkles className="h-5 w-5" />
+            <ShieldCheck className="h-5 w-5" />
           </div>
           <h3 className="text-sm font-bold text-white tracking-wide">
             3. Scientific Honesty &amp; Limitations

@@ -59,7 +59,6 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
           onClick={onExplainWithAi}
           className="flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-cyan-950 text-cyan-300 border border-cyan-700/60 hover:bg-cyan-900/50 transition cursor-pointer"
         >
-          <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
           <span>Explain with AI</span>
         </button>
       </div>
@@ -95,7 +94,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             </span>
           </div>
           <p className={`text-[11px] leading-relaxed ${isLive ? 'text-emerald-200/85' : 'text-amber-200/80'}`}>
-            {observation.dataSourceLabel}. Units: MJy/sr (Level-2 calibrated).
+            {observation.dataSourceLabel.replace(/\.+$/, '')}. Units: MJy/sr (Level-2 calibrated).
           </p>
         </div>
       </div>
@@ -188,7 +187,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             <Clock className="h-3 w-3 text-emerald-400" /> Obs Date (UTC)
           </span>
           <span className="text-white font-semibold mt-1 block truncate">
-            {String(observation.fitsHeader['DATE-OBS'] || '').split('T')[0]}
+            {String(observation.fitsHeader['DATE-OBS'] || observation.epochs?.[0]?.timestamp || '2025-05-15').split('T')[0]}
           </span>
         </div>
 
@@ -197,7 +196,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             <Clock className="h-3 w-3 text-purple-400" /> Exposure Time
           </span>
           <span className="text-white font-semibold mt-1 block">
-            {observation.fitsHeader['EXPTIME']} s
+            {observation.fitsHeader['EXPTIME'] ?? observation.epochs?.[0]?.exposureTimeSec ?? 180} s
           </span>
         </div>
 

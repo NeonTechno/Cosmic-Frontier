@@ -9,7 +9,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { Sun, Moon, Compass, Sparkles } from 'lucide-react';
+import { Sun, Moon, Compass } from 'lucide-react';
 
 export type AppTheme = 'light' | 'dark';
 

@@ -1187,7 +1187,7 @@ export const SPHERExExplorer: FC = () => {
           {/* Card 4: Why false-color palettes? */}
           <div className="p-5 rounded-2xl bg-[#050B1A]/70 border border-[#1E293B] space-y-2">
             <div className="w-8 h-8 rounded-lg bg-[#38BDF8]/10 text-[#38BDF8] flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
+              <Eye className="w-4 h-4" />
             </div>
             <h3 className="text-base font-semibold text-[#F8FAFC]">
               Why use false-color palettes?

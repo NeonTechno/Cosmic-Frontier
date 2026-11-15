@@ -377,7 +377,6 @@ export const CelestialObjectInspector: React.FC<CelestialObjectInspectorProps> =
                 }}
                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#8B5CF6]/20 to-[#38BDF8]/20 hover:from-[#8B5CF6]/30 hover:to-[#38BDF8]/30 border border-[#38BDF8]/50 text-xs font-semibold text-white flex items-center gap-1.5 transition"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#F5C451]" />
                 <span>Ask AI to Explain Physics</span>
               </button>
             )}

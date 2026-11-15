@@ -1414,12 +1414,46 @@ body { color: #eaf4fb; }
   .editorial-dark *, .editorial-dark *::before, .editorial-dark *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
-/* Mission-control navigation refinements */
-.mission-control-navbar { border-color: rgba(0,217,245,.14) !important; background: rgba(4,9,17,.9) !important; box-shadow: 0 10px 38px rgba(0,0,0,.28) !important; }
+/* Mission-control navigation refinements (Dark Mode) */
+:not(.theme-light) .mission-control-navbar { border-color: rgba(0,217,245,.14) !important; background: rgba(4,9,17,.9) !important; box-shadow: 0 10px 38px rgba(0,0,0,.28) !important; }
 .mission-control-navbar__inner { max-width: 1600px; min-height: 76px; }
-.mission-control-navbar__tabs { border-color: rgba(120,180,210,.14) !important; background: rgba(11,20,34,.78) !important; border-radius: 999px !important; scrollbar-width: thin; }
+:not(.theme-light) .mission-control-navbar__tabs { border-color: rgba(120,180,210,.14) !important; background: rgba(11,20,34,.78) !important; border-radius: 999px !important; scrollbar-width: thin; }
 .mission-control-navbar__tabs button { border-radius: 999px !important; }
-.mission-control-navbar__tabs button[aria-current="page"] { box-shadow: 0 0 18px rgba(0,217,245,.12); }
+:not(.theme-light) .mission-control-navbar__tabs button[aria-current="page"] { box-shadow: 0 0 18px rgba(0,217,245,.12); }
+
+/* Mission-control navigation (Light Mode Contrast) */
+.theme-light .mission-control-navbar {
+  border-color: #dce3eb !important;
+  background: #ffffff !important;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.07) !important;
+}
+.theme-light .mission-control-navbar__tabs {
+  border-color: #cbd5e1 !important;
+  background: #f1f5f9 !important;
+}
+.theme-light .mission-control-navbar h1 {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+.theme-light .mission-control-navbar__tabs button {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+}
+.theme-light .mission-control-navbar__tabs button:hover {
+  color: #020617 !important;
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+.theme-light .mission-control-navbar__tabs button:is([class*="bg-[#1a1a1a]"], [class*="bg-black"], [class*="bg-[#0f172a]"]) {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border-color: #0f172a !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25) !important;
+}
+.theme-light .mission-control-navbar__tabs button:is([class*="bg-[#1a1a1a]"], [class*="bg-black"], [class*="bg-[#0f172a]"]) * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
 @media (max-width: 1279px) {
   .mission-control-navbar__inner { grid-template-columns: minmax(0,1fr) auto; }
   .mission-control-navbar__inner > nav { grid-column: 1 / -1; grid-row: 2; width: 100%; }
@@ -1486,7 +1520,7 @@ code, pre, .font-mono, .font-editorial-mono {
   height: 100%;
   object-fit: cover;
   object-position: center 44%;
-  filter: saturate(.72) contrast(1.08) brightness(.78);
+  filter: saturate(1.05) contrast(1.05) brightness(.92);
 }
 .editorial-astronaut-shade {
   position: absolute;

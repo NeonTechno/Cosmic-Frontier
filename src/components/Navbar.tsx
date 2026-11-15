@@ -44,10 +44,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center space-x-3 text-left group cursor-pointer focus:outline-none"
         >
           <BlackStarLogo size="md" />
-                    <div>
+          <div>
             <h1 className={`text-base sm:text-lg font-bold tracking-tight transition-colors flex items-center gap-1.5 ${
               isLight
-                ? 'font-serif text-[#1a1a1a] group-hover:text-[#d44d5c]'
+                ? 'font-serif text-[#0b1324] font-black group-hover:text-[#d44d5c]'
                 : 'font-nasa tracking-wider text-white group-hover:text-cyan-300'
             }`}>
               BLACK STAR ORBIT
@@ -58,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Module Switcher Tabs */}
         <nav className={`mission-control-navbar__tabs flex items-center gap-1 p-1 rounded-xl border max-w-full overflow-x-auto nav-scroll ${
           isLight
-            ? 'bg-[#f4f1ea] border-[#1a1a1a]/15'
+            ? 'bg-[#f1f5f9] border-[#cbd5e1]'
             : 'bg-slate-900/60 border-white/[0.08]'
         }`}>
           {/* Distinct Editorial Publication Sector Button */}
@@ -67,16 +67,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center shrink-0 gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer border ${
               activeTab === 'overview'
                 ? isLight
-                  ? 'bg-[#1a1a1a] text-[#fdfcf8] border-[#1a1a1a] font-bold shadow-xs'
+                  ? 'bg-[#0b1324] text-[#ffffff] border-[#0b1324] font-bold shadow-xs'
                   : 'bg-cyan-600/30 text-cyan-300 border-cyan-500/50 shadow-sm font-semibold'
                 : isLight
-                  ? 'bg-black/5 hover:bg-black/10 text-[#1a1a1a] border-transparent hover:border-[#1a1a1a]/20'
+                  ? 'bg-black/5 hover:bg-black/10 text-[#1e293b] hover:text-[#0b1324] font-semibold border-transparent hover:border-[#1a1a1a]/20'
                   : 'bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white border-transparent hover:border-cyan-500/30'
             }`}
             title="Editorial Journal (Alt + O)"
             aria-label="Switch to Editorial Journal"
           >
-            <Compass className={`h-4 w-4 shrink-0 ${activeTab === 'overview' ? (isLight ? 'text-[#d44d5c]' : 'text-cyan-300') : 'text-[#d44d5c]'}`} />
+            <Compass className={`h-4 w-4 shrink-0 ${activeTab === 'overview' ? (isLight ? 'text-white' : 'text-cyan-300') : 'text-[#d44d5c]'}`} />
             <span className="hidden sm:inline font-mono uppercase text-xs font-semibold">Editorial</span>
           </button>
 
@@ -88,10 +88,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center shrink-0 space-x-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === 'spherex'
                 ? isLight
-                  ? 'bg-[#1a1a1a] text-[#fdfcf8] font-bold shadow-xs'
+                  ? 'bg-[#0b1324] text-[#ffffff] font-bold shadow-xs'
                   : 'bg-cyan-600/30 text-cyan-300 border border-cyan-500/50 shadow-sm'
                 : isLight
-                  ? 'text-[#666] hover:text-[#1a1a1a] hover:bg-black/5'
+                  ? 'text-[#1e293b] hover:text-[#0b1324] hover:bg-black/5 font-semibold'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
             title="SPHEREx All-Sky Spectral Explorer (Alt + S)"
@@ -105,10 +105,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center shrink-0 space-x-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === 'planetx'
                 ? isLight
-                  ? 'bg-[#1a1a1a] text-[#fdfcf8] font-bold shadow-xs'
+                  ? 'bg-[#0b1324] text-[#ffffff] font-bold shadow-xs'
                   : 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/50 shadow-sm'
                 : isLight
-                  ? 'text-[#666] hover:text-[#1a1a1a] hover:bg-black/5'
+                  ? 'text-[#1e293b] hover:text-[#0b1324] hover:bg-black/5 font-semibold'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
             title="Planet X Perturber Orbit Lab (Alt + P)"
@@ -122,10 +122,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center shrink-0 space-x-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === 'astrobiology'
                 ? isLight
-                  ? 'bg-[#1a1a1a] text-[#fdfcf8] font-bold shadow-xs'
+                  ? 'bg-[#0b1324] text-[#ffffff] font-bold shadow-xs'
                   : 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/50 shadow-sm'
                 : isLight
-                  ? 'text-[#666] hover:text-[#1a1a1a] hover:bg-black/5'
+                  ? 'text-[#1e293b] hover:text-[#0b1324] hover:bg-black/5 font-semibold'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
             title="Astrobiology & Biosignature Workbench (Alt + B)"
@@ -139,10 +139,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`flex items-center shrink-0 space-x-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === 'cosmic-suite'
                 ? isLight
-                  ? 'bg-[#1a1a1a] text-[#fdfcf8] font-bold shadow-xs'
+                  ? 'bg-[#0b1324] text-[#ffffff] font-bold shadow-xs'
                   : 'bg-cyan-600/30 text-cyan-300 border border-cyan-500/50 shadow-sm'
                 : isLight
-                  ? 'text-[#666] hover:text-[#1a1a1a] hover:bg-black/5'
+                  ? 'text-[#1e293b] hover:text-[#0b1324] hover:bg-black/5 font-semibold'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
             title="Cosmic Frontier Suite (Alt + C)"
@@ -156,10 +156,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`hidden md:flex items-center shrink-0 space-x-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === 'architecture'
                 ? isLight
-                  ? 'bg-[#1a1a1a] text-[#fdfcf8] font-bold shadow-xs'
+                  ? 'bg-[#0b1324] text-[#ffffff] font-bold shadow-xs'
                   : 'bg-purple-600/30 text-purple-300 border border-purple-500/50 shadow-sm'
                 : isLight
-                  ? 'text-[#666] hover:text-[#1a1a1a] hover:bg-black/5'
+                  ? 'text-[#1e293b] hover:text-[#0b1324] hover:bg-black/5 font-semibold'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
             title="NASA Mission Specs & Spectral Coverage (Alt + N)"

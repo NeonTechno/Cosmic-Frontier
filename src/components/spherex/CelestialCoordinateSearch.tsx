@@ -437,7 +437,6 @@ export const CelestialCoordinateSearch: React.FC<CelestialCoordinateSearchProps>
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-white/10 pb-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
                 <span className="font-bold text-sm text-cyan-300">
                   {activeBenchmark.name} ({activeBenchmark.designation})
                 </span>

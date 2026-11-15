@@ -1375,7 +1375,7 @@ export const LiveCosmicObservatory: FC<LiveCosmicObservatoryProps> = ({ onNaviga
                   onClick={() => onNavigate('ai-guide')}
                   className="py-2.5 px-3 rounded-lg bg-[#0E1B38] hover:bg-[#1E293B] border border-[#1E293B] hover:border-amber-400 text-xs font-mono font-semibold text-amber-300 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <MessageCircleQuestion className="w-3.5 h-3.5" />
                   <span>Ask Guide</span>
                 </button>
               </div>

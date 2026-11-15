@@ -252,7 +252,6 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
               }
               className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-cyan-950/70 hover:bg-cyan-900/60 text-cyan-300 border border-cyan-500/40 shadow-sm transition cursor-pointer"
             >
-              <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
               <span>Analyze with AI</span>
             </button>
           )}
@@ -337,6 +336,8 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
 
             <XAxis
               dataKey={xDataKey}
+              type="number"
+              domain={['dataMin', 'dataMax']}
               stroke="#64748b"
               tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: 'JetBrains Mono' }}
               label={{

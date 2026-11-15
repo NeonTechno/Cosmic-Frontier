@@ -38,7 +38,7 @@ import {
   DEFAULT_PLANET_X_HYPOTHESIS,
   INITIAL_CANDIDATE_QUEUE,
 } from './science/orbitalMechanics.ts';
-import { ShieldCheck, Compass, ExternalLink, ArrowUpRight, Orbit, Telescope, Sparkles, Activity, FlaskConical, ImageIcon, Globe, Moon, Sun } from 'lucide-react';
+import { ShieldCheck, Compass, ExternalLink, ArrowUpRight, Orbit, Telescope, Activity, FlaskConical, ImageIcon, Globe, Moon, Sun } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite'>('overview');

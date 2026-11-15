@@ -106,7 +106,6 @@ export const NovaCommandHero: FC<NovaCommandHeroProps> = ({ onNavigate }) => {
             onClick={() => onNavigate('ai-guide')}
             className="px-3.5 py-1.5 rounded-full text-[#A7B4CC] hover:text-[#F8FAFC] transition-colors flex items-center gap-1.5"
           >
-            <Sparkles className="w-3 h-3 text-[#F5C451]" />
             <span>AI Guide</span>
           </button>
         </nav>

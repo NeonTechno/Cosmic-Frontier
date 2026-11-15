@@ -462,7 +462,6 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
                 onClick={() => onExplainCandidate(candidate)}
                 className="flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-950 text-indigo-300 border border-indigo-700/60 hover:bg-indigo-900/50 transition cursor-pointer"
               >
-                <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
                 <span>Explain with AI</span>
               </button>
             </div>

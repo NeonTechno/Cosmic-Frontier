@@ -34,7 +34,7 @@ export const AstronomicalBadge: FC<AstronomicalBadgeProps> = ({
   } else if (classification === 'artist-impression') {
     label = 'Artist Concept';
     badgeStyle = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
-    Icon = Sparkles;
+    Icon = Camera;
     title = 'NASA/ESA peer-reviewed artist impression based on measured physical parameters.';
   } else if (classification === 'simulation') {
     label = 'Theoretical Model';

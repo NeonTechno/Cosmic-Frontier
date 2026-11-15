@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Telescope, Orbit, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Telescope, Orbit, ArrowRight, ShieldCheck } from 'lucide-react';
 import { BlackStarLogo } from './BlackStarLogo';
 import { assetUrl } from '../../utils/assetUrl';
 
@@ -126,9 +126,16 @@ export const CosmicLoadingScreen: React.FC<CosmicLoadingScreenProps> = ({
         <div className="absolute bottom-3 left-3 w-2.5 h-2.5 border-b border-l border-cyan-400/70" />
         <div className="absolute bottom-3 right-3 w-2.5 h-2.5 border-b border-r border-cyan-400/70" />
 
-        {/* Glowing Black Star Icon & Mission Identifier */}
+        {/* Official Black Star Emblem (Just the star, no white background box) */}
         <div className="flex flex-col items-center gap-3 pt-1">
-          <BlackStarLogo size="xl" showGlow={true} />
+          <div className="relative flex items-center justify-center p-2">
+            <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-2xl animate-pulse pointer-events-none" />
+            <img
+              src={assetUrl('assets/black-star-logo.png')}
+              alt="Black Star Orbit Official Emblem"
+              className="w-20 h-20 sm:w-24 sm:h-24 object-contain select-none relative z-10 transition-transform duration-300 hover:scale-105 filter drop-shadow-[0_0_16px_rgba(56,189,248,0.85)] drop-shadow-[0_0_2px_rgba(255,255,255,0.9)]"
+            />
+          </div>
           <div>
             <h1 className="text-3xl sm:text-5xl font-black font-nasa tracking-[0.2em] text-white uppercase leading-tight drop-shadow-[0_4px_25px_rgba(0,0,0,0.95)]">
               BLACK STAR <br />

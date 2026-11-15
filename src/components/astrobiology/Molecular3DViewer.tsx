@@ -414,7 +414,6 @@ export const Molecular3DViewer: React.FC<Molecular3DViewerProps> = ({ molecule, 
         <div className="absolute top-3 left-3 z-20 pointer-events-none">
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded-md bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-[11px] font-semibold flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-cyan-400" />
               SPHEREx Ice Line: {molecule.spherexAbsorptionBandMicrons} µm
             </span>
             <span className="px-2 py-0.5 rounded-md bg-slate-900/80 border border-white/10 text-slate-300 font-mono text-[11px]">

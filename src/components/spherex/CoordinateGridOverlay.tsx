@@ -225,7 +225,6 @@ export const SurveyTileControlPanel: React.FC<TileControlBarProps> = ({
             }`}
             title="Highlight tiles containing detected stars, variables, or transients"
           >
-            <Sparkles className="w-3 h-3 text-amber-300" />
             <span>Targets ({targetTilesCount})</span>
           </button>
           <button

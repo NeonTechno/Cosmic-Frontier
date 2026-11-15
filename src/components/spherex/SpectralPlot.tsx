@@ -85,7 +85,6 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
           onClick={onExplainSpectrum}
           className="flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-cyan-950 text-cyan-300 border border-cyan-700/60 hover:bg-cyan-900/50 transition cursor-pointer"
         >
-          <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
           <span>Explain Spectrum</span>
         </button>
       </div>

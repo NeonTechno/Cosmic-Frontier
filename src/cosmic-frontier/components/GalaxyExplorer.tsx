@@ -346,7 +346,7 @@ export const GalaxyExplorer: FC<GalaxyExplorerProps> = ({ onNavigate }) => {
               disabled={isLookingUp || !liveQuery.trim()}
               className="px-3.5 py-2 rounded-xl bg-[#38BDF8]/15 border border-[#38BDF8]/40 text-[#38BDF8] hover:bg-[#38BDF8] hover:text-[#050B1A] disabled:opacity-50 text-xs font-semibold flex items-center gap-1.5 transition-all"
             >
-              {isLookingUp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              {isLookingUp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
               <span>Live NED</span>
             </button>
           </form>

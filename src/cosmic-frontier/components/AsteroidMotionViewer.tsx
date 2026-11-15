@@ -1295,7 +1295,6 @@ export const AsteroidMotionViewer: FC<AsteroidMotionViewerProps> = ({
                   className="px-3 py-1.5 rounded-lg bg-[#0E1B38] hover:bg-[#1E293B] text-[#38BDF8] border border-[#38BDF8]/40 hover:border-[#38BDF8] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                   title="Jump directly to the predicted closest encounter date"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
                   <span>Jump to Close Approach</span>
                 </button>
 

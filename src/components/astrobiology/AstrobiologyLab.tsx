@@ -139,7 +139,6 @@ export const AstrobiologyLab: React.FC<AstrobiologyLabProps> = ({ onNavigateToSp
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
             <span>Prebiotic Interstellar Ices</span>
           </button>
           <button

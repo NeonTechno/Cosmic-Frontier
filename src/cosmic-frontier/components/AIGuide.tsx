@@ -13,7 +13,8 @@ import {
   AlertCircle,
   HelpCircle,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Telescope
 } from 'lucide-react';
 
 interface AIGuideProps {

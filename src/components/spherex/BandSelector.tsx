@@ -109,7 +109,6 @@ export const BandSelector: React.FC<BandSelectorProps> = ({
               : 'bg-slate-800 text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Sparkles className="h-3 w-3 text-amber-400" />
           Ices (H2O, CO2, CO)
         </button>
         <button

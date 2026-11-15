@@ -784,17 +784,27 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       )}
 
       {/* Frozen Topic & Subtopic Headline Bar + Mode Switcher */}
-      <div className={`${panesFrozen ? 'sticky top-[66px] z-30 backdrop-blur-md' : ''} bg-slate-900/95 border border-slate-800 rounded-xl p-3 sm:p-4 shadow-xl space-y-3 transition-all`}>
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800/80">
+      <div className={`${panesFrozen ? 'sticky top-[66px] z-30 backdrop-blur-md' : ''} ${
+        isLight ? 'bg-white/95 border-slate-200 shadow-md' : 'bg-slate-900/95 border-slate-800 shadow-xl'
+      } border rounded-xl p-3 sm:p-4 space-y-3 transition-all`}>
+        <div className={`flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b ${
+          isLight ? 'border-slate-200' : 'border-slate-800/80'
+        }`}>
           <div className="flex flex-wrap items-center gap-2 min-w-0">
-            <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-semibold">
+            <span className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded font-semibold border ${
+              isLight
+                ? 'bg-cyan-100 border-cyan-300 text-cyan-900'
+                : 'bg-cyan-950/80 text-cyan-300 border border-cyan-800/60'
+            }`}>
               SPHEREx Explorer
             </span>
-            <h2 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
+            <h2 className={`text-sm sm:text-base font-bold tracking-tight truncate ${
+              isLight ? 'text-slate-900' : 'text-white'
+            }`}>
               {activeObs.targetName}
             </h2>
-            <span className="text-slate-600 hidden sm:inline">/</span>
-            <span className="text-xs font-mono text-cyan-300">
+            <span className={isLight ? 'text-slate-400 hidden sm:inline' : 'text-slate-600 hidden sm:inline'}>/</span>
+            <span className={`text-xs font-mono font-medium ${isLight ? 'text-cyan-800' : 'text-cyan-300'}`}>
               {activeTab === 'single' && 'Sky Viewer & Band Cutouts'}
               {activeTab === 'signal-analysis' && 'Signal Analysis & Variability'}
               {activeTab === 'compare' && 'Side-by-Side Epoch Comparison'}
@@ -816,18 +826,28 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         {/* Target Switcher Dropdown */}
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-cyan-950 text-cyan-400 border border-cyan-800/60">
+          <div className={`p-2 rounded-lg border ${
+            isLight
+              ? 'bg-cyan-100 text-cyan-800 border-cyan-300'
+              : 'bg-cyan-950 text-cyan-400 border border-cyan-800/60'
+          }`}>
             <Telescope className="h-5 w-5" />
           </div>
           <div>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">
+            <span className={`text-[10px] font-mono uppercase tracking-wider block ${
+              isLight ? 'text-slate-600 font-semibold' : 'text-slate-400'
+            }`}>
               Active Astronomical Target
             </span>
             <select
               value={selectedObsId}
               onChange={(e) => handleSelectObservation(e.target.value)}
               aria-label="Select active SPHEREx target field"
-              className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-sm font-semibold text-white focus:outline-none focus:border-cyan-500 cursor-pointer max-w-xs truncate"
+              className={`border rounded-lg px-2.5 py-1 text-sm font-semibold focus:outline-none focus:border-cyan-500 cursor-pointer max-w-xs truncate ${
+                isLight
+                  ? 'bg-white border-slate-300 text-slate-900'
+                  : 'bg-slate-950 border-slate-700 text-white'
+              }`}
             >
               {localObservations.map((obs) => (
                 <option key={obs.id} value={obs.id}>
@@ -839,13 +859,17 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         </div>
 
         {/* View Mode Switcher */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs font-mono">
+        <div className={`flex flex-wrap items-center gap-1.5 p-1 rounded-xl border text-xs font-mono ${
+          isLight ? 'bg-slate-100 border-slate-200' : 'bg-slate-950/80 border-slate-800'
+        }`}>
           <button
             onClick={() => setActiveTab('single')}
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
               activeTab === 'single'
                 ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                : isLight
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
             <Eye className="h-3.5 w-3.5" />
@@ -857,7 +881,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
               activeTab === 'signal-analysis'
                 ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-sm font-semibold'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                : isLight
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
             <Waves className="h-3.5 w-3.5" />
@@ -869,7 +895,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
               activeTab === 'compare'
                 ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                : isLight
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
             <SplitSquareVertical className="h-3.5 w-3.5" />
@@ -881,7 +909,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
               activeTab === 'timelapse'
                 ? 'bg-cyan-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                : isLight
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
             <Film className="h-3.5 w-3.5" />
@@ -893,7 +923,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
               activeTab === 'difference'
                 ? 'bg-amber-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                : isLight
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
             <AlertCircle className="h-3.5 w-3.5" />
@@ -905,7 +937,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
               activeTab === 'sed'
                 ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                : isLight
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
             <Activity className="h-3.5 w-3.5" />

@@ -118,7 +118,6 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
             onClick={onExplainEvidence}
             className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-500 hover:to-purple-500 transition cursor-pointer"
           >
-            <Sparkles className="h-3.5 w-3.5" />
             <span>Explain Evidence with AI</span>
           </button>
         </div>

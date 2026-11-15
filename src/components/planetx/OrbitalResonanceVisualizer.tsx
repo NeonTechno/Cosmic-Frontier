@@ -276,7 +276,6 @@ export const OrbitalResonanceVisualizer: React.FC<OrbitalResonanceVisualizerProp
                   : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-500 hover:to-purple-500 shadow-sm'
               }`}
             >
-              <Sparkles className="h-3.5 w-3.5" />
               <span>Explain Resonances with AI</span>
             </button>
           )}
