@@ -3611,3 +3611,164 @@ body.theme-light {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* ==========================================================================
+   COSMIC FRONTIER — unified interaction and motion system
+   Quiet observatory surfaces, precise typography, accessible motion.
+   ========================================================================== */
+:root {
+  --cf-ink: #e8edf1;
+  --cf-muted: #9aa8b3;
+  --cf-line: rgba(157, 174, 187, .17);
+  --cf-panel: rgba(17, 27, 36, .78);
+  --cf-panel-hover: rgba(25, 38, 48, .94);
+  --cf-accent: #a9bac5;
+  --cf-ease: cubic-bezier(.2, .75, .25, 1);
+}
+html { scroll-padding-top: 5rem; }
+body { font-feature-settings: "ss01" 1, "cv11" 1; }
+::selection { background: rgba(164, 190, 205, .28); color: #fff; }
+:focus-visible { outline: 2px solid rgba(164, 190, 205, .9); outline-offset: 3px; }
+
+@keyframes cf-page-arrive {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes cf-soft-drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -7px, 0); }
+}
+@keyframes cf-orbit-turn {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes cf-sheen {
+  0% { transform: translateX(-140%); }
+  100% { transform: translateX(160%); }
+}
+@keyframes cf-status-breathe {
+  0%, 100% { opacity: .65; box-shadow: 0 0 0 0 rgba(133, 190, 169, .12); }
+  50% { opacity: 1; box-shadow: 0 0 0 5px rgba(133, 190, 169, .045); }
+}
+
+/* Subtle atmospheric movement, kept behind every interactive surface. */
+.cosmic-lab-shell {
+  position: relative;
+  isolation: isolate;
+  background-color: #10171e !important;
+}
+.cosmic-lab-shell::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: .55;
+  background:
+    radial-gradient(ellipse at 82% 7%, rgba(130, 157, 174, .075), transparent 34%),
+    radial-gradient(ellipse at 12% 46%, rgba(92, 117, 135, .045), transparent 38%);
+}
+.cosmic-lab-shell main { animation: cf-page-arrive .55s var(--cf-ease) both; }
+.cosmic-lab-shell :is(.cf-lab-home, .cf-module--spherex, [data-page-content]) {
+  animation: cf-page-arrive .55s var(--cf-ease) both;
+}
+
+/* Cards and research panels share one tactile hover language. */
+.cosmic-lab-shell :is(.cf-surface, .card-interactive, .mission-console, .hud-panel,
+  .editorial-astronaut-telemetry, .editorial-astronaut-study) {
+  border-color: var(--cf-line);
+  transition:
+    transform .28s var(--cf-ease),
+    border-color .28s ease,
+    background-color .28s ease,
+    box-shadow .28s ease;
+  will-change: auto;
+}
+.cosmic-lab-shell :is(.cf-surface, .card-interactive, .mission-console, .hud-panel):hover {
+  transform: translateY(-3px);
+  border-color: rgba(169, 190, 203, .34);
+  background-color: var(--cf-panel-hover);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .22);
+}
+.cosmic-lab-shell :is(button, a, [role="button"]) {
+  transition:
+    color .2s ease,
+    background-color .2s ease,
+    border-color .2s ease,
+    box-shadow .2s ease,
+    transform .2s var(--cf-ease);
+}
+.cosmic-lab-shell :is(button, a, [role="button"]):not(:disabled):active {
+  transform: translateY(0) scale(.985);
+}
+.cosmic-lab-shell :is(img, video, canvas) { max-width: 100%; }
+.cosmic-lab-shell img { image-rendering: auto; }
+.cosmic-lab-shell :is(input, select, textarea) {
+  border-color: var(--cf-line);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.cosmic-lab-shell :is(input, select, textarea):focus {
+  border-color: rgba(169, 190, 203, .55);
+  box-shadow: 0 0 0 3px rgba(169, 190, 203, .09);
+}
+
+/* Calm navigation feedback and a clear active destination. */
+.cosmic-lab-shell nav a,
+.cosmic-lab-shell nav button {
+  position: relative;
+}
+.cosmic-lab-shell nav :is(a, button):hover { transform: translateY(-1px); }
+.cosmic-lab-shell nav :is(a, button):focus-visible { border-radius: 7px; }
+
+/* A restrained live indicator instead of constant high-energy glow. */
+.cosmic-lab-shell .status-dot,
+.cosmic-lab-shell .mission-kicker__dot {
+  animation: cf-status-breathe 3.2s ease-in-out infinite;
+}
+.cosmic-lab-shell .mission-hero__orb--one {
+  animation: cf-soft-drift 12s ease-in-out infinite;
+}
+.cosmic-lab-shell .mission-hero__orb--two {
+  animation: cf-status-breathe 4s ease-in-out infinite;
+}
+
+/* Dark and light themes retain readable contrast and the same motion language. */
+.theme-light .cosmic-lab-shell {
+  --cf-line: rgba(43, 57, 67, .15);
+  --cf-panel: rgba(255, 255, 255, .9);
+  --cf-panel-hover: #fff;
+}
+.theme-light .cosmic-lab-shell::before {
+  opacity: .35;
+  background:
+    radial-gradient(ellipse at 82% 7%, rgba(109, 131, 146, .09), transparent 34%),
+    radial-gradient(ellipse at 12% 46%, rgba(109, 131, 146, .055), transparent 38%);
+}
+.theme-light .cosmic-lab-shell :is(.cf-surface, .card-interactive, .mission-console, .hud-panel):hover {
+  box-shadow: 0 16px 38px rgba(31, 46, 56, .09);
+}
+
+@media (hover: none) {
+  .cosmic-lab-shell :is(.cf-surface, .card-interactive, .mission-console, .hud-panel):hover {
+    transform: none;
+  }
+}
+@media (max-width: 640px) {
+  .cosmic-lab-shell { overflow-x: clip; }
+  .cosmic-lab-shell main { min-width: 0; }
+  .cosmic-lab-shell :is(.cf-surface, .mission-console, .hud-panel) { border-radius: 14px; }
+  .cosmic-lab-shell :is(button, a, [role="button"]) { touch-action: manipulation; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .cosmic-lab-shell main,
+  .cosmic-lab-shell :is(.cf-lab-home, .cf-module--spherex, [data-page-content]) {
+    animation: none !important;
+  }
+}
