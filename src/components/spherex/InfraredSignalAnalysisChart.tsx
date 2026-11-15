@@ -152,7 +152,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
     : null;
 
   const yLabel = metricMode === 'flux'
-    ? 'Flux Density (MJy/sr)'
+    ? (isDemo ? 'Illustrative signal scale (not calibrated)' : 'Flux Density (MJy/sr)')
     : metricMode === 'energy'
     ? 'Energy Flux νF_ν (Relative)'
     : 'Absorption Residual (%)';
@@ -282,10 +282,10 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
 
           <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5">
             <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
-              Peak Spectral Flux
+              {isDemo ? 'Peak Simulated Signal' : 'Peak Spectral Flux'}
             </span>
             <div className="text-base font-bold text-cyan-300 font-mono mt-0.5">
-              {stats.peakFluxMJySr.toFixed(1)} <span className="text-xs text-slate-400 font-normal">MJy/sr</span>
+              {stats.peakFluxMJySr.toFixed(1)} <span className="text-xs text-slate-400 font-normal">{isDemo ? "demo units" : "MJy/sr"}</span>
             </div>
             <span className="text-[10px] text-slate-400 font-mono">
               {isDemo ? 'Illustrative demo maximum' : 'Observed maximum'}
@@ -306,7 +306,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
 
           <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5">
             <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
-              Mean Spectral SNR
+              {isDemo ? 'Illustrative SNR Ratio' : 'Mean Spectral SNR'}
             </span>
             <div className="text-base font-bold text-emerald-300 font-mono mt-0.5">
               {stats.avgSnr}σ <span className="text-xs text-slate-400 font-normal">Significance</span>
