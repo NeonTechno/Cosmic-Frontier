@@ -27,6 +27,8 @@ import { FreezePaneButton } from '../components/common/FreezePaneButton';
 const BOOKMARKS_STORAGE_KEY = 'blackstar_discovery_bookmarks';
 
 const COSMIC_LAB_TOPICS: Record<string, { topic: string; subtopic: string }> = {
+  spherex: { topic: 'SPHEREx Explorer', subtopic: 'Infrared sky survey' },
+  'planet-x': { topic: 'Planet X', subtopic: 'Outer Solar System' },
   home: {
     topic: 'Cosmic Lab Observatories',
     subtopic: 'Astronomy Observatories & Research Consoles',
@@ -295,10 +297,6 @@ export function CosmicFrontierSuite({ onSwitchToEditorial, onNavigateTab }: Cosm
             <h2 className="text-sm sm:text-base font-bold text-[#F8FAFC] tracking-tight truncate">
               {currentTopicMeta.topic}
             </h2>
-            <span className="text-[#475569] hidden sm:inline">/</span>
-            <span className="text-xs font-mono text-[#38BDF8] truncate">
-              {activeSubtopic || currentTopicMeta.subtopic}
-            </span>
           </div>
 
           <FreezePaneButton
