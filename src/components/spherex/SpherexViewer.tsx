@@ -64,7 +64,7 @@ import { DownloadViewModal } from './DownloadViewModal.tsx';
 import { FreezePaneButton } from '../common/FreezePaneButton.tsx';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { SpherexDataCollectionGuide } from './SpherexDataCollectionGuide.tsx';
-import { createSpherexDemoObservation } from './spherexDemoData.ts';
+import { createSpherexDemoObservation, createSpherexDemoObservations } from './spherexDemoData.ts';
 
 interface SpherexViewerProps {
   observations: SpherexObservation[];
@@ -234,11 +234,25 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       setSelectedFov(obs.fieldOfViewArcmin);
     } catch (err) {
       const reason = err instanceof Error ? err.message : 'Unknown network or API error';
-      setLiveSearchError(`No verified SPHEREx FITS observation could be loaded (${reason}). The viewer has switched to a clearly labelled synthetic demonstration so its analysis tools remain explorable; no simulated values are represented as NASA data.`);
-      const demoObservation = createSpherexDemoObservation();
-      setLocalObservations((prev) => prev.length > 0 ? prev : [demoObservation]);
-      setSelectedObsId((current) => current || demoObservation.id);
+      setLiveSearchError(`Live IRSA retrieval is unavailable for ${params.q || 'these coordinates'} (${reason}). Showing the matching SIMULATED_BENCHMARK so the full workbench remains explorable. Archive coverage is unknown; demo values are not NASA/IPAC measurements.`);
+      const demoObservation = createSpherexDemoObservation({
+        targetName: params.q,
+        raDeg: params.ra,
+        decDeg: params.dec,
+        fovArcmin: params.fov || selectedFov,
+        fallbackReason: reason,
+      });
+      const demoSet = createSpherexDemoObservations();
+      const demos = demoSet.some((item) => item.id === demoObservation.id)
+        ? demoSet
+        : [...demoSet, demoObservation];
+      setLocalObservations((prev) => [
+        ...prev.filter((item) => item.dataSourceStatus !== 'SIMULATED_DEMO'),
+        ...demos,
+      ]);
+      setSelectedObsId(demoObservation.id);
       setSelectedEpochIdx(0);
+      setSelectedFov(demoObservation.fieldOfViewArcmin);
     } finally {
       setIsSearchingLive(false);
     }
@@ -343,6 +357,22 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         band: band || undefined,
         fov: selectedFov || activeObs.fieldOfViewArcmin,
       });
+    }
+  };
+
+  // Load the complete eight-field synthetic benchmark set without replacing real archive results.
+  const handleLoadDemoBenchmarks = () => {
+    const demos = createSpherexDemoObservations();
+    setLocalObservations((prev) => [
+      ...prev.filter((item) => item.dataSourceStatus !== 'SIMULATED_DEMO'),
+      ...demos,
+    ]);
+    const preferred = demos.find((item) => item.targetName === 'WISE 0855-0714') || demos[0];
+    if (preferred) {
+      setSelectedObsId(preferred.id);
+      setSelectedEpochIdx(0);
+      setSelectedFov(preferred.fieldOfViewArcmin);
+      setLiveSearchError(null);
     }
   };
 
@@ -953,20 +983,30 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
               · {localObservations.length} {localObservations.length === 1 ? 'record' : 'records'}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowObservationsList((v) => !v)}
-            className={`flex items-center gap-1 text-[11px] cursor-pointer transition-colors ${
-              isLight ? 'text-[#666] hover:text-[#1a1a1a]' : 'text-slate-400 hover:text-cyan-300'
-            }`}
-          >
-            <span>{showObservationsList ? 'Hide list' : 'Show list'}</span>
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                showObservationsList ? 'rotate-180' : ''
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleLoadDemoBenchmarks}
+              className="text-[11px] font-semibold text-amber-300 hover:text-amber-200 cursor-pointer"
+              title="Load eight explicitly simulated benchmark fields for an offline interface walkthrough"
+            >
+              Load 8 demo fields
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowObservationsList((v) => !v)}
+              className={`flex items-center gap-1 text-[11px] cursor-pointer transition-colors ${
+                isLight ? 'text-[#666] hover:text-[#1a1a1a]' : 'text-slate-400 hover:text-cyan-300'
               }`}
-            />
-          </button>
+            >
+              <span>{showObservationsList ? 'Hide list' : 'Show list'}</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                  showObservationsList ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+          </div>
         </div>
 
         {showObservationsList && (
@@ -1032,7 +1072,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                             : 'text-amber-300'
                       }
                     >
-                      {obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Local FITS' : isLive ? 'Live IRSA' : 'Archive'}
+                      {obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Local FITS' : isLive ? 'Live IRSA' : obs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Simulated demo' : 'Reference'}
                     </span>
                   </div>
                 </button>
@@ -1041,6 +1081,18 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           </div>
         )}
       </div>
+
+      <SpherexDataCollectionGuide
+        targetName={activeObs.targetName}
+        isFetching={isSearchingLive}
+        onFetchLive={() => fetchLiveTimeMachine({
+          q: activeObs.targetName,
+          ra: activeObs.raDeg,
+          dec: activeObs.decDeg,
+          band: selectedDetectorBand || undefined,
+          fov: selectedFov || activeObs.fieldOfViewArcmin,
+        })}
+      />
 
       {/* Main Sky Viewer Area (when in 'single' mode) */}
       {activeTab === 'single' && (
