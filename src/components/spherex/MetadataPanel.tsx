@@ -61,7 +61,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
 
   const exportSedCsv = () => {
     const rows = [
-      ['provenance', 'target', 'wavelength_um', 'flux_MJy_sr', 'uncertainty', 'model_fit', 'is_measured'],
+      ['provenance', 'target', 'wavelength_um', isDemo ? 'illustrative_signal_units' : 'flux_MJy_sr', 'uncertainty', 'model_fit', 'is_measured'],
       ...observation.fullSedCurve.map((point) => [
         observation.dataSourceStatus,
         observation.targetName,
