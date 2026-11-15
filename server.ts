@@ -1416,7 +1416,7 @@ function generateDeterministicScientificExplanation(
 
 Because SPHEREx uses Linear Variable Filters mounted directly above six Hawaii-2RG detectors, every sweep across the sky builds a low-resolution spectrum (resolving power R ≈ 40–130) at every pixel rather than just taking broad color snapshots. Comparing epochs lets astronomers spot faint moving brown dwarfs, variable stars, or transient events while also measuring interstellar ice signatures—like water ice at 3.05 µm, carbon dioxide at 4.27 µm, and carbon monoxide at 4.67 µm.
 ${userPrompt ? `\nRegarding your question ("${userPrompt}"): those molecular bands and multi-epoch shifts are directly encoded in the flux variations across bands and timestamps in this frame.` : ''}
-${isSimulated ? '\n*This view uses a calibrated synthetic benchmark dataset modeled on the Caltech/IPAC SPHEREx Level-2 specification for exploration alongside live IRSA cutouts.*' : ''}`;
+${isLocalArchive ? '\n*The image pixels and observation metadata in this view came from locally imported NASA/IPAC IRSA FITS products.*' : ''}`;
   }
 
   if (contextType === 'planet_x_candidate') {

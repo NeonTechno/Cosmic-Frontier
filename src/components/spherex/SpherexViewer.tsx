@@ -223,12 +223,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       const obs = payload as SpherexObservation;
       setLocalObservations((prev) => {
         const filtered = prev.filter(
-          (o) =>
-            o.id !== obs.id &&
-            !(
-              o.dataSourceStatus === 'SIMULATED_BENCHMARK' &&
-              o.targetName.toLowerCase() === obs.targetName.toLowerCase()
-            )
+          (o) => o.id !== obs.id && o.targetName.toLowerCase() !== obs.targetName.toLowerCase()
         );
         return [obs, ...filtered];
       });
