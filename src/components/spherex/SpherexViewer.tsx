@@ -411,6 +411,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           fieldOfViewArcmin: selectedFov || activeObs.fieldOfViewArcmin,
           subtractZodi,
           showSnrMap,
+          isSimulatedDemo: activeObs.dataSourceStatus === 'SIMULATED_DEMO',
         }
       );
     }
@@ -1113,9 +1114,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Toggle Gaia DR3 Astrometry & Proper Motion Vector Arrows"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Toggle simulated Gaia-style astrometry and proper-motion overlay (not catalog data)' : 'Toggle Gaia DR3 Astrometry & Proper Motion Vector Arrows'}
                   >
-                    Gaia
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM Gaia' : 'Gaia'}
                   </button>
 
                   <button
@@ -1125,9 +1126,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Toggle AllWISE Mid-IR Apertures (W1 3.4µm / W2 4.6µm)"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Toggle simulated W1/W2-style apertures (not AllWISE catalog data)' : 'Toggle AllWISE Mid-IR Apertures (W1 3.4µm / W2 4.6µm)'}
                   >
-                    WISE
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM WISE' : 'WISE'}
                   </button>
 
                   <button
@@ -1137,9 +1138,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Toggle Moving Object Locator Rings"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Toggle illustrative simulated motion-vector markers' : 'Toggle Moving Object Locator Rings'}
                   >
-                    Movers
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM Movers' : 'Movers'}
                   </button>
 
                   <button
@@ -1149,9 +1150,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Subtract IRSA SPHEREx Level-2 ZODI HDU background"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Toggle illustrative simulated background component (not an IRSA ZODI HDU)' : 'Subtract IRSA SPHEREx Level-2 ZODI HDU background'}
                   >
-                    −Zodi
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? '−Zodi SIM' : '−Zodi'}
                   </button>
 
                   <button
@@ -1161,9 +1162,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Display variance-weighted Signal-to-Noise Ratio (SNR) significance map"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Display illustrative simulated SNR-style visualization (not variance-derived FITS SNR)' : 'Display variance-weighted Signal-to-Noise Ratio (SNR) significance map'}
                   >
-                    SNR
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM SNR' : 'SNR'}
                   </button>
 
                   <button
@@ -1173,9 +1174,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Co-Add all 17 spectral channels in array"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Preview simulated co-add noise reduction' : 'Co-Add all 17 spectral channels in array'}
                   >
-                    Co-Add
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM Co-Add' : 'Co-Add'}
                   </button>
                 </div>
 
