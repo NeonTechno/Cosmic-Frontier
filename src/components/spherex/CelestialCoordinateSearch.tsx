@@ -265,22 +265,22 @@ export const CelestialCoordinateSearch: React.FC<CelestialCoordinateSearchProps>
                   key={target.id}
                   disabled={isSearchingLive}
                   onClick={() => onSelectBenchmark(target)}
-                  className={`text-left p-2.5 rounded-lg border transition-all cursor-pointer flex flex-col justify-between disabled:opacity-60 ${
+                  className={`text-left p-3 min-h-[88px] rounded-lg border transition-all cursor-pointer flex flex-col justify-between disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 ${
                     isSelected
                       ? isLight
-                        ? 'bg-[#1a1a1a] text-white border-[#1a1a1a] shadow-xs'
+                        ? 'bg-[#172536] border-[#172536] text-white shadow-md shadow-slate-900/15'
                         : 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(56,189,248,0.25)]'
                       : isLight
-                        ? 'bg-[#f8f6f0] hover:bg-black/5 border-[#1a1a1a]/10 text-[#1a1a1a]'
-                        : 'bg-slate-900/60 hover:bg-slate-800/80 border-white/5 hover:border-cyan-500/30 text-slate-300 hover:text-white'
+                        ? 'bg-white hover:bg-[#f0f6fa] border-[#cbd5e1] hover:border-[#7893a8] text-[#172536] shadow-sm'
+                        : 'bg-slate-900/60 hover:bg-slate-800/80 border-white/10 hover:border-cyan-500/30 text-slate-300 hover:text-white'
                   }`}
                 >
                   <div className="min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-xs font-bold truncate">{target.name}</span>
+                      <span className={`text-xs font-bold leading-snug truncate ${isLight ? (isSelected ? 'text-white' : 'text-[#172536]') : 'text-inherit'}`}>{target.name}</span>
                       {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 animate-ping" />}
                     </div>
-                    <div className="text-[10px] opacity-75 truncate font-mono">
+                    <div className={`mt-1 text-[10px] leading-snug truncate font-mono ${isLight ? (isSelected ? 'text-slate-200' : 'text-[#526174]') : 'text-inherit opacity-80'}`}>
                       {target.category === 'High Proper Motion Stars' && 'μ = 10.3″/yr'}
                       {target.category === 'Brown Dwarfs' &&
                         (target.id === 'WISE-0855' ? 'Cold Y-Dwarf (250K)' : 'T1+T6 Binary Pair')}
@@ -289,7 +289,7 @@ export const CelestialCoordinateSearch: React.FC<CelestialCoordinateSearchProps>
                     </div>
                   </div>
 
-                  <div className="pt-2 mt-1 border-t border-white/10 flex items-center justify-between text-[9px] font-mono opacity-80">
+                  <div className={`pt-2 mt-2 border-t flex items-center justify-between text-[10px] font-mono font-medium ${isLight ? (isSelected ? 'border-white/20 text-slate-200' : 'border-[#d8e0e8] text-[#526174]') : 'border-white/10 text-inherit opacity-80'}`}>
                     <span>{target.sexagesimalRa.split(' ')[0]}</span>
                     <span>{target.sexagesimalDec.split(' ')[0]}</span>
                   </div>
