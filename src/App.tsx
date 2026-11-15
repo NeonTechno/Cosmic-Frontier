@@ -26,7 +26,6 @@ import { EditorialVariation3 } from './components/editorial/EditorialVariation3.
 import { useTheme } from './context/ThemeContext.tsx';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.ts';
 import { KeyboardShortcutsModal } from './components/common/KeyboardShortcutsModal.tsx';
-import { assetUrl } from './utils/assetUrl.ts';
 import {
   SpherexObservation,
   PlanetXCandidate,
@@ -320,14 +319,8 @@ export default function App() {
         }`}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-2">
-            {isLight ? (
-              <div className="w-5 h-5 bg-black rounded-xs flex items-center justify-center shrink-0">
-                <img src={assetUrl('assets/aistudio/image_5dde6a23.png')} alt="logo" className="w-3.5 h-3.5 filter invert" />
-              </div>
-            ) : (
-              <BlackStarLogo size="xs" />
-            )}
-            <span className={`font-semibold ${isLight ? 'font-serif text-[#1a1a1a] text-sm' : 'text-slate-300 font-display'}`}>
+            <BlackStarLogo size="xs" />
+                        <span className={`font-semibold ${isLight ? 'font-serif text-[#1a1a1a] text-sm' : 'text-slate-300 font-display'}`}>
               BLACK STAR ORBIT
             </span>
             <span>•</span>

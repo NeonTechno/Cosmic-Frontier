@@ -8,7 +8,6 @@
 import { Telescope, Orbit, Database, Sparkles, Activity, Globe, FlaskConical, Compass, Keyboard } from 'lucide-react';
 import { BlackStarLogo } from './common/BlackStarLogo.tsx';
 import { useTheme } from '../context/ThemeContext.tsx';
-import { assetUrl } from '../utils/assetUrl.ts';
 
 interface NavbarProps {
   activeTab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite';
@@ -44,18 +43,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => setActiveTab('overview')}
           className="flex items-center space-x-3 text-left group cursor-pointer focus:outline-none"
         >
-          {isLight ? (
-            <div className="w-10 h-10 bg-[#000000] rounded-xs flex items-center justify-center shrink-0 shadow-sm">
-              <img
-                src={assetUrl('assets/aistudio/image_5dde6a23.png')}
-                alt="Black Star Icon"
-                className="w-6 h-6 object-contain filter invert"
-              />
-            </div>
-          ) : (
-            <BlackStarLogo size="md" />
-          )}
-          <div>
+          <BlackStarLogo size="md" />
+                    <div>
             <h1 className={`text-base sm:text-lg font-bold tracking-tight transition-colors flex items-center gap-1.5 ${
               isLight
                 ? 'font-serif text-[#1a1a1a] group-hover:text-[#d44d5c]'

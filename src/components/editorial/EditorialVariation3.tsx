@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import confirmedExoplanetsData from '../../cosmic-frontier/data/catalogs/confirmed-exoplanets.json';
 import { ArrowUpRight, Search, Sparkles, Filter, Database, ShieldCheck, Compass, Eye, RefreshCw, Moon, Sun, LayoutGrid, Table2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
-import { assetUrl } from '../../utils/assetUrl';
+import { BlackStarLogo } from '../common/BlackStarLogo';
 
 interface EditorialVariation3Props {
   onNavigate: (tab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite') => void;
@@ -102,29 +102,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
         }`}>
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full gap-6">
             <div className="flex items-center gap-5 sm:gap-6">
-              <div className={`editorial-logo-box shrink-0 rounded-xs ${
-                isLight ? 'bg-[#000000]' : 'bg-[#0f172a] border border-cyan-500/30'
-              }`}>
-                <img
-                  src={assetUrl('assets/aistudio/image_5dde6a23.png')}
-                  alt="Black Star Icon"
-                  className={isLight ? 'filter invert' : 'filter invert brightness-200'}
-                  onError={(e) => {
-                    // Fallback to stylized SVG icon if asset path differs
-                    e.currentTarget.style.display = 'none';
-                    const parent = e.currentTarget.parentElement;
-                    if (parent && !parent.querySelector('svg')) {
-                      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                      svg.setAttribute('viewBox', '0 0 24 24');
-                      svg.setAttribute('width', '32');
-                      svg.setAttribute('height', '32');
-                      svg.setAttribute('fill', isLight ? 'white' : '#38bdf8');
-                      svg.innerHTML = '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>';
-                      parent.appendChild(svg);
-                    }
-                  }}
-                />
-              </div>
+              <BlackStarLogo size="xl" showGlow={false} className="editorial-logo-box" />
               <div>
                 <span className={`editorial-label ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>SCIENTIFIC JOURNAL // VOL. 04</span>
                 <h1 className={`editorial-title tracking-tight ${isLight ? 'text-[#1a1a1a]' : 'text-white'}`}>BLACK STAR ORBIT</h1>
