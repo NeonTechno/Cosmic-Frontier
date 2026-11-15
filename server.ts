@@ -600,7 +600,7 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
     results.nasa.connected = false;
   }
   try {
-    const apod = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}`, { signal: AbortSignal.timeout(7000) });
+    const apod = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}`, { signal: AbortSignal.timeout(15000) });
     results.nasa.apod = { connected: apod.ok, status: apod.ok ? 'connected' : `http_${apod.status}`, testedEndpoint: 'api.nasa.gov/planetary/apod' };
     if (!apod.ok) results.nasa.apod.message = (await apod.text()).slice(0, 240);
   } catch (e: any) {
@@ -618,7 +618,7 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
 app.get('/api/nasa/apod', async (req: Request, res: Response) => {
   const dateQuery = req.query.date ? `&date=${req.query.date}` : '';
   try {
-    const response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}${dateQuery}`);
+    const response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}${dateQuery}`, { signal: AbortSignal.timeout(15000) });
     if (response.ok) {
       const data = await response.json();
       res.json({ data, source: 'api.nasa.gov', isLive: true, dataStatus: 'LIVE' });
