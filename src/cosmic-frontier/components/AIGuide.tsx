@@ -3,7 +3,7 @@ import type { GuideMessage, AppPage } from '../types';
 import { STARTER_QUESTIONS, findVerifiedAnswer } from '../data/guideKnowledge';
 import { NaturalTextRenderer } from '../../components/common/NaturalTextRenderer';
 import { 
-  Sparkles, 
+  Telescope, 
   Send, 
   Bot, 
   User, 
