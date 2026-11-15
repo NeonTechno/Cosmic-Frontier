@@ -49,6 +49,7 @@ export interface SpectralDataPoint {
 export interface SpectralSignalVisualizerProps {
   targetName: string;
   category?: string;
+  dataSourceStatus?: string;
   spectralPoints?: SpectralDataPoint[];
   activeWavelength?: number; // currently probed wavelength in SPHEREx viewer
   onSelectWavelength?: (wavelength: number) => void;
@@ -148,12 +149,15 @@ const SPHEREX_DETECTOR_ARRAYS = [
 export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> = ({
   targetName,
   category = 'Deep Space Target',
+  dataSourceStatus = 'REFERENCE_ONLY',
   spectralPoints,
   activeWavelength = 3.05,
   onSelectWavelength,
   onExplainWithAi,
   isCompact = false,
 }) => {
+  const isDemo = dataSourceStatus === 'SIMULATED_DEMO';
+
   // Intensity metric representation mode
   const [metricMode, setMetricMode] = useState<'flux' | 'normalized' | 'depth'>('flux');
   const [showSignatures, setShowSignatures] = useState<boolean>(true);
@@ -264,7 +268,7 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
     }
 
     return data;
-  }, [spectralPoints]);
+  }, [spectralPoints, dataSourceStatus]);
 
   // Active point stats
   const activePoint = useMemo(() => {
@@ -277,11 +281,11 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
 
   // Export CSV handler
   const handleExportCSV = () => {
-    const headers = 'Channel,Wavelength_um,Frequency_THz,Flux_MJy_sr,Continuum_Model,Normalized_Intensity,Optical_Depth,Uncertainty_MJy_sr\n';
+    const headers = 'Provenance,IsMeasured,Channel,Wavelength_um,Frequency_THz,Flux_MJy_sr,Continuum_Model,Normalized_Intensity,Optical_Depth,Uncertainty_MJy_sr\n';
     const rows = chartData
       .map(
         (d) =>
-          `${d.channel},${d.wavelengthUm},${d.freqTHz},${d.fluxMJySr},${d.continuumModel},${d.normalizedIntensity},${d.opticalDepth},${d.uncertainty}`
+          `${dataSourceStatus},${isDemo ? 'false' : 'unknown'},${d.channel},${d.wavelengthUm},${d.freqTHz},${d.fluxMJySr},${d.continuumModel},${d.normalizedIntensity},${d.opticalDepth},${d.uncertainty}`
       )
       .join('\n');
     const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
@@ -314,7 +318,7 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
                 </span>
               </div>
               <p className="text-xs text-[#94A3B8] font-sans">
-                Surface Brightness Intensity Over Infrared Wavelengths (0.75 – 5.00 µm) •{' '}
+                {isDemo ? 'SIMULATED BENCHMARK SPECTRUM — illustrative signal scale, not measured flux (0.75–5.00 µm) • ' : 'Surface Brightness Intensity Over Infrared Wavelengths (0.75 – 5.00 µm) • '}
                 <strong className="text-cyan-200">{targetName}</strong> ({category})
               </p>
             </div>
@@ -332,7 +336,7 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 font-bold shadow-xs'
                   : 'text-[#94A3B8] hover:text-white'
               }`}
-              title="Calibrated Surface Brightness Intensity in MJy/sr"
+              title={isDemo ? "Illustrative synthetic benchmark signal scale; not calibrated MJy/sr measurements" : "Calibrated Surface Brightness Intensity in MJy/sr"}
             >
               Flux (MJy/sr)
             </button>
@@ -381,6 +385,8 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
                   activePoint,
                   keyIceLines: ['H2O Ice 3.05µm', 'CO2 Ice 4.27µm', 'CO Ice 4.67µm'],
                   metricMode,
+                  dataSourceStatus,
+                  provenanceNotice: isDemo ? 'SIMULATED_BENCHMARK — do not interpret as measured flux or detections.' : 'Use only FITS-backed values as measured observations.',
                 })
               }
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-mono text-xs font-bold transition shadow-md shadow-cyan-950/40 cursor-pointer"
