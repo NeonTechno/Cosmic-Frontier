@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -24,11 +24,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm ci
 
       - name: Typecheck
         run: npm run lint
@@ -36,6 +36,7 @@ jobs:
       - name: Build static website for GitHub Pages
         env:
           GITHUB_PAGES: "true"
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: npm run build
 
       - name: Configure SPA fallback and disable Jekyll
