@@ -637,6 +637,62 @@ app.get('/api/spherex/cutout-image', async (req: Request, res: Response) => {
   }
 });
 
+// Download a bounded, genuine SPHEREx FITS cutout from an IRSA IBE product URL.
+// The URL is strictly allowlisted to the official IRSA host; no arbitrary proxying is permitted.
+app.get('/api/spherex/download-fits', async (req: Request, res: Response) => {
+  const rawAccessUrl = String(req.query.accessUrl || '').trim();
+  const ra = Number(req.query.ra);
+  const dec = Number(req.query.dec);
+  const requestedSize = parseInt(String(req.query.size || '64'), 10);
+  const size = Math.min(256, Math.max(32, Number.isFinite(requestedSize) ? requestedSize : 64));
+  const obsId = String(req.query.obsId || 'observation').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 48);
+
+  let productUrl: URL;
+  try {
+    productUrl = new URL(rawAccessUrl);
+  } catch {
+    res.status(400).json({ error: 'A valid IRSA FITS accessUrl is required.' });
+    return;
+  }
+
+  if (
+    productUrl.protocol !== 'https:' ||
+    productUrl.hostname !== 'irsa.ipac.caltech.edu' ||
+    !productUrl.pathname.includes('/ibe/')
+  ) {
+    res.status(400).json({ error: 'Only official HTTPS NASA/IPAC IRSA IBE product URLs are permitted.' });
+    return;
+  }
+  if (!Number.isFinite(ra) || ra < 0 || ra > 360 || !Number.isFinite(dec) || dec < -90 || dec > 90) {
+    res.status(400).json({ error: 'Valid decimal RA (0–360) and Dec (-90–90) are required.' });
+    return;
+  }
+
+  productUrl.searchParams.set('center', ra.toFixed(6) + ',' + dec.toFixed(6));
+  productUrl.searchParams.set('size', size + 'pix');
+
+  try {
+    const upstream = await fetch(productUrl.toString(), { signal: AbortSignal.timeout(20000) });
+    if (!upstream.ok) {
+      res.status(502).json({ error: 'IRSA FITS download failed', upstreamStatus: upstream.status });
+      return;
+    }
+    const bytes = Buffer.from(await upstream.arrayBuffer());
+    if (bytes.length < 2880 || !bytes.subarray(0, 80).toString('ascii').startsWith('SIMPLE  =')) {
+      res.status(502).json({ error: 'IRSA response was not a readable FITS file; no file was downloaded.' });
+      return;
+    }
+    const filename = 'SPHEREx_' + obsId + '_' + ra.toFixed(4) + '_' + dec.toFixed(4) + '_' + size + 'pix.fits';
+    res.setHeader('Content-Type', 'application/fits');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+    res.setHeader('Content-Length', String(bytes.length));
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(bytes);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Unable to retrieve the IRSA FITS product.', details: err?.message || 'Upstream request failed.' });
+  }
+});
+
 // Target Name & Coordinate Resolver
 app.get('/api/resolve-target', async (req: Request, res: Response) => {
   const q = String(req.query.q || '').trim();
