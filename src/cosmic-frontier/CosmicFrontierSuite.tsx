@@ -283,13 +283,13 @@ export function CosmicFrontierSuite({ onSwitchToEditorial, onNavigateTab }: Cosm
 
       {/* Frozen Cosmic Lab Topic & Subtopic Headline Bar */}
       <div
-        className={`${
+        className={`cf-lab-bar ${
           panesFrozen ? 'sticky top-16 sm:top-[72px] z-30 backdrop-blur-md shadow-lg' : ''
         } border-b border-[#1E293B] bg-[#070E22]/95 transition-all`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2 min-w-0">
-            <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-[#38BDF8]/15 text-[#38BDF8] border border-[#38BDF8]/30 font-semibold shrink-0">
+            <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-[#38BDF8]/10 text-[#8bdcf0] border border-[#38BDF8]/20 font-semibold shrink-0">
               Cosmic Lab
             </span>
             <h2 className="text-sm sm:text-base font-bold text-[#F8FAFC] tracking-tight truncate">
