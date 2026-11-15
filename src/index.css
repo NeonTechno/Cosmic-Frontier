@@ -1937,3 +1937,34 @@ code, pre, .font-mono, .font-editorial-mono {
 ) {
   background-image: linear-gradient(115deg, #ffffff 0%, #f5f3ed 100%) !important;
 }
+
+
+/* Astrobiology workbench: explicit light palette for its formerly dark-only surfaces. */
+.astrobiology-light {
+  color: #202a38;
+  color-scheme: light;
+}
+.astrobiology-light > :first-child {
+  background: linear-gradient(115deg, #ffffff 0%, #f2f5f8 100%) !important;
+  border-color: #d7dee7 !important;
+  box-shadow: 0 12px 30px rgba(31, 45, 61, .07) !important;
+}
+.astrobiology-light :is(h1,h2,h3,h4,strong) { color: #182435 !important; }
+.astrobiology-light :is(p, label, span, small, div) { --astrobiology-light-text: #465467; }
+.astrobiology-light :is(.text-white,[class~="text-slate-50"],[class~="text-slate-100"],[class~="text-slate-200"],[class~="text-slate-300"],[class~="text-slate-400"],[class~="text-slate-500"]) { color: #465467 !important; }
+.astrobiology-light :is(h1,h2,h3,h4,strong,[class~="text-white"]) { color: #182435 !important; }
+.astrobiology-light :is([class*="bg-slate-950"],[class*="bg-slate-900"],[class*="bg-slate-800"],[class*="bg-slate-700"],[class*="bg-[#0B"],[class*="bg-[#09"],[class*="bg-[#07"],[class*="bg-[#06"]) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+.astrobiology-light :is([class*="border-white/"],[class*="border-slate-"]) { border-color: #dbe1e8 !important; }
+.astrobiology-light :is([class*="bg-cyan-950"],[class*="bg-emerald-950"],[class*="bg-indigo-950"],[class*="bg-violet-950"]) { background-color: #edf5f7 !important; }
+.astrobiology-light :is([class*="text-cyan-"]) { color: #08758a !important; }
+.astrobiology-light :is([class*="text-emerald-"]) { color: #087a50 !important; }
+.astrobiology-light :is([class*="text-indigo-"],[class*="text-violet-"]) { color: #59439b !important; }
+.astrobiology-light :is(input,textarea,select) { color: #202a38 !important; background: #ffffff !important; border-color: #cbd5e1 !important; }
+.astrobiology-light :is(input,textarea,select)::placeholder { color: #7a8797 !important; }
+.astrobiology-light :is(button):not([class*="bg-cyan-600"]):not([class*="bg-violet-600"]) { color: #334155; }
+.astrobiology-light :is(button):not([class*="bg-cyan-600"]):not([class*="bg-violet-600"]):hover { background-color: #edf2f7 !important; }
+.astrobiology-light button[class*="bg-cyan-600"], .astrobiology-light button[class*="bg-violet-600"] { color: #ffffff !important; }
+.astrobiology-light :is(svg text) { fill: #586273; }
