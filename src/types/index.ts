@@ -156,8 +156,8 @@ export interface SpherexObservation {
   detectorArray: string;
   detectorTempK?: number;
   pixelScaleArcsec: number;
-  dataQualityFlag: 'CALIBRATED_NOMINAL' | 'HIGH_BACKGROUND_ZODIACAL' | 'PASSING_CALIBRATION';
-  dataSourceStatus: 'LIVE_IRSA_SPHEREX' | 'LOCAL_IRSA_SPHEREX' | 'REAL_MISSION_ARCHIVAL';
+  dataQualityFlag: 'CALIBRATED_NOMINAL' | 'HIGH_BACKGROUND_ZODIACAL' | 'PASSING_CALIBRATION' | 'SIMULATED_DEMO';
+  dataSourceStatus: 'LIVE_IRSA_SPHEREX' | 'LOCAL_IRSA_SPHEREX' | 'REAL_MISSION_ARCHIVAL' | 'SIMULATED_DEMO';
   dataSourceLabel: string;
   documentationUrl: string;
   fitsHeader: Record<string, string | number>;
