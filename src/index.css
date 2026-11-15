@@ -1852,3 +1852,14 @@ code, pre, .font-mono, .font-editorial-mono {
 .theme-light .editorial-astronaut :is(.editorial-astronaut-copy p) {
   color: rgba(248, 250, 252, .82);
 }
+
+/* Correct scope: preserve contrast over the photographic editorial hero only. */
+.theme-light .editorial-astronaut-hero :is(h1,h2,h3,p,span,small,strong,a,button) {
+  color: #f8fafc;
+}
+.theme-light .editorial-astronaut-hero .editorial-astronaut-copy p {
+  color: rgba(248, 250, 252, .84);
+}
+.theme-light .editorial-astronaut-hero .editorial-astronaut-telemetry {
+  color: #f8fafc;
+}
