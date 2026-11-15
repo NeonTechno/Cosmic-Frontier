@@ -20,6 +20,7 @@ import {
   Check,
   ExternalLink,
   AlertTriangle,
+  Download,
 } from 'lucide-react';
 
 interface MetadataPanelProps {
@@ -34,16 +35,70 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
   const [showFullFits, setShowFullFits] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const isLive = observation.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX';
+  const isDemo = observation.dataSourceStatus === 'SIMULATED_DEMO';
+  const isLive = observation.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' || observation.dataSourceStatus === 'REAL_MISSION_ARCHIVAL';
 
   const copyFitsText = () => {
     const lines = Object.entries(observation.fitsHeader).map(
-      ([k, v]) => `${k.padEnd(8)} = ${String(v).padEnd(20)} / SPHEREx telemetry`
+      ([k, v]) => `${k.padEnd(8)} = ${String(v).padEnd(20)} / ${isDemo ? 'SIMULATED BENCHMARK — NOT TELEMETRY' : 'FITS / ARCHIVE METADATA'}`
     );
     navigator.clipboard.writeText(lines.join('\n'));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const downloadTextFile = (filename: string, content: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+  };
+
+  const exportSedCsv = () => {
+    const rows = [
+      ['provenance', 'target', 'wavelength_um', isDemo ? 'illustrative_signal_units' : 'flux_MJy_sr', 'uncertainty', 'model_fit', 'is_measured'],
+      ...observation.fullSedCurve.map((point) => [
+        observation.dataSourceStatus,
+        observation.targetName,
+        point.wavelength,
+        point.fluxMJySr,
+        point.uncertainty,
+        point.modelFit,
+        point.isMeasured === true ? 'true' : 'false',
+      ]),
+    ];
+    const csv = rows.map((row) => row.map((value) => '"' + String(value).replace(/"/g, '""') + '"').join(',')).join('\n');
+    downloadTextFile('SPHEREx_' + observation.id + '_SED.csv', csv, 'text/csv;charset=utf-8');
+  };
+
+  const exportDemoJson = () => {
+    downloadTextFile(
+      'SPHEREx_' + observation.id + '_SIMULATED_BENCHMARK.json',
+      JSON.stringify({ provenance: 'SIMULATED_BENCHMARK — NOT NASA/IPAC DATA', observation }, null, 2),
+      'application/json;charset=utf-8'
+    );
+  };
+
+  const fitsDownloadUrl = (frame: SpherexObservation['epochs'][number]) => {
+    if (!frame.accessUrl) return '';
+    const params = new URLSearchParams({
+      accessUrl: frame.accessUrl,
+      ra: String(observation.raDeg),
+      dec: String(observation.decDeg),
+      size: '64',
+      obsId: frame.obsId || frame.frameId,
+    });
+    return '/api/spherex/download-fits?' + params.toString();
+  };
+
+  const downloadableFrames = observation.epochs.filter((frame) =>
+    frame.isRealArchive && frame.accessUrl && frame.accessUrl.startsWith('https://irsa.ipac.caltech.edu/') && frame.accessUrl.includes('/ibe/')
+  );
 
   return (
     <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl space-y-4">
@@ -94,7 +149,10 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             </span>
           </div>
           <p className={`text-[11px] leading-relaxed ${isLive ? 'text-emerald-200/85' : 'text-amber-200/80'}`}>
-            {observation.dataSourceLabel.replace(/\.+$/, '')}. Units: MJy/sr (Level-2 calibrated).
+            {observation.dataSourceLabel.replace(/\.+$/, '')}
+            {isDemo
+              ? ' Display-scale values are illustrative placeholders; no calibrated flux, telemetry or FITS measurements are being shown.'
+              : '. Units: MJy/sr (Level-2 calibrated where supplied by the FITS product).'}
           </p>
         </div>
       </div>
@@ -154,6 +212,74 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
         </div>
       )}
 
+      {/* Hybrid dataset export and FITS product downloads */}
+      <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h4 className="text-xs font-semibold text-cyan-200 uppercase tracking-wider">Dataset Downloads & Exports</h4>
+            <p className="text-[10px] text-slate-400 mt-1">
+              {isDemo
+                ? 'This is a synthetic benchmark package. It contains no NASA/IPAC FITS files.'
+                : 'Download real archive cutouts and export the spectral data used by this view.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={exportSedCsv}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-700/60 bg-cyan-950/50 px-2.5 py-1.5 text-[11px] text-cyan-200 hover:bg-cyan-900/60"
+          >
+            <Download className="h-3.5 w-3.5" /> Export SED CSV
+          </button>
+        </div>
+
+        {isDemo ? (
+          <div className="space-y-2">
+            <div className="rounded-md border border-amber-800/50 bg-amber-950/25 p-2 text-[10px] text-amber-200">
+              SIMULATED_BENCHMARK export — all pixels, epochs, source positions and SED values are generated examples, not observations or detections.
+            </div>
+            <button
+              type="button"
+              onClick={exportDemoJson}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-amber-700/60 bg-amber-950/40 px-2.5 py-1.5 text-[11px] text-amber-200 hover:bg-amber-900/50"
+            >
+              <Download className="h-3.5 w-3.5" /> Export simulated benchmark JSON
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {downloadableFrames.length > 0 ? downloadableFrames.map((frame) => (
+              <div key={frame.frameId} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-800 bg-slate-900/70 px-2.5 py-2">
+                <div className="min-w-0">
+                  <div className="text-[11px] text-slate-200 font-semibold truncate">{frame.timestamp.split('T')[0]} · {frame.detectorBand || 'SPHEREx band'}</div>
+                  <div className="text-[10px] text-slate-500">{frame.obsCollection || 'IRSA archive'} · {frame.obsId || frame.frameId}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={fitsDownloadUrl(frame)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700/60 bg-emerald-950/35 px-2.5 py-1.5 text-[11px] text-emerald-200 hover:bg-emerald-900/50"
+                    download
+                  >
+                    <Download className="h-3.5 w-3.5" /> Download 64px FITS
+                  </a>
+                  <a href={frame.accessUrl} target="_blank" rel="noreferrer" className="text-[10px] text-cyan-300 hover:underline">
+                    Original IRSA product
+                  </a>
+                </div>
+              </div>
+            )) : (
+              <p className="text-[10px] text-slate-400">
+                No downloadable IRSA IBE FITS URL is attached to these frames. Use the official SPHEREx Data Explorer link below to select and download original products.
+              </p>
+            )}
+            {observation.documentationUrl && (
+              <a href={observation.documentationUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] text-cyan-300 hover:underline">
+                Open official IRSA product archive <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Target Details Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs font-mono">
         <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
@@ -176,7 +302,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
 
         <div className="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
           <span className="text-slate-400 flex items-center gap-1 text-[11px]">
-            <Clock className="h-3 w-3 text-emerald-400" /> Obs Date (UTC)
+            <Clock className="h-3 w-3 text-emerald-400" /> {isDemo ? "Simulated Epoch Date" : "Obs Date (UTC)"}
           </span>
           <span className="text-white font-semibold mt-1 block truncate">
             {String(observation.fitsHeader['DATE-OBS'] || observation.epochs?.[0]?.timestamp || 'Not recorded').split('T')[0]}
@@ -188,7 +314,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             <Clock className="h-3 w-3 text-purple-400" /> Exposure Time
           </span>
           <span className="text-white font-semibold mt-1 block">
-            {observation.fitsHeader['EXPTIME'] ?? observation.epochs?.[0]?.exposureTimeSec ?? 'Not recorded in FITS'}{observation.fitsHeader['EXPTIME'] !== undefined || observation.epochs?.[0]?.exposureTimeSec !== undefined ? ' s' : ''}
+            {isDemo ? 'Illustrative: ' + observation.fitsHeader['SIM_EXPTIME_SEC'] + ' s (not telemetry)' : (observation.fitsHeader['EXPTIME'] ?? observation.epochs?.[0]?.exposureTimeSec ?? 'Not recorded in FITS') + (observation.fitsHeader['EXPTIME'] !== undefined || observation.epochs?.[0]?.exposureTimeSec !== undefined ? ' s' : '')}
           </span>
         </div>
 
@@ -197,7 +323,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             <Thermometer className="h-3 w-3 text-red-400" /> FPA Temp
           </span>
           <span className="text-white font-semibold mt-1 block">
-            {observation.detectorTempK !== undefined ? `${observation.detectorTempK} K` : 'Not recorded in FITS'}
+            {isDemo ? 'Illustrative: ' + observation.fitsHeader['SIM_FPA_TEMP_K'] + ' K (not telemetry)' : observation.detectorTempK !== undefined ? `${observation.detectorTempK} K` : 'Not recorded in FITS'}
           </span>
         </div>
 
@@ -206,9 +332,60 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             <Eye className="h-3 w-3 text-amber-400" /> Pixel Scale
           </span>
           <span className="text-white font-semibold mt-1 block">
-            {observation.pixelScaleArcsec}″ / pixel
+            {observation.pixelScaleArcsec}″ / pixel {isDemo ? '(illustrative)' : ''}
           </span>
         </div>
+      </div>
+
+      {/* Astrophysical benchmark context and cross-catalog reference identifiers */}
+      <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 space-y-2">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-cyan-300">
+          {isDemo ? 'Benchmark Target Context · Reference Values' : 'Target Astrophysical Context'}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="block text-slate-500">Classification</span>
+            <span className="text-slate-100 font-semibold">{observation.properMotionTarget?.spectralType || String(observation.fitsHeader['TARGET_TEMPLATE'] || observation.category)}</span>
+          </div>
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="block text-slate-500">Distance</span>
+            <span className="text-slate-100 font-semibold">{observation.fitsHeader['DISTANCE_LIGHT_YEARS'] ?? 'Not supplied'}{typeof observation.fitsHeader['DISTANCE_LIGHT_YEARS'] === 'number' ? ' ly' : ''}</span>
+          </div>
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="block text-slate-500">Proper Motion</span>
+            <span className="text-slate-100 font-semibold">{observation.properMotionTarget ? observation.properMotionTarget.totalPmArcsecYr.toFixed(2) + '″/yr' : 'Not supplied'}</span>
+          </div>
+        </div>
+        {observation.properMotionTarget && (
+          <div className="rounded bg-slate-900/80 p-2 text-[11px]">
+            <span className="text-slate-500 block">Proper-motion vector (benchmark reference)</span>
+            <span className="text-slate-100 font-mono">
+              RA {observation.properMotionTarget.pmRaMasYr.toFixed(1)} mas/yr · Dec {observation.properMotionTarget.pmDecMasYr.toFixed(1)} mas/yr · Parallax {observation.properMotionTarget.parallaxMas.toFixed(2)} mas
+            </span>
+          </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="text-slate-500 block">Gaia DR3 context</span>
+            <span className="text-slate-200">{String(observation.fitsHeader['GAIA_REFERENCE'] || 'No cross-match supplied')}</span>
+          </div>
+          <div className="rounded bg-slate-900/80 p-2">
+            <span className="text-slate-500 block">AllWISE context</span>
+            <span className="text-slate-200">{String(observation.fitsHeader['ALLWISE_REFERENCE'] || 'No cross-match supplied')}</span>
+          </div>
+        </div>
+        {observation.fitsHeader['SCIENCE_HIGHLIGHTS'] && (
+          <p className="text-[11px] leading-relaxed text-slate-300">{String(observation.fitsHeader['SCIENCE_HIGHLIGHTS'])}</p>
+        )}
+        {observation.fitsHeader['KEY_SCIENCE_SIGNATURES'] && (
+          <p className="text-[10px] leading-relaxed text-slate-400">Diagnostic features: {String(observation.fitsHeader['KEY_SCIENCE_SIGNATURES'])}</p>
+        )}
+        {observation.variabilityTarget && (
+          <div className="rounded bg-slate-900/80 p-2 text-[11px] text-slate-200">
+            Variability reference: {observation.variabilityTarget.periodDays} day period · {observation.variabilityTarget.amplitudeMag} mag amplitude · {observation.variabilityTarget.classification}
+          </div>
+        )}
+        {isDemo && <p className="text-[10px] text-amber-300">These are benchmark reference facts and descriptive templates, not measurements made by the synthetic frames. Gaia and AllWISE are not queried or cross-matched in demo mode.</p>}
       </div>
 
       {/* Live Gaia DR3 Cone Match Table */}
@@ -256,7 +433,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
           <div className="flex items-center justify-between text-slate-300">
             <span className="font-semibold text-cyan-400 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
               <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Contamination & Quality Flags</span>
+              <span>{isDemo ? "Simulated Demo Flags" : "Contamination & Quality Flags"}</span>
             </span>
             <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/40">
               {observation.dataQualityFlag}
@@ -306,7 +483,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
           className="w-full px-3 py-2 text-xs font-mono text-slate-300 hover:text-white bg-slate-900/60 flex items-center justify-between transition"
         >
           <span className="flex items-center gap-1.5 font-semibold text-cyan-400">
-            <span>FITS Standard Header</span>
+            <span>{isDemo ? 'Simulated Benchmark Metadata' : 'FITS Standard Header'}</span>
             <span className="text-slate-500 font-normal">({Object.keys(observation.fitsHeader).length} keywords)</span>
           </span>
           <span className="text-slate-400 text-[11px] underline">

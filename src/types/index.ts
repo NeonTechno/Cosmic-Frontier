@@ -156,8 +156,8 @@ export interface SpherexObservation {
   detectorArray: string;
   detectorTempK?: number;
   pixelScaleArcsec: number;
-  dataQualityFlag: 'CALIBRATED_NOMINAL' | 'HIGH_BACKGROUND_ZODIACAL' | 'PASSING_CALIBRATION';
-  dataSourceStatus: 'LIVE_IRSA_SPHEREX' | 'LOCAL_IRSA_SPHEREX' | 'REAL_MISSION_ARCHIVAL';
+  dataQualityFlag: 'CALIBRATED_NOMINAL' | 'HIGH_BACKGROUND_ZODIACAL' | 'PASSING_CALIBRATION' | 'SIMULATED_DEMO';
+  dataSourceStatus: 'LIVE_IRSA_SPHEREX' | 'LOCAL_IRSA_SPHEREX' | 'REAL_MISSION_ARCHIVAL' | 'SIMULATED_DEMO';
   dataSourceLabel: string;
   documentationUrl: string;
   fitsHeader: Record<string, string | number>;
@@ -320,7 +320,7 @@ export interface AiExplanationResponse {
   explanation: string;
   groundedAttributes: string[];
   scientificReferences: string[];
-  dataVerificationStatus: 'GROUNDED_VERIFIED' | 'SIMULATION_GROUNDED';
+  dataVerificationStatus: 'GROUNDED_VERIFIED' | 'SIMULATION_GROUNDED' | 'REFERENCE_ONLY';
   confidenceRating: 'HIGH_PRECISION' | 'THEORETICAL_MODEL';
   modelUsed: string;
   timestamp: string;

@@ -64,6 +64,7 @@ import { DownloadViewModal } from './DownloadViewModal.tsx';
 import { FreezePaneButton } from '../common/FreezePaneButton.tsx';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { SpherexDataCollectionGuide } from './SpherexDataCollectionGuide.tsx';
+import { createSpherexDemoObservation, createSpherexDemoObservations } from './spherexDemoData.ts';
 
 interface SpherexViewerProps {
   observations: SpherexObservation[];
@@ -233,7 +234,25 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       setSelectedFov(obs.fieldOfViewArcmin);
     } catch (err) {
       const reason = err instanceof Error ? err.message : 'Unknown network or API error';
-      setLiveSearchError(`No verified SPHEREx FITS observation could be loaded (${reason}). No synthetic data has been substituted.`);
+      setLiveSearchError(`Live IRSA retrieval is unavailable for ${params.q || 'these coordinates'} (${reason}). Showing the matching SIMULATED_BENCHMARK so the full workbench remains explorable. Archive coverage is unknown; demo values are not NASA/IPAC measurements.`);
+      const demoObservation = createSpherexDemoObservation({
+        targetName: params.q,
+        raDeg: params.ra,
+        decDeg: params.dec,
+        fovArcmin: params.fov || selectedFov,
+        fallbackReason: reason,
+      });
+      const demoSet = createSpherexDemoObservations();
+      const demos = demoSet.some((item) => item.id === demoObservation.id)
+        ? demoSet
+        : [...demoSet, demoObservation];
+      setLocalObservations((prev) => [
+        ...prev.filter((item) => item.dataSourceStatus !== 'SIMULATED_DEMO'),
+        ...demos,
+      ]);
+      setSelectedObsId(demoObservation.id);
+      setSelectedEpochIdx(0);
+      setSelectedFov(demoObservation.fieldOfViewArcmin);
     } finally {
       setIsSearchingLive(false);
     }
@@ -266,12 +285,12 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
     } else if (targetParam) {
       fetchLiveTimeMachine({ q: targetParam, fov: fovVal });
     } else {
-      // Automatically pull real IRSA DR1/QR3 cutouts for Barnard's Star on entry
+      // Start the judges' workbench with the WISE 0855-0714 challenge target; live IRSA is attempted first.
       fetchLiveTimeMachine({
-        q: "Barnard's Star",
-        ra: 269.4521,
-        dec: 4.6934,
-        fov: 6.5,
+        q: 'WISE 0855-0714',
+        ra: 133.7951,
+        dec: -7.2451,
+        fov: 5.0,
       });
     }
   }, [fetchLiveTimeMachine]);
@@ -317,7 +336,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
     setSelectedObsId(nextId);
     setSelectedEpochIdx(0);
     const chosen = localObservations.find((o) => o.id === nextId);
-    if (chosen && chosen.dataSourceStatus !== 'LIVE_IRSA_SPHEREX' && chosen.dataSourceStatus !== 'LOCAL_IRSA_SPHEREX') {
+    if (chosen && chosen.dataSourceStatus !== 'LIVE_IRSA_SPHEREX' && chosen.dataSourceStatus !== 'LOCAL_IRSA_SPHEREX' && chosen.dataSourceStatus !== 'SIMULATED_DEMO') {
       fetchLiveTimeMachine({
         q: chosen.targetName,
         ra: chosen.raDeg,
@@ -338,6 +357,22 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         band: band || undefined,
         fov: selectedFov || activeObs.fieldOfViewArcmin,
       });
+    }
+  };
+
+  // Load the complete eight-field synthetic benchmark set without replacing real archive results.
+  const handleLoadDemoBenchmarks = () => {
+    const demos = createSpherexDemoObservations();
+    setLocalObservations((prev) => [
+      ...prev.filter((item) => item.dataSourceStatus !== 'SIMULATED_DEMO'),
+      ...demos,
+    ]);
+    const preferred = demos.find((item) => item.targetName === 'WISE 0855-0714') || demos[0];
+    if (preferred) {
+      setSelectedObsId(preferred.id);
+      setSelectedEpochIdx(0);
+      setSelectedFov(preferred.fieldOfViewArcmin);
+      setLiveSearchError(null);
     }
   };
 
@@ -406,6 +441,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           fieldOfViewArcmin: selectedFov || activeObs.fieldOfViewArcmin,
           subtractZodi,
           showSnrMap,
+          isSimulatedDemo: activeObs.dataSourceStatus === 'SIMULATED_DEMO',
         }
       );
     }
@@ -610,7 +646,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
   }
 
   // Error State
-  if (error) {
+  if (error && localObservations.length === 0) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center p-8 bg-slate-950 border border-red-900/50 rounded-2xl space-y-4 text-center">
         <AlertCircle className="h-12 w-12 text-red-400" />
@@ -641,8 +677,8 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         {liveSearchError && <p className="text-xs text-amber-300 max-w-xl">{liveSearchError}</p>}
         <div className="w-full max-w-4xl">
           <CelestialCoordinateSearch
-            currentRa={269.4521} currentDec={4.6934} currentFovArcmin={6.5}
-            activeTargetName="Barnard's Star" selectedDetectorBand={selectedDetectorBand}
+            currentRa={133.7951} currentDec={-7.2451} currentFovArcmin={5.0}
+            activeTargetName="WISE 0855-0714" selectedDetectorBand={selectedDetectorBand}
             isSearchingLive={isSearchingLive} onChangeDetectorBand={handleChangeDetectorBand}
             onSelectBenchmark={handleSelectBenchmark} onSearchCoordinates={handleSearchCoordinates}
             onSearchTargetName={handleSearchTargetName} isLight={isLight}
@@ -815,7 +851,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             >
               {localObservations.map((obs) => (
                 <option key={obs.id} value={obs.id}>
-                  {obs.targetName} [{obs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ? 'LIVE IRSA' : obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'LOCAL FITS' : 'REFERENCE'}]
+                  {obs.targetName} [{obs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ? 'LIVE IRSA' : obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'LOCAL FITS' : obs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIMULATED DEMO' : 'REFERENCE'}]
                 </option>
               ))}
             </select>
@@ -947,20 +983,30 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
               · {localObservations.length} {localObservations.length === 1 ? 'record' : 'records'}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowObservationsList((v) => !v)}
-            className={`flex items-center gap-1 text-[11px] cursor-pointer transition-colors ${
-              isLight ? 'text-[#666] hover:text-[#1a1a1a]' : 'text-slate-400 hover:text-cyan-300'
-            }`}
-          >
-            <span>{showObservationsList ? 'Hide list' : 'Show list'}</span>
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition-transform duration-200 ${
-                showObservationsList ? 'rotate-180' : ''
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleLoadDemoBenchmarks}
+              className="text-[11px] font-semibold text-amber-300 hover:text-amber-200 cursor-pointer"
+              title="Load eight explicitly simulated benchmark fields for an offline interface walkthrough"
+            >
+              Load 8 demo fields
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowObservationsList((v) => !v)}
+              className={`flex items-center gap-1 text-[11px] cursor-pointer transition-colors ${
+                isLight ? 'text-[#666] hover:text-[#1a1a1a]' : 'text-slate-400 hover:text-cyan-300'
               }`}
-            />
-          </button>
+            >
+              <span>{showObservationsList ? 'Hide list' : 'Show list'}</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                  showObservationsList ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+          </div>
         </div>
 
         {showObservationsList && (
@@ -1026,7 +1072,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                             : 'text-amber-300'
                       }
                     >
-                      {obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Local FITS' : isLive ? 'Live IRSA' : 'Archive'}
+                      {obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Local FITS' : isLive ? 'Live IRSA' : obs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Simulated demo' : 'Reference'}
                     </span>
                   </div>
                 </button>
@@ -1035,6 +1081,18 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           </div>
         )}
       </div>
+
+      <SpherexDataCollectionGuide
+        targetName={activeObs.targetName}
+        isFetching={isSearchingLive}
+        onFetchLive={() => fetchLiveTimeMachine({
+          q: activeObs.targetName,
+          ra: activeObs.raDeg,
+          dec: activeObs.decDeg,
+          band: selectedDetectorBand || undefined,
+          fov: selectedFov || activeObs.fieldOfViewArcmin,
+        })}
+      />
 
       {/* Main Sky Viewer Area (when in 'single' mode) */}
       {activeTab === 'single' && (
@@ -1108,9 +1166,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Toggle Gaia DR3 Astrometry & Proper Motion Vector Arrows"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Toggle simulated Gaia-style astrometry and proper-motion overlay (not catalog data)' : 'Toggle Gaia DR3 Astrometry & Proper Motion Vector Arrows'}
                   >
-                    Gaia
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM Gaia' : 'Gaia'}
                   </button>
 
                   <button
@@ -1120,9 +1178,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Toggle AllWISE Mid-IR Apertures (W1 3.4µm / W2 4.6µm)"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Toggle simulated W1/W2-style apertures (not AllWISE catalog data)' : 'Toggle AllWISE Mid-IR Apertures (W1 3.4µm / W2 4.6µm)'}
                   >
-                    WISE
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM WISE' : 'WISE'}
                   </button>
 
                   <button
@@ -1132,9 +1190,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Toggle Moving Object Locator Rings"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Toggle illustrative simulated motion-vector markers' : 'Toggle Moving Object Locator Rings'}
                   >
-                    Movers
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM Movers' : 'Movers'}
                   </button>
 
                   <button
@@ -1144,9 +1202,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Subtract IRSA SPHEREx Level-2 ZODI HDU background"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Toggle illustrative simulated background component (not an IRSA ZODI HDU)' : 'Subtract IRSA SPHEREx Level-2 ZODI HDU background'}
                   >
-                    −Zodi
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? '−Zodi SIM' : '−Zodi'}
                   </button>
 
                   <button
@@ -1156,9 +1214,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Display variance-weighted Signal-to-Noise Ratio (SNR) significance map"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Display illustrative simulated SNR-style visualization (not variance-derived FITS SNR)' : 'Display variance-weighted Signal-to-Noise Ratio (SNR) significance map'}
                   >
-                    SNR
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM SNR' : 'SNR'}
                   </button>
 
                   <button
@@ -1168,9 +1226,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
                         ? 'bg-emerald-600/30 text-emerald-300 border-emerald-500 font-bold'
                         : 'bg-slate-800 text-slate-400 border-transparent hover:text-white'
                     }`}
-                    title="Co-Add all 17 spectral channels in array"
+                    title={activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'Preview simulated co-add noise reduction' : 'Co-Add all 17 spectral channels in array'}
                   >
-                    Co-Add
+                    {activeObs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIM Co-Add' : 'Co-Add'}
                   </button>
                 </div>
 
@@ -1408,6 +1466,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             <SpectralSignalVisualizer
               targetName={activeObs.targetName}
               category={activeObs.category}
+              dataSourceStatus={activeObs.dataSourceStatus}
               spectralPoints={activeObs.fullSedCurve?.map((p) => ({
                 wavelength: p.wavelength,
                 fluxMJySr: p.fluxMJySr,

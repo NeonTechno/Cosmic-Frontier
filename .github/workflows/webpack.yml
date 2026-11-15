@@ -2,9 +2,9 @@ name: NodeJS Build (Vite)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feat/local-spherex-datasets" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "feat/spherex-judges-demo-mode" ]
 
 jobs:
   build:
@@ -24,5 +24,6 @@ jobs:
 
     - name: Build
       run: |
-        npm install
+        npm ci --include=dev
+        npm run lint
         npm run build

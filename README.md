@@ -11,7 +11,7 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
 1. **Live NASA/IPAC IRSA SPHEREx Query Engine (`src/server/astroArchiveService.ts`)**
    - Queries **IRSA SIAv2** (`https://irsa.ipac.caltech.edu/SIA`) across both **`spherex_dr1`** and **`spherex_qr3`** for any user-supplied RA/Dec (decimal or sexagesimal) or resolved object name.
    - Groups available observations chronologically across survey dates (`t_min` / `MJD`) and detector arrays (`D1`–`D6`), and fetches calibrated **Level-2 Multi-Extension FITS cutouts** (`IMAGE`, `FLAGS`, `VARIANCE`, `ZODI`) via IRSA IBE (`?center={ra},{dec}&size=64pix`).
-   - Never substitutes synthetic frames when IRSA is unavailable or returns zero rows. It reports the failure or empty result and shows no observation frames.
+   - The archive API never substitutes synthetic frames when IRSA is unavailable or returns zero rows. The viewer can open a separate, visibly labelled synthetic demo so visitors can explore the interface; it is never presented as a NASA/IPAC observation.
 
 2. **Zero-Dependency FITS Parser & WCS North-Up Reprojection (`src/server/fitsParser.ts`)**
    - Parses IEEE-754 float32 and int32 FITS HDUs (both raw and `.gz` AllWISE cutouts) directly in TypeScript inside the Node/Express server.
@@ -31,10 +31,28 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
 
 ---
 
+## SPHEREx Interactive Demo Mode (Judges / Offline Preview)
+
+When the live IRSA query is unavailable, the SPHEREx viewer opens an explicitly labelled **SIMULATED_DEMO** field so visitors can inspect the interface without mistaking generated values for mission data. The benchmark library contains eight target-specific fields: the five challenge targets (Barnard's Star, Epsilon Indi B, WISE 0855-0714, RW Aurigae and R Draconis), plus L1688 Ophiuchus, the COSMOS deep-field strip and the North Ecliptic Pole calibration field. Each preview has four illustrative six-month epochs, a synthetic source field and transient candidates, and a 102-channel spectrum sampled on the SPHEREx band table.
+
+The demo exercises the viewer controls: 102-band selection across six detector arrays, image stretch and colormap controls, coordinate/crosshair and survey-tile overlays, Gaia-style and WISE-style reference overlays marked SIM, illustrative proper-motion vectors, zodiacal-background toggle, SNR-style view, co-add preview, multi-epoch comparison, blink/timelapse, difference visualization, spectral plots and diagnostic tracers, metadata inspection, provenance-aware AI explanation, PNG export, and CSV/JSON benchmark export. Catalog overlays are not represented as Gaia or AllWISE matches in demo mode.
+
+**Provenance rule:** the demo is for interface walkthroughs only. Its pixels, source positions, fluxes, timestamps, candidate scores and spectral values are generated examples—not NASA/IPAC measurements, not FITS data, and not scientific detections. Verified live IRSA results and locally imported NASA/IPAC FITS products retain their separate provenance labels.
+
+---
+
+## Hybrid Data Retrieval & Download Workflow
+
+- **Fetch live:** `GET /api/spherex/time-machine` resolves target names or RA/Dec, checks indexed local DR1/QR3 files first, then queries IRSA DR1/QR3 and requires successfully parsed FITS pixels before an observation is returned.
+- **Download FITS:** `GET /api/spherex/download-fits` accepts only official HTTPS IRSA IBE product URLs and returns a bounded 64-pixel FITS cutout after validating the FITS signature. The metadata panel exposes per-epoch cutout downloads and the original IRSA product URL.
+- **Export analysis:** the metadata panel exports the SED as CSV. In demo mode, it also exports the full benchmark fixture as JSON; both exports preserve `SIMULATED_DEMO` provenance and `isMeasured=false` semantics.
+- **Build a local dataset:** place downloaded products under `data/spherex/incoming/dr1/` or `data/spherex/incoming/qr3/`, run the Astropy indexer, then query the indexed FITS files offline. The in-app Hybrid SPHEREx Data Engine panel reports local manifest availability and guides collection.
+- **Hosted storage:** the Render free test service does not automatically persist files downloaded to a user's laptop. A shared hosted dataset requires a persistent volume or object-storage adapter and should be configured separately; no local file is silently assumed to exist in the cloud.
+
 ## Baseline Assessment & Key Scientific Improvements
 
 During technical due diligence of the initial prototype:
-- **Resolved Simulated-Only SPHEREx Data**: Removed synthetic SPHEREx fallbacks. The API and client no longer populate the scientific viewer with generated benchmark observations; FITS pixels are required for an epoch to be displayed.
+- **Separated Scientific Data from UI Simulation**: Removed implicit synthetic observations from the archive/API path. Verified archive observations still require parsed FITS pixels; generated values are available only through the visibly labelled `SIMULATED_DEMO` interface-preview mode and are never treated as measurements.
 - **Replaced Fake Difference Imaging**: Replaced synthetic star-loop subtraction (`Math.random()` noise) in `DifferenceOverlay.tsx` with variance-weighted, WCS-aligned pixel subtraction (`computeRealFrameDifference`).
 - **Corrected Candidate Vetting Claims**: Replaced `"Confirm PX"` / `"Confirmed High-Priority Planet X Candidate"` wording with honest citizen-science triage (`"Flag Priority"` / unconfirmed follow-up queue).
 - **Fixed Plate Scale & Roll Alignment**: Handled SPHEREx `PC + CDELT` WCS rotations so multi-epoch blink comparisons align background stars cleanly.

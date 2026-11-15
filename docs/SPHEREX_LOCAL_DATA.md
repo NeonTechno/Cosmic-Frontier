@@ -1,6 +1,6 @@
 # Collecting and using real SPHEREx FITS data locally
 
-Black Star Orbit does not generate substitute SPHEREx observations. The Time Machine uses live NASA/IPAC IRSA results with successfully parsed FITS pixels or products downloaded and indexed locally. Empty results and failed downloads remain empty.
+Black Star Orbit does not generate substitute SPHEREx observations. The Time Machine uses live NASA/IPAC IRSA results with successfully parsed FITS pixels or products downloaded and indexed locally. The in-app benchmark mode is a separate interface-only path. Empty results and failed downloads remain empty in the archive API.
 
 ## 1. Collect a small dataset
 
@@ -28,6 +28,17 @@ npm run dev
 \`\`\`
 
 The server reads \`data/spherex/manifest.json\` by default. Override with \`SPHEREX_DATA_DIR\` if needed. \`GET /api/spherex/local-datasets\` reports manifest availability and usable files. Matching local DR1/QR3 files are parsed first and labelled \`LOCAL_IRSA_SPHEREX\`; if neither local nor live sources provide FITS pixels, no frames are shown.
+
+
+## Downloading products from the workbench
+
+When a live or local observation includes an official IRSA IBE access URL, the Observation & FITS Metadata panel offers:
+
+- **Download 64px FITS** — retrieves a bounded cutout centered on the selected target through `/api/spherex/download-fits`. The server only accepts HTTPS URLs on `irsa.ipac.caltech.edu`, validates the returned FITS signature, and sends the file as an attachment.
+- **Original IRSA product** — opens the source product URL. For a larger multi-product dataset, use the official IRSA Data Explorer's **Generate Download Script** feature.
+- **Export SED CSV** — exports the spectrum shown in the workbench with provenance and measured/not-measured columns.
+
+For a synthetic benchmark, the export controls instead provide a JSON preview package and SED CSV explicitly marked `SIMULATED_DEMO`; they are not FITS files and must not be used as scientific measurements.
 
 ## Deployment limitation
 

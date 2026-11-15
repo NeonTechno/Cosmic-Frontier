@@ -637,6 +637,62 @@ app.get('/api/spherex/cutout-image', async (req: Request, res: Response) => {
   }
 });
 
+// Download a bounded, genuine SPHEREx FITS cutout from an IRSA IBE product URL.
+// The URL is strictly allowlisted to the official IRSA host; no arbitrary proxying is permitted.
+app.get('/api/spherex/download-fits', async (req: Request, res: Response) => {
+  const rawAccessUrl = String(req.query.accessUrl || '').trim();
+  const ra = Number(req.query.ra);
+  const dec = Number(req.query.dec);
+  const requestedSize = parseInt(String(req.query.size || '64'), 10);
+  const size = Math.min(256, Math.max(32, Number.isFinite(requestedSize) ? requestedSize : 64));
+  const obsId = String(req.query.obsId || 'observation').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 48);
+
+  let productUrl: URL;
+  try {
+    productUrl = new URL(rawAccessUrl);
+  } catch {
+    res.status(400).json({ error: 'A valid IRSA FITS accessUrl is required.' });
+    return;
+  }
+
+  if (
+    productUrl.protocol !== 'https:' ||
+    productUrl.hostname !== 'irsa.ipac.caltech.edu' ||
+    !productUrl.pathname.includes('/ibe/')
+  ) {
+    res.status(400).json({ error: 'Only official HTTPS NASA/IPAC IRSA IBE product URLs are permitted.' });
+    return;
+  }
+  if (!Number.isFinite(ra) || ra < 0 || ra > 360 || !Number.isFinite(dec) || dec < -90 || dec > 90) {
+    res.status(400).json({ error: 'Valid decimal RA (0–360) and Dec (-90–90) are required.' });
+    return;
+  }
+
+  productUrl.searchParams.set('center', ra.toFixed(6) + ',' + dec.toFixed(6));
+  productUrl.searchParams.set('size', size + 'pix');
+
+  try {
+    const upstream = await fetch(productUrl.toString(), { signal: AbortSignal.timeout(20000) });
+    if (!upstream.ok) {
+      res.status(502).json({ error: 'IRSA FITS download failed', upstreamStatus: upstream.status });
+      return;
+    }
+    const bytes = Buffer.from(await upstream.arrayBuffer());
+    if (bytes.length < 2880 || !bytes.subarray(0, 80).toString('ascii').startsWith('SIMPLE  =')) {
+      res.status(502).json({ error: 'IRSA response was not a readable FITS file; no file was downloaded.' });
+      return;
+    }
+    const filename = 'SPHEREx_' + obsId + '_' + ra.toFixed(4) + '_' + dec.toFixed(4) + '_' + size + 'pix.fits';
+    res.setHeader('Content-Type', 'application/fits');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+    res.setHeader('Content-Length', String(bytes.length));
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(bytes);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Unable to retrieve the IRSA FITS product.', details: err?.message || 'Upstream request failed.' });
+  }
+});
+
 // Target Name & Coordinate Resolver
 app.get('/api/resolve-target', async (req: Request, res: Response) => {
   const q = String(req.query.q || '').trim();
@@ -1225,8 +1281,14 @@ SCIENTIFIC ACCURACY & STYLE GUIDELINES:
 2. Never invent or extrapolate unverified coordinates, detections, or physical constants. Ground every number in the context provided.
 3. Clearly distinguish confirmed observations (e.g., Gaia DR3, AllWISE, IRSA SPHEREx DR1/QR3, known eTNO orbits) from theoretical models (such as the Batygin & Brown 2021 Planet X hypothesis).
 4. If the source is 'LOCAL_IRSA_SPHEREX', state that the image came from locally imported NASA/IPAC IRSA FITS files. Never describe a reference or benchmark as an archive observation.
-5. Use plain Unicode units and symbols (like µm, °, σ, ≈, ~) instead of LaTeX dollar signs or backslashes, and keep paragraphs concise and easy to scan.`;
+5. If the source is 'SIMULATED_DEMO', explicitly say the frame, source positions, epochs and spectrum are synthetic interface-demo values, not NASA/IPAC measurements or a FITS observation. Do not report simulated candidates as detections or infer scientific conclusions from them.
+6. Use plain Unicode units and symbols (like µm, °, σ, ≈, ~) instead of LaTeX dollar signs or backslashes, and keep paragraphs concise and easy to scan.`;
 
+  const dataVerificationStatus = String(dataPayload.dataSourceStatus) === 'SIMULATED_DEMO'
+    ? 'SIMULATION_GROUNDED'
+    : ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus))
+      ? 'GROUNDED_VERIFIED'
+      : 'REFERENCE_ONLY';
   const serializedData = JSON.stringify(dataPayload, null, 2);
   const prompt = `Topic: ${contextType}
 Question: ${userPrompt || 'Explain what this observation shows, its physical meaning, and why it matters.'}
@@ -1258,9 +1320,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
           'NASA Infrared Science Archive (IRSA) / IVOA Specifications',
         ],
         dataVerificationStatus:
-          ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus))
-            ? 'GROUNDED_VERIFIED'
-            : 'REFERENCE_ONLY',
+          dataVerificationStatus,
         confidenceRating: 'HIGH_PRECISION',
         modelUsed: nvidiaModel,
         timestamp: new Date().toISOString(),
@@ -1278,7 +1338,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
         'Caltech / JPL SPHEREx Mission Handbook (2025)',
         'Batygin, K. & Brown, M.E. (2016, 2021), Astronomical Journal',
       ],
-      dataVerificationStatus: ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus)) ? 'GROUNDED_VERIFIED' : 'REFERENCE_ONLY',
+      dataVerificationStatus: dataVerificationStatus,
       confidenceRating: 'THEORETICAL_MODEL',
       modelUsed: `deterministic-scientific-rules-fallback (Set NVIDIA_API_KEY for live ${nvidiaModel})`,
       timestamp: new Date().toISOString(),
@@ -1291,7 +1351,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
       explanation: fallbackText,
       groundedAttributes: Object.keys(dataPayload),
       scientificReferences: ['NASA IRSA Astronomical Handbook'],
-      dataVerificationStatus: ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus)) ? 'GROUNDED_VERIFIED' : 'REFERENCE_ONLY',
+      dataVerificationStatus: dataVerificationStatus,
       confidenceRating: 'THEORETICAL_MODEL',
       modelUsed: `deterministic-fallback-on-error (${nvidiaModel} unavailable)`,
       timestamp: new Date().toISOString(),
@@ -1404,6 +1464,7 @@ function generateDeterministicScientificExplanation(
   userPrompt?: string
 ): string {
   const isLocalArchive = payload.dataSourceStatus === 'LOCAL_IRSA_SPHEREX';
+  const isDemo = payload.dataSourceStatus === 'SIMULATED_DEMO';
 
   if (contextType === 'spherex_fits') {
     const target = (payload.targetName as string) || 'this SPHEREx sky region';
@@ -1412,7 +1473,11 @@ function generateDeterministicScientificExplanation(
     const dec = payload.decDeg !== undefined ? `${Number(payload.decDeg).toFixed(3)}°` : 'target Dec';
     const epochs = Array.isArray(payload.epochs) ? payload.epochs.length : undefined;
 
-    return `Looking at **${target}** (RA ${ra}, Dec ${dec}), this pointing uses SPHEREx's ${filter} to sample the sky across 102 narrow near-infrared bands between 0.75 and 5.00 µm${epochs ? ` across ${epochs} observation epochs` : ''}.
+    const demoNotice = isDemo
+      ? '**SIMULATED DEMONSTRATION — NOT NASA/IPAC DATA.** This visualization uses generated example pixels, sources, epochs and spectral values to demonstrate the interface; it is not an archive observation, FITS product, or scientific detection.\n\n'
+      : '';
+
+    return `${demoNotice}Looking at **${target}** (RA ${ra}, Dec ${dec}), this pointing uses SPHEREx's ${filter} to sample the sky across 102 narrow near-infrared bands between 0.75 and 5.00 µm${epochs ? ` across ${epochs} observation epochs` : ''}.
 
 Because SPHEREx uses Linear Variable Filters mounted directly above six Hawaii-2RG detectors, every sweep across the sky builds a low-resolution spectrum (resolving power R ≈ 40–130) at every pixel rather than just taking broad color snapshots. Comparing epochs lets astronomers spot faint moving brown dwarfs, variable stars, or transient events while also measuring interstellar ice signatures—like water ice at 3.05 µm, carbon dioxide at 4.27 µm, and carbon monoxide at 4.67 µm.
 ${userPrompt ? `\nRegarding your question ("${userPrompt}"): those molecular bands and multi-epoch shifts are directly encoded in the flux variations across bands and timestamps in this frame.` : ''}
