@@ -1009,7 +1009,7 @@ export const ExoplanetDiscoveryLab: FC<ExoplanetDiscoveryLabProps> = ({ onNaviga
                 }}
                 className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-[#8B5CF6]/10 text-[#C084FC] border border-[#8B5CF6]/30 hover:bg-[#8B5CF6]/20 transition-colors"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <MessageCircleQuestion className="w-3.5 h-3.5" />
                 Ask Guide About {activePlanetModal.planetName}
               </button>
               <button
