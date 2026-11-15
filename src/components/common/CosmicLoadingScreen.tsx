@@ -35,6 +35,7 @@ export const CosmicLoadingScreen: React.FC<CosmicLoadingScreenProps> = ({
   const [stageIndex, setStageIndex] = useState(0);
   const [progress, setProgress] = useState(12);
   const [readyToEnter, setReadyToEnter] = useState(false);
+  const [isEntering, setIsEntering] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !showIntroMode) return;
@@ -71,19 +72,24 @@ export const CosmicLoadingScreen: React.FC<CosmicLoadingScreenProps> = ({
   if (!isLoading && !showIntroMode) return null;
 
   const handleEnter = () => {
-    if (showIntroMode) onCloseIntro?.();
-    else onEnter?.();
+    if (isEntering) return;
+    setIsEntering(true);
+    window.setTimeout(() => {
+      if (showIntroMode) onCloseIntro?.();
+      else onEnter?.();
+    }, 620);
   };
 
   return (
-    <div className="fixed inset-0 z-[100] isolate flex min-h-[100svh] items-center justify-center overflow-hidden bg-[#03050b] text-white">
+    <div className={`fixed inset-0 z-[100] isolate flex min-h-[100svh] items-center justify-center overflow-hidden bg-[#03050b] text-white ${isEntering ? 'orbit-exit' : 'splash-enter'}`}>
+      <style>{`\n        @keyframes orbit-drift { 0% { transform: scale(1.04) translate3d(0,0,0); } 100% { transform: scale(1.12) translate3d(-1.2%,1.1%,0); } }\n        @keyframes orbit-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }\n        @keyframes orbit-pulse { 0%,100% { opacity:.42; transform:scale(.96); } 50% { opacity:.9; transform:scale(1.06); } }\n        @keyframes splash-rise { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:translateY(0); } }\n        @keyframes orbit-launch { 0% { opacity:1; transform:scale(1); } 35% { opacity:1; transform:scale(1.025); } 100% { opacity:0; transform:scale(1.12); filter:blur(8px); } }\n        .splash-enter .splash-content { animation:splash-rise .9s cubic-bezier(.2,.75,.25,1) both; }\n        .splash-enter .splash-bg { animation:orbit-drift 34s ease-in-out infinite alternate; }\n        .splash-enter .orbit-mark { animation:orbit-float 7s ease-in-out infinite; }\n        .splash-enter .orbit-halo { animation:orbit-pulse 5s ease-in-out infinite; }\n        .orbit-exit { animation:orbit-launch .62s cubic-bezier(.65,0,.35,1) both; pointer-events:none; }\n        @media (prefers-reduced-motion: reduce) { .splash-enter .splash-content,.splash-enter .splash-bg,.splash-enter .orbit-mark,.splash-enter .orbit-halo,.orbit-exit { animation:none !important; } }\n      `}</style>
       {/* Cinematic deep-space background */}
       <div className="absolute inset-0 -z-20">
         <img
           src={assetUrl('assets/cosmic-dust-universe.jpg')}
           alt=""
           aria-hidden="true"
-          className="h-full w-full object-cover object-center opacity-55"
+          className="splash-bg h-full w-full object-cover object-[center_42%] opacity-65"
         />
       </div>
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(3,5,11,0.48)_0%,rgba(3,5,11,0.24)_42%,rgba(3,5,11,0.88)_100%)]" />
@@ -103,7 +109,7 @@ export const CosmicLoadingScreen: React.FC<CosmicLoadingScreenProps> = ({
         </button>
       )}
 
-      <main className="relative z-10 flex w-full max-w-3xl flex-col items-center px-7 py-12 text-center sm:px-10">
+      <main className="splash-content relative z-10 flex w-full max-w-3xl flex-col items-center px-7 py-12 text-center sm:px-10">
         <div className="mb-7 flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.34em] text-white/55 sm:text-[10px]">
           <span className="h-px w-8 bg-white/35" />
           Astronomy Research Platform
