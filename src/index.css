@@ -1303,74 +1303,6 @@ body { color: #eaf4fb; }
   color: #8deeff; border: 1px solid rgba(0,217,245,.38);
   background: rgba(0,217,245,.075); border-radius: 999px;
 }
-.editorial-dark #editorial-overview {
-  position: relative;
-  isolation: isolate;
-  padding: clamp(24px, 4vw, 54px);
-  margin-bottom: clamp(48px, 7vw, 92px);
-  border: 1px solid rgba(102,190,220,.18);
-  border-radius: 26px;
-  background:
-    radial-gradient(circle at 75% 45%, rgba(0,190,230,.12), transparent 28%),
-    linear-gradient(120deg, rgba(9,19,34,.96), rgba(5,12,24,.91) 58%, rgba(13,17,38,.94));
-  box-shadow: 0 28px 90px rgba(0,0,0,.35), inset 0 1px rgba(255,255,255,.035);
-  overflow: hidden;
-}
-.editorial-dark #editorial-overview::before {
-  content: "";
-  position: absolute; z-index: -1;
-  width: min(48vw, 540px); aspect-ratio: 1;
-  right: 8%; top: 50%; transform: translateY(-50%);
-  border-radius: 50%;
-  border: 1px solid rgba(0,217,245,.24);
-  box-shadow: 0 0 0 26px rgba(0,217,245,.018), 0 0 0 62px rgba(0,217,245,.014), inset 0 0 70px rgba(0,217,245,.08), 0 0 90px rgba(0,217,245,.07);
-  background: radial-gradient(circle at 35% 35%, rgba(0,217,245,.13), rgba(7,18,34,.04) 48%, transparent 70%);
-}
-.editorial-dark #editorial-overview::after {
-  content: "";
-  position: absolute; z-index: -1;
-  width: 1px; height: 130%; top: -15%; right: 32%;
-  transform: rotate(34deg);
-  background: linear-gradient(transparent, rgba(0,217,245,.38), transparent);
-  box-shadow: 0 0 22px rgba(0,217,245,.35);
-}
-.editorial-dark #editorial-overview h2 {
-  font-family: Inter, ui-sans-serif, sans-serif !important;
-  font-size: clamp(42px, 6.2vw, 88px) !important;
-  font-weight: 720 !important; line-height: .98 !important;
-  letter-spacing: -.065em !important;
-  max-width: 800px;
-}
-.editorial-dark #editorial-overview h2 span {
-  color: #74eaff !important;
-  background: linear-gradient(100deg, #e9fbff, #00d9f5 58%, #9a9bff);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.editorial-dark #editorial-overview p { color: #a7bacb !important; max-width: 660px; font-size: 14px; }
-.editorial-dark .editorial-btn {
-  min-height: 46px; padding: 0 18px; border-radius: 999px;
-  border: 1px solid rgba(0,217,245,.44);
-  background: linear-gradient(110deg, rgba(0,217,245,.16), rgba(53,94,165,.12));
-  color: #c8f7ff; font: 600 10px/1.2 'JetBrains Mono', monospace;
-  letter-spacing: .045em; text-transform: uppercase;
-  box-shadow: 0 7px 24px rgba(0,0,0,.18);
-}
-.editorial-dark .editorial-btn:hover { background: rgba(0,217,245,.2); box-shadow: 0 0 26px rgba(0,217,245,.12); transform: translateY(-2px); }
-.editorial-dark #editorial-overview > div:last-child {
-  position: relative;
-  padding: 22px;
-  border: 1px solid rgba(117,164,199,.18);
-  border-radius: 18px;
-  background: linear-gradient(145deg, rgba(17,32,52,.86), rgba(7,15,28,.9));
-  box-shadow: 0 18px 50px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.045);
-  backdrop-filter: blur(18px);
-}
-.editorial-dark #editorial-overview > div:last-child > div { border-color: rgba(117,164,199,.14) !important; }
-.editorial-dark #editorial-overview > div:last-child button {
-  border-radius: 12px !important; background: rgba(0,217,245,.055) !important;
-}
-.editorial-dark #editorial-overview > div:last-child button:hover { background: rgba(0,217,245,.12) !important; }
 .editorial-dark #editorial-catalog {
   border-color: var(--orbit-line) !important;
 }
@@ -1402,11 +1334,6 @@ body { color: #eaf4fb; }
   .editorial-dark .editorial-header nav { width: 100%; overflow-x: auto; flex-wrap: nowrap !important; padding: 5px 0 9px; scrollbar-width: none; }
   .editorial-dark .editorial-header nav::-webkit-scrollbar { display: none; }
   .editorial-dark .editorial-header nav button { white-space: nowrap; }
-  .editorial-dark #editorial-overview { padding: 24px 19px; border-radius: 20px; gap: 28px; }
-  .editorial-dark #editorial-overview::before { width: 280px; right: -130px; top: 30%; opacity: .65; }
-  .editorial-dark #editorial-overview::after { right: 8%; opacity: .45; }
-  .editorial-dark #editorial-overview h2 { font-size: clamp(42px, 12vw, 64px) !important; }
-  .editorial-dark #editorial-overview > div:last-child { padding: 18px; }
   .editorial-dark #editorial-catalog .flex.flex-wrap { gap: 8px; }
   .editorial-dark #editorial-catalog .relative.min-w-\[260px\] { min-width: 100%; }
 }
@@ -1507,20 +1434,35 @@ code, pre, .font-mono, .font-editorial-mono {
   min-height: clamp(590px, 68vw, 760px);
   overflow: hidden;
   color: #f4f8fc;
-  background: #050a12;
   border: 1px solid rgba(154, 190, 216, .2);
   border-radius: 24px;
   box-shadow: 0 28px 90px rgba(0, 0, 0, .42), inset 0 1px rgba(255,255,255,.045);
 }
 .editorial-astronaut-image {
   position: absolute;
-  z-index: -3;
+  z-index: 1;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 44%;
-  filter: saturate(1.05) contrast(1.05) brightness(.92);
+  object-position: center 38%;
+  filter: saturate(1.05) contrast(1.06) brightness(.95);
+  pointer-events: none;
+}
+.editorial-mockup-columns {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  pointer-events: none;
+}
+.editorial-mockup-col {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  height: 100%;
+}
+.editorial-mockup-col:last-child {
+  border-right: none;
 }
 .editorial-astronaut-shade {
   position: absolute;
@@ -1944,7 +1886,6 @@ code, pre, .font-mono, .font-editorial-mono {
 /* Retain the deliberate dark NASA astronaut image and its white editorial copy. */
 .theme-light .editorial-astronaut-hero {
   color: #f4f8fc !important;
-  background: #050a12 !important;
   border-color: rgba(154, 190, 216, .2) !important;
 }
 .theme-light .editorial-astronaut-hero :is(
@@ -2139,7 +2080,6 @@ body.theme-light {
 /* Do not wash out the deliberately photographic dark editorial cover. */
 .theme-light .editorial-astronaut-hero {
   color: #f4f8fc !important;
-  background: #050a12 !important;
 }
 .theme-light .editorial-astronaut-hero :is(h1,h2,h3,p,span,small,strong,a,button) { color: #f8fafc !important; }
 .theme-light .editorial-astronaut-hero .editorial-astronaut-primary { color: #07111c !important; }

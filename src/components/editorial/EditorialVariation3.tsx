@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import confirmedExoplanetsData from '../../cosmic-frontier/data/catalogs/confirmed-exoplanets.json';
-import { ArrowUpRight, Search, Sparkles, Filter, Database, ShieldCheck, Compass, Eye, RefreshCw, Moon, Sun, LayoutGrid, Table2 } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Search, Filter, Database, ShieldCheck, Compass, Eye, RefreshCw, Moon, Sun, LayoutGrid, Table2, Menu } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { BlackStarLogo } from '../common/BlackStarLogo';
 import { assetUrl } from '../../utils/assetUrl';
+import astronautHeroImg from '../../assets/editorial-astronaut.jpg';
 
 interface EditorialVariation3Props {
   onNavigate: (tab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite') => void;
@@ -219,83 +220,130 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
           </div>
         </div>
 
-        {/* --- CINEMATIC NASA ASTRONAUT EDITORIAL HERO --- */}
-        <section id="editorial-overview" className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28">
+        {/* --- CINEMATIC NASA ASTRONAUT EDITORIAL HERO (ROCKETSPACE / SPACE EXPLORATION STYLE) --- */}
+        <section 
+          id="editorial-overview" 
+          className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28 relative overflow-hidden rounded-[24px] sm:rounded-[32px] border border-white/15 shadow-2xl min-h-[580px] sm:min-h-[660px] lg:min-h-[720px] flex flex-col justify-between"
+          style={{
+            backgroundImage: `url(${astronautHeroImg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'left 35%',
+            backgroundRepeat: 'no-repeat',
+          }}
+        >
           <img
-            className="editorial-astronaut-image editorial-dust-horizon-image"
-            src="https://photojournal.jpl.nasa.gov/jpeg/PIA26352.jpg"
-            alt="NASA SPHEREx infrared observation revealing interstellar dust clouds in the Large Magellanic Cloud"
+            className="editorial-astronaut-image"
+            src={astronautHeroImg}
+            alt="Black Star Orbit astronaut deep space exploration"
             loading="eager"
             fetchPriority="high"
+            style={{ objectPosition: 'left 35%' }}
           />
-          <div className="editorial-astronaut-shade" aria-hidden="true" />
-          <div className="editorial-astronaut-grid" aria-hidden="true" />
-          <div className="editorial-astronaut-frame" aria-hidden="true">
-            <span>SPHEREX / INFRARED FIELD 01</span>
-            <span>INTERSTELLAR DUST SURVEY</span>
+
+          {/* Subtle cinematic gradient to enhance right-side text contrast */}
+          <div 
+            className="absolute inset-0 pointer-events-none z-[2]" 
+            style={{
+              background: 'linear-gradient(90deg, rgba(5,10,18,0.2) 0%, rgba(5,10,18,0.4) 45%, rgba(5,10,18,0.85) 75%, rgba(5,10,18,0.95) 100%)'
+            }}
+          />
+
+          {/* Vertical Architectural Grid Lines (Mockup style) */}
+          <div className="absolute inset-0 z-[2] grid grid-cols-4 sm:grid-cols-6 pointer-events-none" aria-hidden="true">
+            <div className="border-r border-white/[0.06] h-full" />
+            <div className="border-r border-white/[0.06] h-full" />
+            <div className="border-r border-white/[0.06] h-full" />
+            <div className="border-r border-white/[0.06] h-full" />
+            <div className="border-r border-white/[0.06] h-full hidden sm:block" />
+            <div className="h-full hidden sm:block" />
           </div>
 
-          <div className="editorial-astronaut-layout">
-            <div className="editorial-astronaut-copy">
-              <span className="editorial-astronaut-kicker">OBSERVATIONAL ASTROPHYSICS // 2026</span>
-              <h2>
-                The Cosmic Dust
-                <span>Horizon.</span>
-              </h2>
-              <p>
-                Explore the infrared universe through calibrated all-sky observations, exoplanet records and orbital research. Every scientific workflow is grounded in traceable mission data and published astronomical sources.
-              </p>
-              <div className="editorial-astronaut-actions">
-                <button onClick={() => onNavigate('spherex')} className="editorial-astronaut-primary">
-                  Launch SPHEREx Workbench <span aria-hidden="true">↗</span>
-                </button>
-                <button onClick={() => onNavigate('planetx')} className="editorial-astronaut-secondary">
-                  Investigate Planet X
-                </button>
-              </div>
-              {onOpenDataModal && (
-                <button onClick={onOpenDataModal} className="editorial-astronaut-spec-link">
-                  View NASA data specifications
-                </button>
-              )}
+          {/* Top Bar: Brand Logo & Minimalist Navigation */}
+          <header className="relative z-10 flex items-center justify-between px-6 sm:px-12 pt-6 sm:pt-8 w-full">
+            <div className="flex items-center gap-3">
+              <BlackStarLogo size="md" className="filter drop-shadow-[0_0_12px_rgba(56,189,248,0.8)]" />
+              <span className="font-['Orbitron',sans-serif] text-sm sm:text-base font-bold tracking-[0.24em] text-white uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+                BLACK STAR ORBIT
+              </span>
             </div>
 
-            <div className="editorial-astronaut-center-space" aria-hidden="true" />
-
-            <aside className="editorial-astronaut-telemetry" aria-label="Scientific platform status">
-              <div className="editorial-astronaut-panel-top">
-                <span>MISSION TELEMETRY</span>
-                <span className="editorial-astronaut-live"><i /> ACTIVE</span>
-              </div>
-              <div className="editorial-astronaut-metric">
-                <span>SYSTEM STATUS</span>
-                <strong>Nominal</strong>
-                <small>Level-2/3 processing mode</small>
-              </div>
-              <div className="editorial-astronaut-metric">
-                <span>INFRARED SPECTRAL SPAN</span>
-                <strong>0.75 – 5.0 µm</strong>
-                <small>102 continuous wavelength bands</small>
-              </div>
-              <div className="editorial-astronaut-metric">
-                <span>ORBITAL MODEL REFERENCE</span>
-                <strong>Batygin &amp; Brown</strong>
-                <small>2021 · eTNO perihelion clustering</small>
-              </div>
-              <button onClick={() => onNavigate('astrobiology')} className="editorial-astronaut-study">
-                <span>FEATURED SCIENTIFIC STUDY</span>
-                <strong>Prebiotic Interstellar Ices <b>↗</b></strong>
-                <small>H₂O · CO₂ · CH₃OH</small>
+            <nav className="flex items-center gap-4 sm:gap-8 text-xs font-mono tracking-widest text-slate-300">
+              <button 
+                onClick={() => onNavigate('spherex')} 
+                className="hover:text-cyan-300 transition-colors cursor-pointer hidden md:inline-block"
+              >
+                _SPHEREx
               </button>
-            </aside>
+              <button 
+                onClick={() => onNavigate('planetx')} 
+                className="hover:text-cyan-300 transition-colors cursor-pointer hidden md:inline-block"
+              >
+                _PLANETS
+              </button>
+              <button 
+                onClick={() => onNavigate('astrobiology')} 
+                className="hover:text-cyan-300 transition-colors cursor-pointer hidden lg:inline-block"
+              >
+                _ASTROBIOLOGY
+              </button>
+              <button 
+                onClick={() => onNavigate('cosmic-suite')} 
+                className="hover:text-cyan-300 transition-colors cursor-pointer hidden sm:inline-block"
+              >
+                _COSMIC LAB
+              </button>
+              {onOpenShortcutsHelp && (
+                <button 
+                  onClick={onOpenShortcutsHelp}
+                  className="p-1.5 rounded-md hover:bg-white/10 text-white transition-colors cursor-pointer"
+                  title="Shortcuts Guide [Alt+/]"
+                >
+                  <Menu className="w-4 h-4" />
+                </button>
+              )}
+            </nav>
+          </header>
+
+          {/* Main Layout: Left Vertical Pagination & Right Hero Content */}
+          <div className="relative z-10 flex flex-1 items-center justify-between w-full px-6 sm:px-12 py-10 sm:py-16">
+            {/* Left Vertical Pagination Indicator */}
+            <div className="hidden lg:flex flex-col items-start gap-6 font-mono text-xs tracking-widest select-none">
+              <span className="text-white font-bold border-l-2 border-white pl-2.5">— 01</span>
+              <span className="text-slate-400/50 hover:text-white transition-colors pl-2.5 cursor-pointer">02</span>
+              <span className="text-slate-400/50 hover:text-white transition-colors pl-2.5 cursor-pointer">03</span>
+            </div>
+
+            {/* Right Hero Content Card */}
+            <div className="flex-1 flex flex-col items-start lg:items-end w-full lg:pr-8">
+              <div className="max-w-lg lg:text-left space-y-4 sm:space-y-6">
+                <span className="inline-block font-mono text-xs tracking-[0.25em] text-cyan-300 uppercase font-semibold">
+                  01 — 04
+                </span>
+
+                <h1 className="font-['Orbitron',sans-serif] text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-[0.08em] text-white uppercase leading-[1.05] drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)]">
+                  SPACE <br />
+                  EXPLORATION
+                </h1>
+
+                <p className="text-sm sm:text-base text-slate-300/80 font-sans leading-relaxed max-w-md drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                  The ongoing discovery and exploration of celestial structures in outer space by means of continuously evolving and growing SPHEREx infrared observations.
+                </p>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => scrollToSection('editorial-catalog')}
+                    className="group inline-flex items-center gap-3 px-8 py-3 rounded-full border border-white/40 hover:border-white bg-white/10 hover:bg-white text-white hover:text-black font-['Orbitron',sans-serif] text-xs font-bold tracking-[0.16em] uppercase transition-all duration-300 backdrop-blur-md cursor-pointer shadow-[0_4px_25px_rgba(0,0,0,0.5)]"
+                  >
+                    <span>Show more</span>
+                    <ArrowRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <footer className="editorial-astronaut-caption">
-            <span>FIG. 01 — INTERSTELLAR DUST IN THE LARGE MAGELLANIC CLOUD</span>
-            <a href="https://science.nasa.gov/photojournal/spherexs-dust-cloud-reveal/" target="_blank" rel="noreferrer">
-              IMAGE: NASA / JPL-CALTECH · SPHEREX PIA26352 ↗
-            </a>
-          </footer>
+          {/* Bottom subtle edge padding */}
+          <div className="relative z-10 pb-4" />
         </section>
 
         {/* --- CATALOG SECTION --- */}
