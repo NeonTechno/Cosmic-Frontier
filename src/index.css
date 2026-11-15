@@ -2102,10 +2102,7 @@ body.theme-light {
 .theme-light pre { background: #f1f4f7 !important; border-color: #d7dee7 !important; }
 .theme-light svg text { fill: #536174; }
 
-/* Do not wash out the deliberately photographic dark editorial cover or launch art. */
-.theme-light :is(.editorial-astronaut-hero, .mission-hero, .mission-hero *) {
-  color: revert;
-}
+/* Do not wash out the deliberately photographic dark editorial cover. */
 .theme-light .editorial-astronaut-hero {
   color: #f4f8fc !important;
   background: #050a12 !important;
