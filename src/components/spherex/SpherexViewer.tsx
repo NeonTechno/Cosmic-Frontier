@@ -285,7 +285,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
     } else if (targetParam) {
       fetchLiveTimeMachine({ q: targetParam, fov: fovVal });
     } else {
-      // Automatically pull real IRSA DR1/QR3 cutouts for Barnard's Star on entry
+      // Start the judges' workbench with the WISE 0855-0714 challenge target; live IRSA is attempted first.
       fetchLiveTimeMachine({
         q: 'WISE 0855-0714',
         ra: 133.7951,
