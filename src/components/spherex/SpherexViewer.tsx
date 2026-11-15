@@ -851,7 +851,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             >
               {localObservations.map((obs) => (
                 <option key={obs.id} value={obs.id}>
-                  {obs.targetName} [{obs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ? 'LIVE IRSA' : obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'LOCAL FITS' : 'REFERENCE'}]
+                  {obs.targetName} [{obs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ? 'LIVE IRSA' : obs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'LOCAL FITS' : obs.dataSourceStatus === 'SIMULATED_DEMO' ? 'SIMULATED DEMO' : 'REFERENCE'}]
                 </option>
               ))}
             </select>
@@ -1466,6 +1466,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             <SpectralSignalVisualizer
               targetName={activeObs.targetName}
               category={activeObs.category}
+              dataSourceStatus={activeObs.dataSourceStatus}
               spectralPoints={activeObs.fullSedCurve?.map((p) => ({
                 wavelength: p.wavelength,
                 fluxMJySr: p.fluxMJySr,
