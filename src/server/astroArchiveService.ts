@@ -118,21 +118,21 @@ function bandCenterMicrons(band: string, emMin: number, emMax: number): number {
 }
 
 function decodeXmlValue(value: string): string {
-  return value.replace(/<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>/g, '$1')
+  return value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
     .replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&#(\\d+);/g, (_m, code) => String.fromCodePoint(Number(code)))
-    .replace(/&#x([\\da-f]+);/gi, (_m, code) => String.fromCodePoint(parseInt(code, 16))).trim();
+    .replace(/&#(\d+);/g, (_m, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([\da-f]+);/gi, (_m, code) => String.fromCodePoint(parseInt(code, 16))).trim();
 }
 
 function parseVotableRows(xml: string): Record<string, string>[] {
-  const fields = [...xml.matchAll(/<FIELD\\b([^>]*)\\/?\\s*>/gi)]
+  const fields = [...xml.matchAll(/<FIELD\b([^>]*)\/?\s*>/gi)]
     .map((m) => m[1].match(/name=["']([^"']+)["']/i)?.[1].toLowerCase())
     .filter((name): name is string => Boolean(name));
   if (!fields.length) return [];
   const rows: Record<string, string>[] = [];
-  for (const tr of xml.matchAll(/<TR\\b[^>]*>([\\s\\S]*?)<\\/TR>/gi)) {
-    const cells = [...tr[1].matchAll(/<TD\\b[^>]*>([\\s\\S]*?)<\\/TD>/gi)].map((td) => decodeXmlValue(td[1]));
+  for (const tr of xml.matchAll(/<TR\b[^>]*>([\s\S]*?)<\/TR>/gi)) {
+    const cells = [...tr[1].matchAll(/<TD\b[^>]*>([\s\S]*?)<\/TD>/gi)].map((td) => decodeXmlValue(td[1]));
     if (cells.length !== fields.length) continue;
     const row: Record<string, string> = {};
     fields.forEach((field, index) => { row[field] = cells[index]; });
@@ -170,7 +170,7 @@ export async function queryIrsaSpherexSia(
         throw new Error(`IRSA SIA ${collection} HTTP ${res.status}${detail ? `: ${detail}` : ''}`);
       }
       xml = await res.text();
-      if (!/<(?:\\w+:)?VOTABLE\\b/i.test(xml)) throw new Error(`IRSA SIA ${collection} returned a non-VOTable response`);
+      if (!/<(?:\w+:)?VOTABLE\b/i.test(xml)) throw new Error(`IRSA SIA ${collection} returned a non-VOTable response`);
       lastError = null;
       break;
     } catch (error) {
