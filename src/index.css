@@ -401,6 +401,38 @@ body {
   animation: radarSweep 6s linear infinite;
 }
 
+/* Subtle fade-in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn,
+.animate-fade-in {
+  animation: fadeIn var(--motion-duration-fast) var(--motion-ease-enter) both;
+}
+
+/* Smooth entrance for newly added SPHEREx observation & telemetry rows (compositor-only) */
+@keyframes rowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-row-fade-in {
+  animation: rowFadeIn var(--motion-duration-fast) var(--motion-ease-enter) both;
+  will-change: opacity, transform;
+}
+
 /* Page entrance */
 @keyframes pageEnter {
   from {
@@ -497,7 +529,10 @@ body {
   .animate-spin,
   .animate-pulse,
   .animate-bounce,
-  .animate-ping {
+  .animate-ping,
+  .animate-row-fade-in,
+  .animate-fade-in,
+  .animate-fadeIn {
     animation: none !important;
     transform: none !important;
   }
@@ -522,7 +557,10 @@ body {
 .reduce-motion .animate-spin,
 .reduce-motion .animate-pulse,
 .reduce-motion .animate-bounce,
-.reduce-motion .animate-ping {
+.reduce-motion .animate-ping,
+.reduce-motion .animate-row-fade-in,
+.reduce-motion .animate-fade-in,
+.reduce-motion .animate-fadeIn {
   animation: none !important;
   transform: none !important;
 }

@@ -364,7 +364,7 @@ export const DifferenceOverlay: React.FC<DifferenceOverlayProps> = ({
                 return (
                   <div
                     key={tr.id}
-                    className="p-3 rounded-lg border bg-slate-900/80 border-slate-800 text-xs space-y-2"
+                    className="p-3 rounded-lg border bg-slate-900/80 border-slate-800 text-xs space-y-2 animate-row-fade-in"
                   >
                     <div className="flex items-start justify-between">
                       <span className="font-mono font-bold text-amber-300">{tr.id}</span>

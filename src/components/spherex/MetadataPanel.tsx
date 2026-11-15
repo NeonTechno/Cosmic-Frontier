@@ -238,7 +238,7 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
               return (
                 <div
                   key={src.sourceId}
-                  className="bg-slate-900/80 px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between text-[10px]"
+                  className="bg-slate-900/80 px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between text-[10px] animate-row-fade-in"
                 >
                   <div className="min-w-0">
                     <div className="text-slate-200 font-semibold truncate">

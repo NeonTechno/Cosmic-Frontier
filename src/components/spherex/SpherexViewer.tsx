@@ -95,7 +95,12 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
   const [panesFrozen, setPanesFrozen] = useState<boolean>(true);
   const [isSearchingLive, setIsSearchingLive] = useState<boolean>(false);
   const [liveSearchError, setLiveSearchError] = useState<string | null>(null);
+  const [showObservationsList, setShowObservationsList] = useState<boolean>(true);
+  const [obsRowVersions, setObsRowVersions] = useState<Record<string, number>>({});
+  const [animatingObsKeys, setAnimatingObsKeys] = useState<Set<string>>(() => new Set());
   const initialAutoFetchedRef = useRef<boolean>(false);
+  const knownObsIdsRef = useRef<Set<string>>(new Set(observations.map((o) => o.id)));
+  const obsRowVersionsRef = useRef<Record<string, number>>({});
 
   // Visualization parameters
   const [stretch, setStretch] = useState<StretchMode>('asinh');
@@ -138,11 +143,45 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const markObservationAdded = useCallback((obsId: string) => {
+    knownObsIdsRef.current.add(obsId);
+    const nextVer = (obsRowVersionsRef.current[obsId] || 0) + 1;
+    obsRowVersionsRef.current[obsId] = nextVer;
+    setObsRowVersions({ ...obsRowVersionsRef.current });
+    setAnimatingObsKeys((keys) => {
+      const next = new Set(keys);
+      next.add(`${obsId}::${nextVer}`);
+      return next;
+    });
+  }, []);
+
   // Synchronize localObservations when observations prop updates, preserving live IRSA entries
   useEffect(() => {
     if (observations.length > 0) {
+      const incomingNewIds: string[] = [];
+      for (const o of observations) {
+        if (!knownObsIdsRef.current.has(o.id)) {
+          knownObsIdsRef.current.add(o.id);
+          incomingNewIds.push(o.id);
+        }
+      }
+      if (incomingNewIds.length > 0) {
+        setAnimatingObsKeys((keys) => {
+          const next = new Set(keys);
+          for (const id of incomingNewIds) {
+            next.add(`${id}::${obsRowVersionsRef.current[id] || 0}`);
+          }
+          return next;
+        });
+      }
       setLocalObservations((prev) => {
-        const liveOnes = prev.filter((p) => p.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || p.id.startsWith('SPHEREX-IRSA') || p.id.startsWith('SPHEREX-CUSTOM'));
+        const liveOnes = prev.filter(
+          (p) =>
+            p.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ||
+            p.id.startsWith('IRSA-SPHEREX') ||
+            p.id.startsWith('SPHEREX-IRSA') ||
+            p.id.startsWith('SPHEREX-CUSTOM')
+        );
         const existingIds = new Set(liveOnes.map((l) => l.id));
         return [...liveOnes, ...observations.filter((o) => !existingIds.has(o.id))];
       });
@@ -189,6 +228,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         );
         return [obs, ...filtered];
       });
+      markObservationAdded(obs.id);
       setSelectedObsId(obs.id);
       setSelectedEpochIdx(0);
       setSelectedFov(obs.fieldOfViewArcmin);
@@ -229,6 +269,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           const filtered = prev.filter((o) => o.id !== resolvedObs.id);
           return [resolvedObs, ...filtered];
         });
+        markObservationAdded(resolvedObs.id);
         setSelectedObsId(resolvedObs.id);
         setSelectedEpochIdx(0);
         setSelectedFov(resolvedObs.fieldOfViewArcmin);
@@ -238,7 +279,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
     } finally {
       setIsSearchingLive(false);
     }
-  }, [selectedFov]);
+  }, [selectedFov, markObservationAdded]);
 
   // Read URL query parameters OR auto-load live IRSA cutouts for the initial challenge target
   useEffect(() => {
@@ -312,6 +353,21 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       band: selectedDetectorBand || undefined,
       fov: selectedFov || 6.5,
     });
+  };
+
+  const handleSelectObservation = (nextId: string) => {
+    setSelectedObsId(nextId);
+    setSelectedEpochIdx(0);
+    const chosen = localObservations.find((o) => o.id === nextId);
+    if (chosen && chosen.dataSourceStatus !== 'LIVE_IRSA_SPHEREX') {
+      fetchLiveTimeMachine({
+        q: chosen.targetName,
+        ra: chosen.raDeg,
+        dec: chosen.decDeg,
+        band: selectedDetectorBand || undefined,
+        fov: chosen.fieldOfViewArcmin || 6.5,
+      });
+    }
   };
 
   const handleChangeDetectorBand = (band: string) => {
@@ -769,21 +825,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             </span>
             <select
               value={selectedObsId}
-              onChange={(e) => {
-                const nextId = e.target.value;
-                setSelectedObsId(nextId);
-                setSelectedEpochIdx(0);
-                const chosen = localObservations.find((o) => o.id === nextId);
-                if (chosen && chosen.dataSourceStatus !== 'LIVE_IRSA_SPHEREX') {
-                  fetchLiveTimeMachine({
-                    q: chosen.targetName,
-                    ra: chosen.raDeg,
-                    dec: chosen.decDeg,
-                    band: selectedDetectorBand || undefined,
-                    fov: chosen.fieldOfViewArcmin || 6.5,
-                  });
-                }
-              }}
+              onChange={(e) => handleSelectObservation(e.target.value)}
               aria-label="Select active SPHEREx target field"
               className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-sm font-semibold text-white focus:outline-none focus:border-cyan-500 cursor-pointer max-w-xs truncate"
             >
@@ -885,6 +927,115 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           </button>
         </div>
         </div>
+      </div>
+
+      {/* SPHEREx Observations List (with smooth fade-in animation for each newly added row) */}
+      <div
+        className={`rounded-xl border transition-colors ${
+          isLight
+            ? 'bg-white border-[#1a1a1a]/15 shadow-xs'
+            : 'bg-slate-900/90 border-slate-800 shadow-lg'
+        }`}
+      >
+        <div
+          className={`flex items-center justify-between px-3.5 py-2 border-b text-xs font-mono ${
+            isLight ? 'border-[#1a1a1a]/10 text-[#1a1a1a]' : 'border-slate-800/80 text-slate-300'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Telescope className={`h-3.5 w-3.5 ${isLight ? 'text-[#d44d5c]' : 'text-cyan-400'}`} />
+            <span className="font-semibold tracking-tight">SPHEREx Observations</span>
+            <span className={isLight ? 'text-[#666] tabular-nums' : 'text-slate-400 tabular-nums'}>
+              · {localObservations.length} {localObservations.length === 1 ? 'record' : 'records'}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowObservationsList((v) => !v)}
+            className={`flex items-center gap-1 text-[11px] cursor-pointer transition-colors ${
+              isLight ? 'text-[#666] hover:text-[#1a1a1a]' : 'text-slate-400 hover:text-cyan-300'
+            }`}
+          >
+            <span>{showObservationsList ? 'Hide list' : 'Show list'}</span>
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                showObservationsList ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+        </div>
+
+        {showObservationsList && (
+          <div className={`max-h-40 overflow-y-auto pane-scroll divide-y ${isLight ? 'divide-[#1a1a1a]/10' : 'divide-slate-800/60'}`}>
+            {localObservations.map((obs) => {
+              const ver = obsRowVersions[obs.id] || 0;
+              const rowKey = `${obs.id}::${ver}`;
+              const isNewRow = animatingObsKeys.has(rowKey);
+              const isSelected = obs.id === activeObs?.id;
+              const isLive = obs.dataSourceStatus === 'LIVE_IRSA_SPHEREX';
+
+              return (
+                <button
+                  key={rowKey}
+                  type="button"
+                  onClick={() => handleSelectObservation(obs.id)}
+                  onAnimationEnd={() => {
+                    if (isNewRow) {
+                      setAnimatingObsKeys((prev) => {
+                        if (!prev.has(rowKey)) return prev;
+                        const next = new Set(prev);
+                        next.delete(rowKey);
+                        return next;
+                      });
+                    }
+                  }}
+                  className={`w-full text-left px-3.5 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs transition-colors cursor-pointer ${
+                    isNewRow ? 'animate-row-fade-in' : ''
+                  } ${
+                    isSelected
+                      ? isLight
+                        ? 'bg-[#f4f1ea] text-[#1a1a1a]'
+                        : 'bg-cyan-950/35 text-white'
+                      : isLight
+                        ? 'hover:bg-black/[0.03] text-[#1a1a1a]'
+                        : 'hover:bg-slate-800/50 text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`font-semibold truncate ${isSelected ? (isLight ? 'text-[#d44d5c]' : 'text-cyan-300') : ''}`}>
+                      {obs.targetName}
+                    </span>
+                    <span className={`text-[11px] font-mono truncate hidden sm:inline ${isLight ? 'text-[#666]' : 'text-slate-400'}`}>
+                      · {obs.category}
+                    </span>
+                  </div>
+
+                  <div className={`flex items-center gap-2 text-[11px] font-mono tabular-nums shrink-0 ${isLight ? 'text-[#555]' : 'text-slate-400'}`}>
+                    <span>
+                      RA {obs.raDeg.toFixed(3)}° · Dec {obs.decDeg.toFixed(3)}°
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span>{obs.epochs.length} epochs</span>
+                    <span aria-hidden="true">·</span>
+                    <span
+                      className={
+                        isLive
+                          ? isLight
+                            ? 'text-emerald-700 font-semibold'
+                            : 'text-emerald-300 font-semibold'
+                          : isLight
+                            ? 'text-amber-700'
+                            : 'text-amber-300'
+                      }
+                    >
+                      {isLive ? 'Live IRSA' : obs.dataSourceStatus === 'FALLBACK_SIMULATED' ? 'Offline Fallback' : 'Benchmark'}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Main Sky Viewer Area (when in 'single' mode) */}
