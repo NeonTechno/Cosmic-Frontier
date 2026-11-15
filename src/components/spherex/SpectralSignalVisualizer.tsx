@@ -24,7 +24,7 @@ import {
 } from 'recharts';
 import {
   Activity,
-  Sparkles,
+  Telescope,
   Waves,
   Droplet,
   Info,
@@ -385,8 +385,8 @@ export const SpectralSignalVisualizer: React.FC<SpectralSignalVisualizerProps> =
               }
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-mono text-xs font-bold transition shadow-md shadow-cyan-950/40 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI Spectral Intel</span>
+              <Telescope className="w-3.5 h-3.5" />
+              <span>Spectral Intel</span>
             </button>
           )}
 
