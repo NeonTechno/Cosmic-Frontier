@@ -253,13 +253,18 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
                   <div className="text-[11px] text-slate-200 font-semibold truncate">{frame.timestamp.split('T')[0]} · {frame.detectorBand || 'SPHEREx band'}</div>
                   <div className="text-[10px] text-slate-500">{frame.obsCollection || 'IRSA archive'} · {frame.obsId || frame.frameId}</div>
                 </div>
-                <a
-                  href={fitsDownloadUrl(frame)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700/60 bg-emerald-950/35 px-2.5 py-1.5 text-[11px] text-emerald-200 hover:bg-emerald-900/50"
-                  download
-                >
-                  <Download className="h-3.5 w-3.5" /> Download 64px FITS
-                </a>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={fitsDownloadUrl(frame)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700/60 bg-emerald-950/35 px-2.5 py-1.5 text-[11px] text-emerald-200 hover:bg-emerald-900/50"
+                    download
+                  >
+                    <Download className="h-3.5 w-3.5" /> Download 64px FITS
+                  </a>
+                  <a href={frame.accessUrl} target="_blank" rel="noreferrer" className="text-[10px] text-cyan-300 hover:underline">
+                    Original IRSA product
+                  </a>
+                </div>
               </div>
             )) : (
               <p className="text-[10px] text-slate-400">
