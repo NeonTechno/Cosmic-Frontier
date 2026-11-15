@@ -40,7 +40,7 @@ import {
 import { ShieldCheck, Compass, ExternalLink, ArrowUpRight, Orbit, Telescope, Activity, FlaskConical, ImageIcon, Globe, Moon, Sun } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite'>('cosmic-suite');
   const [serverOk, setServerOk] = useState<boolean>(true);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [showIntroModal, setShowIntroModal] = useState<boolean>(false);
