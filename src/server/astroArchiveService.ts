@@ -209,6 +209,76 @@ export async function queryIrsaSpherexSia(
   setCached(cacheKey, rows);
   return rows;
 }
+function parseCsvRows(csv: string): Record<string, string>[] {
+  const lines = csv.replace(/^\\uFEFF/, '').split(/\\r?\\n/).filter((line) => line.trim());
+  if (lines.length < 2) return [];
+  const parseLine = (line: string): string[] => {
+    const cells: string[] = []; let value = ''; let quoted = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"' && quoted && line[i + 1] === '"') { value += '"'; i++; }
+      else if (ch === '"') quoted = !quoted;
+      else if (ch === ',' && !quoted) { cells.push(value); value = ''; }
+      else value += ch;
+    }
+    cells.push(value);
+    return cells.map((cell) => cell.trim());
+  };
+  const headers = parseLine(lines[0]).map((name) => name.toLowerCase());
+  return lines.slice(1).map((line) => {
+    const cells = parseLine(line);
+    const row: Record<string, string> = {};
+    headers.forEach((header, index) => { row[header] = cells[index] || ''; });
+    return row;
+  });
+}
+
+/** IRSA's TAP metadata service is an independent fallback when SIA is degraded. */
+export async function querySpherexTap(
+  raDeg: number,
+  decDeg: number,
+  radiusDeg = 0.03
+): Promise<SiaObservationRow[]> {
+  const cacheKey = `spherex_tap_v1_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${radiusDeg}`;
+  const cached = getCached<SiaObservationRow[]>(cacheKey);
+  if (cached) return cached;
+  const adql = `SELECT TOP 2000 a.uri AS uri, p.time_bounds_lower AS t_min, p.time_bounds_upper AS t_max, p.energy_bandpassname AS bandpass, p.em_min AS em_min, p.em_max AS em_max FROM spherex.artifact a JOIN spherex.plane p ON a.planeid = p.planeid WHERE 1 = CONTAINS(POINT('ICRS', ${raDeg.toFixed(6)}, ${decDeg.toFixed(6)}), p.poly) AND 1 = INTERSECTS(CIRCLE('ICRS', ${raDeg.toFixed(6)}, ${decDeg.toFixed(6)}, ${radiusDeg.toFixed(5)}), p.poly) ORDER BY p.time_bounds_lower`;
+  const params = new URLSearchParams({ REQUEST: 'doQuery', LANG: 'ADQL', FORMAT: 'csv', QUERY: adql });
+  const url = `https://irsa.ipac.caltech.edu/TAP/sync?${params.toString()}`;
+  const res = await fetch(url, { headers: { Accept: 'text/csv' }, signal: AbortSignal.timeout(25000) });
+  if (!res.ok) {
+    const detail = (await res.text().catch(() => '')).slice(0, 180);
+    throw new Error(`IRSA TAP SPHEREx HTTP ${res.status}${detail ? `: ${detail}` : ''}`);
+  }
+  const csv = await res.text();
+  const parsed = parseCsvRows(csv);
+  const rows: SiaObservationRow[] = parsed.map((row) => {
+    const uri = row.uri || row.access_url || '';
+    const accessUrl = uri.startsWith('http') ? uri : `https://irsa.ipac.caltech.edu/${uri.replace(/^\\/+/, '')}`;
+    const path = accessUrl.split('?')[0];
+    const collection = path.match(/\\/spherex\\/(dr1|qr3)\\//i)?.[1]?.toLowerCase() || 'spherex_tap';
+    const tMin = Number.parseFloat(row.t_min);
+    const tMax = Number.parseFloat(row.t_max);
+    const emMin = Number.parseFloat(row.em_min);
+    const emMax = Number.parseFloat(row.em_max);
+    return {
+      obsId: path.split('/').pop()?.replace(/\\.fits(?:\\.gz)?$/i, '') || `tap-${collection}-${tMin}`,
+      obsCollection: `spherex_${collection}` === 'spherex_tap' ? 'spherex_tap' : `spherex_${collection}` ,
+      bandpassName: row.bandpass || row.energy_bandpassname || 'SPHEREx',
+      sRa: raDeg, sDec: decDeg,
+      tMinMjd: Number.isFinite(tMin) ? tMin : 60800,
+      tMaxMjd: Number.isFinite(tMax) ? tMax : (Number.isFinite(tMin) ? tMin : 60800),
+      emMinMicrons: Number.isFinite(emMin) ? emMin * 1e6 : 3.0,
+      emMaxMicrons: Number.isFinite(emMax) ? emMax * 1e6 : 3.5,
+      tExptime: 112.5, pixelScaleArcsec: 6.15, calibLevel: 2,
+      accessUrl, accessFormat: 'image/fits',
+    };
+  }).filter((row) => row.accessUrl.includes('/ibe/data/spherex/') && row.bandpassName.startsWith('SPHEREx'))
+    .sort((a, b) => a.tMinMjd - b.tMinMjd);
+  if (rows.length) setCached(cacheKey, rows);
+  return rows;
+}
+
 export async function fetchAndParseSpherexCutout(
   accessUrl: string,
   raDeg: number,
@@ -518,10 +588,23 @@ export async function querySpherexTimeMachine(options: {
   ]);
   const dr1Res = [...dr1Wide, ...dr1Deep];
   const qr3Res = [...qr3Wide, ...qr3Deep];
-  const combinedRows = [...dr1Res, ...qr3Res]
+  const mergeUniqueRows = () => [...dr1Res, ...qr3Res]
     .filter((row, index, all) => all.findIndex((other) => other.obsId === row.obsId) === index)
     .sort((a, b) => a.tMinMjd - b.tMinMjd);
+  let combinedRows = mergeUniqueRows();
   const limitations: string[] = [];
+  if (combinedRows.length === 0) {
+    try {
+      const tapRows = await querySpherexTap(raDeg, decDeg, searchRadiusDeg);
+      dr1Res.push(...tapRows.filter((row) => row.obsCollection === 'spherex_dr1'));
+      qr3Res.push(...tapRows.filter((row) => row.obsCollection === 'spherex_qr3'));
+      combinedRows = mergeUniqueRows();
+      if (tapRows.length) limitations.push(`SIA was unavailable; recovered ${tapRows.length} archive rows through IRSA TAP.`);
+    } catch (error) {
+      limitations.push(`IRSA SIA and TAP metadata queries both failed: ${error instanceof Error ? error.message : String(error)}`);
+      console.warn('[AstroArchive] IRSA TAP fallback failed:', error);
+    }
+  }
 
   if (qr3Res.length === 0) {
     limitations.push('No SPHEREx QR3 (2026) quick-release observations returned at these coordinates yet; using multi-pass DR1 timeline.');
