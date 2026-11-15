@@ -3224,3 +3224,77 @@ body.theme-light {
 @media(prefers-reduced-motion:reduce) {
  .cosmic-galaxy-explorer *, .cf-navbar *, .cf-lab-bar * { transition-duration:.01ms!important;animation-duration:.01ms!important; }
 }
+
+/* Cosmic Lab shell: consistent low-chroma scientific workspace across modules */
+.cosmic-lab-shell {
+  --lab-bg:#10171e;
+  --lab-surface:#151e26;
+  --lab-surface-raised:#1b252e;
+  --lab-border:rgba(160,174,186,.19);
+  --lab-text:#e5ebef;
+  --lab-muted:#a5b1bb;
+  --lab-accent:#aebbc5;
+  color:var(--lab-text);
+  background:#10171e!important;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing:-.012em;
+}
+.cosmic-lab-shell :is(h1,h2,h3,h4,h5,h6) {
+  font-family:Inter,"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  letter-spacing:-.035em;
+}
+.cosmic-lab-shell :is(button,input,select,textarea) {
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.cosmic-lab-shell :is(.font-mono,[class*="font-mono"],code,pre) {
+  font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Consolas,monospace!important;
+  font-variant-numeric:tabular-nums;
+}
+.cosmic-lab-shell :is([class*="text-[#38BDF8]"],[class*="text-[#72E5F7]"],[class*="text-[#8B5CF6]"],[class*="text-violet-"],[class*="text-purple-"],[class*="text-cyan-"],[class*="text-sky-"],[class*="text-amber-"],[class*="text-yellow-"],[class*="text-emerald-"],[class*="text-rose-"],[class*="text-red-"]) {
+  color:#b2bec7!important;
+}
+.cosmic-lab-shell :is([class*="border-[#38BDF8]"],[class*="border-[#8B5CF6]"],[class*="border-violet-"],[class*="border-purple-"],[class*="border-cyan-"],[class*="border-sky-"],[class*="border-amber-"],[class*="border-emerald-"],[class*="border-rose-"]) {
+  border-color:var(--lab-border)!important;
+}
+.cosmic-lab-shell :is([class*="bg-[#8B5CF6]"],[class*="bg-[#38BDF8]"],[class*="bg-violet-"],[class*="bg-purple-"],[class*="bg-cyan-"],[class*="bg-sky-"],[class*="bg-amber-"],[class*="bg-emerald-"],[class*="bg-rose-"]) {
+  background-color:#657783!important;
+  color:#fff!important;
+}
+.cosmic-lab-shell :is([class*="bg-[#0B1630]"],[class*="bg-[#050B1A]"],[class*="bg-[#070E22]"],[class*="bg-slate-950"],[class*="bg-slate-900"]) {
+  background-color:var(--lab-surface)!important;
+}
+.cosmic-lab-shell :is([class*="border-[#1E293B]"],[class*="border-slate-800"],[class*="border-white/10"]) {
+  border-color:var(--lab-border)!important;
+}
+.cosmic-lab-shell :is(input,select,textarea) {
+  border-color:var(--lab-border)!important;
+}
+.cosmic-lab-shell :is(button,[role="button"]) {
+  transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease!important;
+}
+.cosmic-lab-shell :is(button,[role="button"]):not(:disabled):hover {
+  filter:none!important;
+}
+.cosmic-lab-shell :is(button,input,select,textarea,[role="button"]):focus-visible {
+  outline:2px solid #9aaab5!important;outline-offset:2px;
+}
+.theme-light .cosmic-lab-shell {
+  --lab-bg:#f3f5f6;--lab-surface:#fff;--lab-surface-raised:#f6f8f9;
+  --lab-border:#d9e0e5;--lab-text:#26343e;--lab-muted:#667580;
+  color:var(--lab-text);background:#f3f5f6!important;
+}
+.theme-light .cosmic-lab-shell :is([class*="text-white"],[class*="text-slate-50"],[class*="text-slate-100"]) {
+  color:#26343e!important;
+}
+.theme-light .cosmic-lab-shell :is([class*="text-slate-300"],[class*="text-slate-400"],[class*="text-gray-400"]) {
+  color:#65737e!important;
+}
+.theme-light .cosmic-lab-shell :is([class*="bg-[#0B1630]"],[class*="bg-[#050B1A]"],[class*="bg-[#070E22]"],[class*="bg-slate-950"],[class*="bg-slate-900"]) {
+  background-color:#fff!important;
+}
+.theme-light .cosmic-lab-shell :is([class*="bg-[#8B5CF6]"],[class*="bg-[#38BDF8]"],[class*="bg-violet-"],[class*="bg-purple-"],[class*="bg-cyan-"],[class*="bg-sky-"],[class*="bg-amber-"],[class*="bg-emerald-"],[class*="bg-rose-"]) {
+  background-color:#71828e!important;color:#fff!important;
+}
+@media(prefers-reduced-motion:reduce) {
+ .cosmic-lab-shell *, .cosmic-lab-shell *::before, .cosmic-lab-shell *::after { transition-duration:.01ms!important;animation-duration:.01ms!important; }
+}
