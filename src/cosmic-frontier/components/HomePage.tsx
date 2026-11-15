@@ -1,15 +1,10 @@
 import type { FC } from 'react';
 import type { AppPage } from '../types';
-import { PlanetaryShowcase } from './PlanetaryShowcase';
-import { CosmicOrbitalDiagram } from './CosmicOrbitalDiagram';
-import { CosmicRadarHUD } from './CosmicRadarHUD';
-import { NasaLiveDispatch } from './NasaLiveDispatch';
 import { 
   Telescope, 
   Orbit, 
   Sparkles, 
   ChevronRight, 
-  ShieldAlert, 
   ArrowRight,
   Database,
   Compass,
@@ -22,18 +17,18 @@ interface HomePageProps {
 
 export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
   return (
-    <div className="space-y-16 pb-16 pt-2">
+    <div className="cf-lab-home space-y-8 pb-12 pt-3">
       {/* DISCOVERY CATEGORIES GATEWAY */}
-      <section id="observatories-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <section id="observatories-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="max-w-3xl space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30 text-xs font-mono font-semibold uppercase tracking-wider">
-            Astronomy Observatories & Research Consoles
+            COSMIC LAB
           </div>
           <h2 data-subtopic="Astronomy Observatories & Research Consoles" className="text-3xl sm:text-4xl font-extrabold text-[#F8FAFC] tracking-tight">
-            Explore the Black Star Orbit
+            Explore the universe
           </h2>
           <p className="text-sm sm:text-base text-[#A7B4CC] leading-relaxed">
-            Begin with interactive observational workstations designed for clear understanding, backed by verified NASA open data archives and Standish analytical ephemerides.
+            Choose a workspace and start exploring.
           </p>
         </div>
 
@@ -42,7 +37,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
           {/* Flagship 1: SPHEREx Explorer (7 Cols) */}
           <div 
             onClick={() => onNavigate('spherex')}
-            className="lg:col-span-7 group rounded-2xl bg-linear-to-br from-[#0B1630] via-[#0D1B3E] to-[#071126] border border-[#1E293B] hover:border-[#38BDF8] p-6 sm:p-8 space-y-6 shadow-xl transition-all cursor-pointer flex flex-col justify-between"
+            className="cf-surface cf-surface--cyan lg:col-span-7 group rounded-2xl bg-[#0B1630] border border-[#1E293B] p-6 sm:p-7 space-y-5 shadow-xl transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -55,14 +50,14 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
               </div>
               <div className="space-y-1">
                 <span className="text-xs font-mono text-[#38BDF8] uppercase tracking-wider font-semibold">
-                  All-Sky Spectral Survey Workbench
+                  INFRARED SKY
                 </span>
                 <h3 className="text-2xl font-bold text-[#F8FAFC] group-hover:text-[#38BDF8] transition-colors">
                   SPHEREx Explorer
                 </h3>
               </div>
               <p className="text-xs sm:text-sm text-[#A7B4CC] leading-relaxed">
-                Explore infrared astronomy, spectral information, and cosmic questions addressed by NASA’s SPHEREx mission. Inspect 102 Linear Variable Filter channels, the 3.05 µm interstellar water ice absorption band, and IRSA ObsCore archival metadata.
+                Explore infrared observations across 0.75–5.0 µm.
               </p>
               
               <div className="grid grid-cols-3 gap-2.5 pt-2 text-xs font-mono">
@@ -82,7 +77,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
             </div>
 
             <div className="pt-2 flex items-center justify-between text-xs font-mono font-bold text-[#38BDF8]">
-              <span>Launch SPHEREx Explorer</span>
+              <span>Open SPHEREx</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </div>
           </div>
@@ -90,7 +85,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
           {/* Flagship 2: Planet X Investigation Lab (5 Cols) */}
           <div 
             onClick={() => onNavigate('planet-x')}
-            className="lg:col-span-5 group rounded-2xl bg-linear-to-br from-[#0B1630] via-[#09142B] to-[#050B1A] border border-[#1E293B] hover:border-[#8B5CF6] p-6 sm:p-8 space-y-6 shadow-xl transition-all cursor-pointer flex flex-col justify-between"
+            className="cf-surface cf-surface--violet lg:col-span-5 group rounded-2xl bg-[#0B1630] border border-[#1E293B] p-6 sm:p-7 space-y-5 shadow-xl transition-all cursor-pointer flex flex-col justify-between"
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -103,14 +98,14 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
               </div>
               <div className="space-y-1">
                 <span className="text-xs font-mono text-[#8B5CF6] uppercase tracking-wider font-semibold">
-                  Dynamical Orbital Mechanics & eTNOs
+                  OUTER SOLAR SYSTEM
                 </span>
                 <h3 className="text-2xl font-bold text-[#F8FAFC] group-hover:text-[#C084FC] transition-colors">
                   Planet X Investigation Lab
                 </h3>
               </div>
               <p className="text-xs sm:text-sm text-[#A7B4CC] leading-relaxed">
-                Investigate the evidence and competing explanations surrounding the hypothetical ninth planet using known distant Solar System objects (Sedna, 2012 VP113), clustering analysis, and dynamical simulations.
+                Explore distant orbits, eTNOs, and the Planet Nine hypothesis.
               </p>
 
               <div className="space-y-2 pt-2 text-xs font-mono">
@@ -126,7 +121,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
             </div>
 
             <div className="pt-2 flex items-center justify-between text-xs font-mono font-bold text-[#C084FC]">
-              <span>Enter Planet X Investigation Lab</span>
+              <span>Open Planet X</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </div>
           </div>
@@ -143,7 +138,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
               </div>
               <h4 className="text-base font-bold text-[#F8FAFC]">Planets & Distant Orbits</h4>
               <p className="text-xs text-[#A7B4CC] leading-relaxed">
-                Explore Keplerian mechanics from Mercury out to Sedna and investigate mathematical models for Planet X.
+                Explore planetary orbits and distant objects.
               </p>
             </div>
             <div className="space-y-2 pt-2 border-t border-[#1E293B]/70">
@@ -173,7 +168,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
               </div>
               <h4 className="text-base font-bold text-[#F8FAFC]">Exoplanets & Galaxies</h4>
               <p className="text-xs text-[#A7B4CC] leading-relaxed">
-                Filter 5,500+ confirmed worlds from NASA Exoplanet Archive and inspect extragalactic redshift catalogs.
+                Browse confirmed exoplanets and distant galaxies.
               </p>
             </div>
             <div className="space-y-2 pt-2 border-t border-[#1E293B]/70">
@@ -203,7 +198,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
               </div>
               <h4 className="text-base font-bold text-[#F8FAFC]">Infrared & Asteroid Watch</h4>
               <p className="text-xs text-[#A7B4CC] leading-relaxed">
-                Peel back dust clouds across 102 infrared channels with SPHEREx and monitor near-Earth asteroid approaches.
+                Explore infrared data and near-Earth objects.
               </p>
             </div>
             <div className="space-y-2 pt-2 border-t border-[#1E293B]/70">
@@ -233,7 +228,7 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
               </div>
               <h4 className="text-base font-bold text-[#F8FAFC]">Open Archives & AI Guide</h4>
               <p className="text-xs text-[#A7B4CC] leading-relaxed">
-                Search across multi-mission catalogs or ask questions in plain language with verified scientific backing.
+                Search mission archives and ask the AI guide.
               </p>
             </div>
             <div className="space-y-2 pt-2 border-t border-[#1E293B]/70">
@@ -256,130 +251,6 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* 3. PLANETARY SHOWCASE & CATALOG ("various planets listed") */}
-      <section id="planetary-section" data-subtopic="Planetary Showcase & Catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <PlanetaryShowcase onNavigate={onNavigate} />
-      </section>
-
-      {/* 4. COSMIC ORBITAL ARCHITECTURE DIAGRAM */}
-      <section data-subtopic="Cosmic Orbital Architecture" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <CosmicOrbitalDiagram onNavigate={onNavigate} />
-      </section>
-
-      {/* 5. LIVE TELEMETRY RADAR & ASTROPHYSICAL KNOWLEDGE */}
-      <section data-subtopic="Live Telemetry Radar & Astrophysics" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <CosmicRadarHUD onNavigate={onNavigate} />
-      </section>
-
-      {/* 5B. LIVE NASA OPEN DATA DISPATCH (api.nasa.gov) */}
-      <section data-subtopic="NASA Open Data Dispatch" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <NasaLiveDispatch onNavigate={onNavigate} />
-      </section>
-
-      {/* 6. HOW BLACK STAR ORBIT WORKS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-[#0B1630]/60 border border-[#1E293B] p-8 sm:p-10 space-y-8 shadow-lg">
-          <div className="max-w-2xl space-y-2">
-            <span className="text-xs uppercase tracking-widest text-[#38BDF8] font-mono font-semibold">
-              Exploration Methodology
-            </span>
-            <h2 data-subtopic="Exploration Methodology" className="text-2xl sm:text-3xl font-bold text-[#F8FAFC]">
-              How BLACK STAR ORBIT Works
-            </h2>
-            <p className="text-sm text-[#A7B4CC] leading-relaxed">
-              Designed for intuitive discovery. Our tools translate raw observational datasets into interactive, scientifically grounded knowledge.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2 border-t border-[#1E293B]/70">
-            <div className="space-y-3">
-              <div className="text-xs font-mono font-bold text-[#38BDF8] tracking-widest">
-                STEP 01
-              </div>
-              <h3 className="text-base font-semibold text-[#F8FAFC]">Select a Target or Realm</h3>
-              <p className="text-xs text-[#A7B4CC] leading-relaxed">
-                Choose from star-forming nebulae, early galaxies, protoplanetary disks, or scale out to the remote Kuiper Belt and Sedna’s distant trajectory.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="text-xs font-mono font-bold text-[#C084FC] tracking-widest">
-                STEP 02
-              </div>
-              <h3 className="text-base font-semibold text-[#F8FAFC]">Adjust Filters & Scales</h3>
-              <p className="text-xs text-[#A7B4CC] leading-relaxed">
-                Slide across infrared bands from 0.75 µm to 5.0 µm, compare optical versus infrared with the split slider, or zoom from 1 AU out to 1,000 AU.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="text-xs font-mono font-bold text-[#F5C451] tracking-widest">
-                STEP 03
-              </div>
-              <h3 className="text-base font-semibold text-[#F8FAFC]">Inspect Scientific Clues</h3>
-              <p className="text-xs text-[#A7B4CC] leading-relaxed">
-                Read concise verified explanations of water ice signatures, orbital clustering probabilities, and survey limits without any fabricated jargon.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. SCIENTIFIC DATA NOTICE BANNER */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-linear-to-r from-[#0B1630] to-[#121B35] border border-[#F5C451]/30 p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#F5C451]/10 border border-[#F5C451]/40 flex items-center justify-center shrink-0">
-              <ShieldAlert className="w-6 h-6 text-[#F5C451]" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold text-[#F8FAFC] flex items-center gap-2">
-                <span>Commitment to Scientific Honesty & Integrity</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#F5C451]/20 text-[#F5C451]">
-                  Official Notice
-                </span>
-              </h3>
-              <p className="text-xs text-[#A7B4CC] leading-relaxed max-w-3xl">
-                BLACK STAR ORBIT never presents speculative hypotheses as facts. SPHEREx images are clearly identified as calibrated spectroscopic models based on verified NASA observations. Planet X is explicitly identified as an unconfirmed mathematical hypothesis. No live telescope feeds or fake data are fabricated.
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => onNavigate('about')}
-            className="shrink-0 px-4 py-2.5 rounded-lg bg-[#050B1A] hover:bg-[#1E293B] border border-[#1E293B] hover:border-[#38BDF8] text-xs font-semibold text-[#F8FAFC] transition-all cursor-pointer"
-          >
-            Read Science Guidelines
-          </button>
-        </div>
-      </section>
-
-      {/* 8. AI ASSISTANT CALL TO ACTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-linear-to-b from-[#0B1630] to-[#050B1A] border border-[#1E293B] p-8 sm:p-12 text-center space-y-6 shadow-2xl">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#8B5CF6]/10 border border-[#8B5CF6]/30 text-[#8B5CF6]">
-            <Sparkles className="w-7 h-7" />
-          </div>
-          <div className="max-w-2xl mx-auto space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#F8FAFC]">
-              Have Questions About Space?
-            </h2>
-            <p className="text-sm text-[#A7B4CC]">
-              Ask our COSMIC AI GUIDE about infrared wavelengths, why scientists study distant galaxies, or how astronomers calculate hypothetical planetary orbits.
-            </p>
-          </div>
-          <div className="pt-2">
-            <button
-              onClick={() => onNavigate('ai-guide')}
-              className="px-8 py-4 rounded-xl bg-linear-to-r from-[#8B5CF6] to-[#7C3AED] hover:from-[#7C3AED] hover:to-[#6D28D9] text-[#FFFFFF] font-bold text-sm shadow-xl hover:shadow-[#8B5CF6]/30 transition-all inline-flex items-center gap-2 cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Talk to COSMIC AI GUIDE</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
