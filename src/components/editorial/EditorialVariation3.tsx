@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight, Search, Filter, Database, ShieldCheck, Compas
 import { useTheme } from '../../context/ThemeContext';
 import { BlackStarLogo } from '../common/BlackStarLogo';
 import { assetUrl } from '../../utils/assetUrl';
-import astronautHeroImg from '../../assets/editorial-astronaut.jpg';
+const cosmicDustHorizonImage = 'https://photojournal.jpl.nasa.gov/jpeg/PIA26352.jpg';
 
 interface EditorialVariation3Props {
   onNavigate: (tab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite') => void;
@@ -225,19 +225,19 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
           id="editorial-overview" 
           className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28 relative overflow-hidden rounded-[24px] sm:rounded-[32px] border border-white/15 shadow-2xl min-h-[580px] sm:min-h-[660px] lg:min-h-[720px] flex flex-col justify-between"
           style={{
-            backgroundImage: `url(${astronautHeroImg})`,
+            backgroundImage: `url(${cosmicDustHorizonImage})`,
             backgroundSize: 'cover',
-            backgroundPosition: 'left 35%',
+            backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
           }}
         >
           <img
             className="editorial-astronaut-image"
-            src={astronautHeroImg}
+            src={cosmicDustHorizonImage}
             alt="Black Star Orbit astronaut deep space exploration"
             loading="eager"
             fetchPriority="high"
-            style={{ objectPosition: 'left 35%' }}
+            style={{ objectPosition: 'center' }}
           />
 
           {/* Subtle cinematic gradient to enhance right-side text contrast */}
