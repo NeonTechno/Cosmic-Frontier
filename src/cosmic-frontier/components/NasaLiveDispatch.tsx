@@ -28,7 +28,9 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
   const [showFullExplanation, setShowFullExplanation] = useState<boolean>(false);
-  const [apiSource, setApiSource] = useState<string>('api.nasa.gov');
+  const [apiSource, setApiSource] = useState<string>('Checking NASA sources…');
+  const [apodIsLive, setApodIsLive] = useState<boolean>(false);
+  const [spherexIsLive, setSpherexIsLive] = useState<boolean>(false);
 
   const fetchData = async () => {
     try {
@@ -44,7 +46,8 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
           const json = await apodRes.json();
           if (json.data) {
             setApodData(json.data);
-            setApiSource(json.source || 'api.nasa.gov');
+            setApiSource(json.source || 'NASA APOD');
+            setApodIsLive(Boolean(json.isLive));
             loadedApod = true;
           }
         }
@@ -60,6 +63,7 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
           const json = await spherexRes.json();
           if (Array.isArray(json.photos) && json.photos.length > 0) {
             setSpherexPhotos(json.photos);
+            setSpherexIsLive(Boolean(json.isLive));
             loadedSpherex = true;
           }
         }
@@ -78,21 +82,15 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
           media_type: 'image',
           copyright: lead.credit,
         });
-        setApiSource('NASA Image Library Archive');
+        setApiSource('Bundled NASA archive');
+        setApodIsLive(false);
       }
 
       if (!loadedSpherex) {
-        setSpherexPhotos(
-          nasaArchivesData.records.map((rec) => ({
-            nasaId: rec.nasaId,
-            title: rec.title,
-            description: rec.description,
-            dateCreated: rec.dateCreated,
-            center: rec.center,
-            thumb: rec.thumbUrl,
-          }))
-        );
+        setSpherexIsLive(false);
+        setSpherexPhotos([]);
       }
+      if (!loadedApod && !loadedSpherex) setErrorNotice('NASA live services are unavailable. Archived records are not presented as live data.');
     } catch (err: unknown) {
       console.warn('Failed to fetch live NASA telemetry:', err);
       setErrorNotice('Operating on verified NASA archival records.');
@@ -126,7 +124,7 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#10B981]"></span>
             </span>
             <span className="text-[11px] font-mono uppercase tracking-widest text-[#10B981] font-bold">
-              LIVE NASA OPEN DATA DISPATCH
+              NASA DATA DISPATCH
             </span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1E293B] text-[#A7B4CC] border border-[#334155]">
               {apiSource}
@@ -137,7 +135,7 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
             <Satellite className="w-5 h-5 text-[#38BDF8]" />
           </h2>
           <p className="text-xs text-[#A7B4CC]">
-            Directly connected to NASA's public astronomy endpoints using authenticated credentials.
+            Live NASA feeds are checked at request time. Archived records are labelled separately.
           </p>
         </div>
 
@@ -260,9 +258,9 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
 
                 {/* Explorer Callout */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                  <div className="flex items-center gap-2 text-xs text-[#10B981]">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Live API Key Validated via api.nasa.gov</span>
+                  <div className={`flex items-center gap-2 text-xs ${apodIsLive ? 'text-[#10B981]' : 'text-[#F5C451]'}`}>
+                    {apodIsLive ? <CheckCircle2 className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
+                    <span>{apodIsLive ? 'Live response from NASA APOD API' : 'Archived fallback — not live NASA data'}</span>
                   </div>
 
                   {onNavigate && (
@@ -343,8 +341,8 @@ export const NasaLiveDispatch: FC<NasaLiveDispatchProps> = ({ onNavigate }) => {
                 </div>
 
                 <div className="pt-2 border-t border-[#1E293B] flex items-center justify-between text-[11px] font-mono text-[#38BDF8]">
-                  <span>NASA Archival Record</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                  <span>{spherexIsLive ? 'NASA Image Library • Live' : 'No live SPHEREx images loaded'}</span>
+                  {spherexIsLive ? <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" /> : <ShieldCheck className="w-3.5 h-3.5 text-[#F5C451]" />}
                 </div>
               </div>
             ))}

@@ -13,6 +13,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'node:module';
 import dotenv from 'dotenv';
 import { generateSyntheticSpherexObservations, SPHEREX_BANDS } from './src/science/spherexEngine.ts';
 import { STARTER_QUESTIONS, findVerifiedAnswer } from './src/cosmic-frontier/data/guideKnowledge.ts';
@@ -28,13 +29,14 @@ import {
   querySpherexTimeMachine,
   resolveTargetDesignator,
 } from './src/server/astroArchiveService.ts';
-import exoplanetArchive from './src/cosmic-frontier/data/catalogs/confirmed-exoplanets.json';
-import galaxyArchive from './src/cosmic-frontier/data/catalogs/deep-sky-galaxies.json';
-import smallBodiesArchive from './src/cosmic-frontier/data/catalogs/asteroids-comets.json';
-import starArchive from './src/cosmic-frontier/data/catalogs/bright-stars.json';
-import planetArchive from './src/cosmic-frontier/data/catalogs/planets.json';
-import spherexArchive from './src/cosmic-frontier/data/catalogs/mission-products.json';
-import nasaImageArchive from './src/cosmic-frontier/data/catalogs/nasa-archives.json';
+const require = createRequire(import.meta.url);
+const exoplanetArchive = require('./src/cosmic-frontier/data/catalogs/confirmed-exoplanets.json');
+const galaxyArchive = require('./src/cosmic-frontier/data/catalogs/deep-sky-galaxies.json');
+const smallBodiesArchive = require('./src/cosmic-frontier/data/catalogs/asteroids-comets.json');
+const starArchive = require('./src/cosmic-frontier/data/catalogs/bright-stars.json');
+const planetArchive = require('./src/cosmic-frontier/data/catalogs/planets.json');
+const spherexArchive = require('./src/cosmic-frontier/data/catalogs/mission-products.json');
+const nasaImageArchive = require('./src/cosmic-frontier/data/catalogs/nasa-archives.json');
 
 
 dotenv.config();
@@ -195,23 +197,34 @@ app.get('/api/health', (_req: Request, res: Response) => {
 });
 
 // Unified AI & NASA runtime status endpoint (used by Cosmic AI Guide)
-app.get('/api/status', (_req: Request, res: Response) => {
-  const isNasaConfigured = Boolean(process.env.NASA_API_KEY && process.env.NASA_API_KEY !== 'DEMO_KEY');
+app.get('/api/status', async (_req: Request, res: Response) => {
+  const configuredNasaKey = Boolean((process.env.NASA_API_KEY || '').trim()) && (process.env.NASA_API_KEY || '').trim() !== 'DEMO_KEY';
+  const [nasa, spherex] = await Promise.all([
+    pingExternalEndpoint('nasa-open-data-api'),
+    pingExternalEndpoint('irsa-spherex-sia'),
+  ]);
   res.json({
     isAiConfigured: !!nvidiaApiKey,
-    isNasaConfigured,
-    nasaApiConnected: true,
+    isNasaConfigured: configuredNasaKey,
+    nasaApiConnected: nasa.reachable,
     mode: nvidiaApiKey ? 'live' : 'demonstration',
     provider: 'NVIDIA NIM',
     model: nvidiaModel,
-    message: nvidiaApiKey
-      ? `Live NVIDIA NIM inference active via ${nvidiaModel}.`
-      : `Operating in verified demonstration mode. Set NVIDIA_API_KEY to enable live ${nvidiaModel} reasoning.`,
+    message: nvidiaApiKey ? `NVIDIA NIM configured via ${nvidiaModel}.` : 'Educational fallback active.',
     services: {
       nasaOpenData: {
-        status: isNasaConfigured ? 'authenticated' : 'demo_key',
-        source: 'api.nasa.gov & Caltech/IPAC IRSA',
-        authenticated: isNasaConfigured,
+        status: nasa.reachable ? 'connected' : 'unavailable',
+        source: 'api.nasa.gov',
+        authenticated: configuredNasaKey,
+        message: nasa.message,
+        latencyMs: nasa.latencyMs,
+      },
+      spherexIrsa: {
+        status: spherex.reachable ? 'connected' : 'unavailable',
+        source: 'NASA/IPAC IRSA SIA',
+        requiresApiKey: false,
+        message: spherex.message,
+        latencyMs: spherex.latencyMs,
       },
     },
   });
@@ -534,14 +547,15 @@ app.get('/api/data-status/ping', async (req: Request, res: Response) => {
 // (NASA api.nasa.gov, OpenWeatherMap, Agromonitoring)
 // ==========================================
 
-const NASA_KEY = process.env.NASA_API_KEY || 'DEMO_KEY';
+const NASA_KEY = (process.env.NASA_API_KEY || '').trim() || 'DEMO_KEY';
+const NASA_KEY_IS_CUSTOM = NASA_KEY !== 'DEMO_KEY';
 const OWM_KEY = process.env.WEATHER_DATA || process.env.OPENWEATHER_API || '';
 const AGRO_KEY = process.env.AGRO_API || '';
 
 // Diagnostic test endpoint verifying all configured API connections
 app.get('/api/system/api-status', async (_req: Request, res: Response) => {
   const results: Record<string, any> = {
-    nasa: { configured: !!process.env.NASA_API_KEY, status: 'unknown' },
+    nasa: { configured: NASA_KEY_IS_CUSTOM, keyType: NASA_KEY_IS_CUSTOM ? 'custom' : 'DEMO_KEY', status: 'unknown' },
     openweathermap: { configured: !!OWM_KEY, status: 'unknown' },
     agromonitoring: { configured: !!AGRO_KEY, status: 'unknown' },
     nvidia: {
@@ -574,13 +588,23 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
     }
   }
 
-  // Test NASA
+  // Test NASA NeoWs and APOD independently.
   try {
-    const r = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=${NASA_KEY}`);
+    const r = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=${NASA_KEY}`, { signal: AbortSignal.timeout(7000) });
     results.nasa.status = r.ok ? 'connected' : `http_${r.status}`;
+    results.nasa.connected = r.ok;
     results.nasa.testedEndpoint = 'api.nasa.gov/neo/rest/v1';
+    results.nasa.message = r.ok ? 'NASA NeoWs responded successfully.' : 'NASA NeoWs request failed; check HTTP status, key and quota.';
   } catch (e: any) {
     results.nasa.status = `error: ${e.message}`;
+    results.nasa.connected = false;
+  }
+  try {
+    const apod = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}`, { signal: AbortSignal.timeout(15000) });
+    results.nasa.apod = { connected: apod.ok, status: apod.ok ? 'connected' : `http_${apod.status}`, testedEndpoint: 'api.nasa.gov/planetary/apod' };
+    if (!apod.ok) results.nasa.apod.message = (await apod.text()).slice(0, 240);
+  } catch (e: any) {
+    results.nasa.apod = { connected: false, status: 'error', message: e?.message || 'Request failed' };
   }
 
   res.json({
@@ -594,16 +618,14 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
 app.get('/api/nasa/apod', async (req: Request, res: Response) => {
   const dateQuery = req.query.date ? `&date=${req.query.date}` : '';
   try {
-    const response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}${dateQuery}`);
+    const response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}${dateQuery}`, { signal: AbortSignal.timeout(15000) });
     if (response.ok) {
       const data = await response.json();
-      res.json({
-        data,
-        source: 'api.nasa.gov',
-        isLive: true,
-      });
+      res.json({ data, source: 'api.nasa.gov', isLive: true, dataStatus: 'LIVE' });
       return;
     }
+    const responseBody = await response.text().catch(() => '');
+    console.warn(`[Server] NASA APOD returned HTTP ${response.status}: ${responseBody.slice(0, 240)}`);
   } catch (err) {
     console.warn('[Server] NASA APOD fetch issue:', err);
   }
@@ -620,27 +642,31 @@ app.get('/api/nasa/apod', async (req: Request, res: Response) => {
       service_version: 'v1',
       copyright: 'NASA Astronomy Public Archive',
     },
-    source: 'Verified NASA Archive (api.nasa.gov fallback)',
+    source: 'Bundled NASA APOD fallback',
     isLive: false,
+    dataStatus: 'ARCHIVED_FALLBACK',
+    warning: 'NASA APOD could not be reached. This archived record is not today\'s live APOD.',
   });
 });
 
-// NASA: SPHEREx & Mission Photos
-app.get('/api/nasa/spherex', (_req: Request, res: Response) => {
-  res.json({
-    photos: [
-      {
-        id: 'spherex-hardware-01',
-        title: 'SPHEREx Linear Variable Filter Focal Plane Arrays',
-        camera: 'Hawaii-2RG Infrared Detector FPA 1-6',
-        rover: 'SPHEREx Observatory Payload',
-        img_src: '/assets/cosmic-dust-universe.jpg',
-        earth_date: '2025-02-15',
-        description: 'Spectral calibration of 6 detector focal plane arrays spanning 0.75 - 5.00 µm.',
-      },
-    ],
-    source: 'NASA/JPL-Caltech Science Data Center',
-  });
+// NASA Image and Video Library: live SPHEREx mission imagery (no NASA_API_KEY required)
+app.get('/api/nasa/spherex', async (_req: Request, res: Response) => {
+  try {
+    const response = await fetch('https://images-api.nasa.gov/search?q=SPHEREx&media_type=image&page_size=12');
+    if (!response.ok) throw new Error(`NASA Images API returned HTTP ${response.status}`);
+    const payload: any = await response.json();
+    const items = Array.isArray(payload?.collection?.items) ? payload.collection.items : [];
+    const photos = items.map((item: any) => {
+      const data = item?.data?.[0] || {};
+      const links = Array.isArray(item?.links) ? item.links : [];
+      const preview = links.find((link: any) => link.rel === 'preview' && link.href) || links.find((link: any) => link.href);
+      return { nasaId: data.nasa_id || item?.href, title: data.title || 'SPHEREx mission image', description: data.description || 'NASA Image and Video Library record.', dateCreated: data.date_created || '', center: data.center || 'NASA', thumb: preview?.href || '', nasaUrl: item?.href || '' };
+    }).filter((photo: any) => photo.thumb);
+    res.json({ photos, source: 'NASA Image and Video Library', isLive: true, dataStatus: 'LIVE', retrievedAt: new Date().toISOString(), count: photos.length });
+  } catch (err: any) {
+    console.warn('[Server] NASA SPHEREx image search failed:', err?.message);
+    res.status(502).json({ photos: [], source: 'NASA Image and Video Library', isLive: false, dataStatus: 'UNAVAILABLE', error: 'Live NASA SPHEREx imagery is temporarily unavailable.' });
+  }
 });
 
 // NASA: NeoWs Asteroids & Planetary Defense Feed
@@ -712,80 +738,12 @@ app.get('/api/data/live-space/close-approaches', async (req: Request, res: Respo
     console.warn('[Server] NASA NeoWs live query failed, utilizing validated CNEOS cached records:', err);
   }
 
-  // High-fidelity fallback close approaches matching LiveCloseApproach schema
-  res.json({
-    success: true,
-    statusLabel: 'RECENT DATA',
-    retrievalTimestamp: new Date().toISOString(),
-    epoch: 'J2000',
-    timeframe: '7d',
-    count: 2,
-    approaches: [
-      {
-        designation: '99942 Apophis',
-        fullName: '99942 Apophis (2004 MN4)',
-        orbitId: '2099942',
-        julianDate: 2462239.407,
-        closeApproachDate: '2029-Apr-13 21:46',
-        closeApproachIso: '2029-04-13T21:46:00Z',
-        missDistanceAU: 0.000254,
-        missDistanceLunar: 0.098,
-        missDistanceKm: 38018,
-        distMinAU: 0.00025,
-        distMaxAU: 0.00026,
-        distMinKm: 37500,
-        distMaxKm: 38500,
-        relativeVelocityKmS: 7.43,
-        vInfinityKmS: 5.86,
-        uncertaintyTime: '< 1 min',
-        absoluteMagnitudeH: 19.7,
-        estimatedDiameterMeters: {
-          min: 340,
-          max: 370,
-          avg: 355,
-        },
-        isPotentiallyHazardous: true,
-        impactRisk: {
-          hasRisk: false,
-          assessment: 'No impact risk during 2029 Earth flyby (radar-eliminated).',
-          sentryUrl: 'https://cneos.jpl.nasa.gov/sentry/',
-        },
-        source: 'NASA JPL CNEOS Verified Close Approach Catalog',
-        sourceUrl: 'https://cneos.jpl.nasa.gov/ca/',
-      },
-      {
-        designation: '2024 YR4',
-        fullName: '2024 YR4',
-        orbitId: '54497812',
-        julianDate: 2460626.09,
-        closeApproachDate: '2026-Nov-12 14:10',
-        closeApproachIso: new Date(Date.now() + 86400000 * 5).toISOString(),
-        missDistanceAU: 0.0084,
-        missDistanceLunar: 3.27,
-        missDistanceKm: 1256000,
-        distMinAU: 0.008,
-        distMaxAU: 0.0088,
-        distMinKm: 1200000,
-        distMaxKm: 1310000,
-        relativeVelocityKmS: 12.18,
-        vInfinityKmS: 11.4,
-        uncertaintyTime: '± 2 min',
-        absoluteMagnitudeH: 24.1,
-        estimatedDiameterMeters: {
-          min: 45,
-          max: 95,
-          avg: 70,
-        },
-        isPotentiallyHazardous: false,
-        impactRisk: {
-          hasRisk: false,
-          assessment: 'Nominal flyby well outside lunar orbit.',
-          sentryUrl: 'https://cneos.jpl.nasa.gov/sentry/',
-        },
-        source: 'NASA JPL CNEOS Verified Close Approach Catalog',
-        sourceUrl: 'https://cneos.jpl.nasa.gov/ca/',
-      },
-    ],
+  res.status(502).json({
+    success: false,
+    statusLabel: 'LIVE DATA UNAVAILABLE',
+    dataStatus: 'UNAVAILABLE',
+    error: 'NASA NeoWs could not provide the close-approach feed. Retry later or check /api/system/api-status.',
+    approaches: [],
   });
 });
 

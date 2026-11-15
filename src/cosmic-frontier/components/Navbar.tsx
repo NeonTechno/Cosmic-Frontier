@@ -3,6 +3,7 @@ import type { AppPage } from '../types';
 import { 
   Home,
   Telescope, 
+  Orbit,
   Sparkles, 
   Info, 
   Menu, 
@@ -44,15 +45,17 @@ export const Navbar: FC<NavbarProps> = ({
 
   const navItems: { page: AppPage; label: string; icon: ReactNode }[] = [
     { page: 'home', label: 'Home', icon: <Home className="w-4 h-4" /> },
-    { page: 'mission-control', label: 'Mission Control', icon: <Radio className="w-4 h-4" /> },
-    { page: 'observatory', label: 'Observatory', icon: <Telescope className="w-4 h-4" /> },
-    { page: 'universe', label: '3D Universe', icon: <Globe className="w-4 h-4" /> },
-    { page: 'exoplanets', label: 'Exoplanets', icon: <Disc className="w-4 h-4" /> },
+    { page: 'spherex', label: 'SPHEREx', icon: <Telescope className="w-4 h-4" /> },
+    { page: 'planet-x', label: 'Planet X', icon: <Orbit className="w-4 h-4" /> },
+    { page: 'mission-control', label: 'Mission', icon: <Radio className="w-4 h-4" /> },
+    { page: 'observatory', label: 'Live', icon: <Telescope className="w-4 h-4" /> },
+    { page: 'universe', label: '3D', icon: <Globe className="w-4 h-4" /> },
+    { page: 'exoplanets', label: 'Worlds', icon: <Disc className="w-4 h-4" /> },
     { page: 'galaxies', label: 'Galaxies', icon: <Sparkles className="w-4 h-4" /> },
-    { page: 'asteroid-watch', label: 'Asteroid Watch', icon: <Compass className="w-4 h-4" /> },
-    { page: 'data-centre', label: 'Data Centre', icon: <Database className="w-4 h-4" /> },
+    { page: 'asteroid-watch', label: 'NEOs', icon: <Compass className="w-4 h-4" /> },
+    { page: 'data-centre', label: 'Data', icon: <Database className="w-4 h-4" /> },
     { page: 'ai-guide', label: 'AI Guide', icon: <Sparkles className="w-4 h-4" /> },
-    { page: 'about', label: 'About', icon: <Info className="w-4 h-4" /> },
+    
   ];
 
   const handleNavClick = (page: AppPage) => {
@@ -62,7 +65,7 @@ export const Navbar: FC<NavbarProps> = ({
   };
 
   return (
-    <header className={`sticky top-0 z-40 transition-colors duration-200 ${
+    <header className={`cf-navbar sticky top-0 z-40 transition-colors duration-200 ${
       isLight 
         ? 'bg-[#fdfcf8]/95 backdrop-blur-xl border-b border-[#1a1a1a]/12 shadow-xs'
         : 'bg-[#050B1A]/85 backdrop-blur-xl border-b border-white/10'
@@ -75,14 +78,15 @@ export const Navbar: FC<NavbarProps> = ({
             className="flex items-center gap-2.5 text-left group focus:outline-none rounded-lg p-1 cursor-pointer"
             aria-label="Black Star Orbit Home"
           >
-            <div>
-              <div className="flex items-center gap-2">
-              </div>
-            </div>
+            <BlackStarLogo size="sm" showGlow={false} />
+            <span className="flex flex-col leading-none">
+              <span className="text-[11px] sm:text-xs font-semibold tracking-[0.16em] text-[#edf4fc]">COSMIC FRONTIER</span>
+              <span className="mt-1 text-[8px] font-mono tracking-[0.18em] text-[#8193ad]">ASTRONOMY WORKSPACE</span>
+            </span>
           </button>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1" aria-label="Main Navigation">
+          <nav className="cf-nav-scroll hidden lg:flex items-center gap-0.5 xl:gap-1" aria-label="Main Navigation">
             {navItems.map((item, index) => {
               const isActive = currentPage === item.page || 
                 (item.page === 'ai-guide' && currentPage === 'guide');
@@ -90,7 +94,7 @@ export const Navbar: FC<NavbarProps> = ({
                 <button
                   key={item.page}
                   onClick={() => handleNavClick(item.page)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs xl:text-sm font-medium transition-all cursor-pointer ${
+                  className={`cf-nav-item flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] xl:text-xs font-medium transition-all cursor-pointer ${
                     isActive
                       ? isLight
                         ? 'bg-[#1a1a1a] text-[#fdfcf8] font-bold shadow-xs'
@@ -215,7 +219,7 @@ export const Navbar: FC<NavbarProps> = ({
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#0B1630] border-b border-[#1E293B] px-4 pt-2 pb-4 space-y-1 animate-fadeIn">
+        <div className="cf-menu-panel lg:hidden bg-[#0B1630] border-b border-[#1E293B] px-4 pt-2 pb-4 space-y-1 animate-fadeIn">
           {navItems.map((item) => {
             const isActive = currentPage === item.page || 
               (item.page === 'ai-guide' && currentPage === 'guide');
@@ -232,7 +236,7 @@ export const Navbar: FC<NavbarProps> = ({
                 <span className={isActive ? 'text-[#38BDF8]' : 'text-[#A7B4CC]'}>
                   {item.icon}
                 </span>
-                <span>{item.page === 'planet-x' ? 'Planet X Investigation Lab' : item.label}</span>
+                <span>{item.page === 'planet-x' ? 'Planet X' : item.label}</span>
               </button>
             );
           })}
