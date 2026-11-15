@@ -13,6 +13,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'node:module';
 import dotenv from 'dotenv';
 import { generateSyntheticSpherexObservations, SPHEREX_BANDS } from './src/science/spherexEngine.ts';
 import { STARTER_QUESTIONS, findVerifiedAnswer } from './src/cosmic-frontier/data/guideKnowledge.ts';
@@ -28,13 +29,14 @@ import {
   querySpherexTimeMachine,
   resolveTargetDesignator,
 } from './src/server/astroArchiveService.ts';
-import exoplanetArchive from './src/cosmic-frontier/data/catalogs/confirmed-exoplanets.json';
-import galaxyArchive from './src/cosmic-frontier/data/catalogs/deep-sky-galaxies.json';
-import smallBodiesArchive from './src/cosmic-frontier/data/catalogs/asteroids-comets.json';
-import starArchive from './src/cosmic-frontier/data/catalogs/bright-stars.json';
-import planetArchive from './src/cosmic-frontier/data/catalogs/planets.json';
-import spherexArchive from './src/cosmic-frontier/data/catalogs/mission-products.json';
-import nasaImageArchive from './src/cosmic-frontier/data/catalogs/nasa-archives.json';
+const require = createRequire(import.meta.url);
+const exoplanetArchive = require('./src/cosmic-frontier/data/catalogs/confirmed-exoplanets.json');
+const galaxyArchive = require('./src/cosmic-frontier/data/catalogs/deep-sky-galaxies.json');
+const smallBodiesArchive = require('./src/cosmic-frontier/data/catalogs/asteroids-comets.json');
+const starArchive = require('./src/cosmic-frontier/data/catalogs/bright-stars.json');
+const planetArchive = require('./src/cosmic-frontier/data/catalogs/planets.json');
+const spherexArchive = require('./src/cosmic-frontier/data/catalogs/mission-products.json');
+const nasaImageArchive = require('./src/cosmic-frontier/data/catalogs/nasa-archives.json');
 
 
 dotenv.config();
