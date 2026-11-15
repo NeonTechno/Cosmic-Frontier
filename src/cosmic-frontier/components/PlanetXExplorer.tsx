@@ -455,34 +455,34 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
   }, [pixelsPerAU, panOffset, showKnownPlanets, showDistantObjects, showPlanetXOrbit, isAnimated, selectedObject]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 animate-fadeIn">
+    <div className="cf-module cf-module--planetx max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 space-y-7 animate-fadeIn">
       {/* 1. PAGE HEADER */}
-      <div className="space-y-4 pb-6 border-b border-[#1E293B]">
+      <div className="cf-module-hero space-y-3 pb-5 border-b border-[#1E293B]">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/30 text-xs font-semibold uppercase tracking-wider">
           <Orbit className="w-3.5 h-3.5" />
-          <span>Outer Solar System Dynamics</span>
+          <span>PLANET X • ORBITAL INVESTIGATION</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-extrabold text-[#F8FAFC] tracking-tight">
           Planet X Investigation Lab
         </h1>
         <p className="text-base sm:text-lg text-[#F5C451] font-medium">
-          Evidence-Based Investigation of the Planet Nine Hypothesis
+          Distant orbits · eTNOs · orbital dynamics
         </p>
         <p className="text-sm text-[#A7B4CC] leading-relaxed max-w-3xl">
-          Beyond Neptune lies a vast, frozen frontier populated by icy trans-Neptunian objects. By studying how these distant bodies orbit the Sun, astronomers search for clues to an undiscovered planet that might be shaping their trajectories from the outer darkness.
+          Explore the orbital evidence behind the Planet Nine hypothesis.
         </p>
 
         {/* 2. PROMINENT SCIENTIFIC DISCLAIMER (SECTION 9 MANDATORY NOTICE) */}
-        <div className="p-4 rounded-2xl bg-[#0B1630] border border-[#F5C451]/40 flex items-start sm:items-center gap-3.5 shadow-lg">
-          <div className="w-9 h-9 rounded-xl bg-[#F5C451]/10 text-[#F5C451] flex items-center justify-center shrink-0">
+        <div className="cf-notice p-3 rounded-xl bg-[#101a2e] border border-[#64748b]/35 flex items-start sm:items-center gap-3 shadow-md">
+          <div className="w-8 h-8 rounded-lg bg-[#64748b]/15 text-[#aab8cc] flex items-center justify-center shrink-0">
             <ShieldAlert className="w-5 h-5" />
           </div>
           <div className="text-xs sm:text-sm text-[#F8FAFC]">
-            <span className="font-bold text-[#F5C451] mr-1.5 uppercase font-mono tracking-wider">
-              Scientific Notice:
+            <span className="font-bold text-[#cbd5e1] mr-1.5 uppercase font-mono tracking-wider">
+              HYPOTHESIS:
             </span>
             <span className="font-medium">
-              Planet X remains hypothetical and has not been confirmed. This explorer illustrates the scientific questions researchers investigate. Any proposed Planet X orbit shown here is illustrative unless explicitly supported by verified data.
+              Planet X is hypothetical and unconfirmed. Displayed orbits are illustrative, not a discovery claim.
             </span>
           </div>
         </div>
@@ -520,7 +520,7 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
       </div>
 
       {/* 3. DISTANCE CONTROL & SCALE NOTICE (SECTION 5) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-[#0B1630] border border-[#1E293B]">
+      <div className="cf-surface flex flex-wrap items-center justify-between gap-4 p-3.5 rounded-xl bg-[#0B1630] border border-[#1E293B]">
         {/* Scale Presets */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-[#A7B4CC] font-mono mr-1">Scale Viewport:</span>
@@ -605,7 +605,7 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT: 2D ORBITAL CANVAS VIEWPORT (lg:col-span-8) */}
         <div className="lg:col-span-8 space-y-3">
-          <div className="relative rounded-2xl bg-[#0B1630] border border-[#1E293B] shadow-2xl overflow-hidden">
+          <div className="cf-surface relative rounded-2xl bg-[#0B1630] border border-[#1E293B] shadow-2xl overflow-hidden">
             {/* Top Toolbar */}
             <div className="bg-[#050B1A]/85 backdrop-blur-md px-4 py-2.5 border-b border-[#1E293B] flex items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-3 font-mono">
@@ -731,7 +731,7 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
 
         {/* RIGHT: SELECTED-OBJECT INFORMATION PANEL (SECTION 4) (lg:col-span-4) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className={`p-6 rounded-2xl bg-[#0B1630] border space-y-4 shadow-xl ${
+          <div className={`cf-surface p-5 rounded-2xl bg-[#0B1630] border space-y-4 shadow-xl ${
             selectedObject.isHypothetical ? 'border-[#8B5CF6]/50 shadow-[#8B5CF6]/5' : 'border-[#1E293B]'
           }`}>
             <div className="flex items-start justify-between border-b border-[#1E293B] pb-3">
@@ -833,7 +833,7 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
       </div>
 
       {/* 5. THE EVIDENCE INVESTIGATION PANEL (SECTION 6) */}
-      <div className="rounded-2xl bg-[#0B1630] border border-[#1E293B] p-8 sm:p-10 space-y-8">
+      <div className="cf-surface rounded-2xl bg-[#0B1630] border border-[#1E293B] p-6 sm:p-7 space-y-6">
         <div className="max-w-2xl space-y-2">
           <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#38BDF8] font-mono">
             <Compass className="w-4 h-4" />
@@ -874,7 +874,7 @@ export const PlanetXExplorer: FC<PlanetXExplorerProps> = ({ onNavigate }) => {
       </div>
 
       {/* 6. EVIDENCE AND UNCERTAINTY SECTION (SECTION 7) */}
-      <div className="rounded-2xl bg-[#0B1630] border border-[#1E293B] p-8 sm:p-10 space-y-6">
+      <div className="cf-surface rounded-2xl bg-[#0B1630] border border-[#1E293B] p-6 sm:p-7 space-y-5">
         <div className="max-w-3xl space-y-2">
           <h2 className="text-2xl sm:text-3xl font-bold text-[#F8FAFC]">
             What Does the Evidence Tell Us?
