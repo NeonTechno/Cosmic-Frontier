@@ -3392,3 +3392,105 @@ body.theme-light {
   .editorial-nav-links > button:hover,.editorial-index-link:hover,
   .editorial-live-telemetry-button:hover { transform:none!important; }
 }
+
+
+/* Editorial Journey — refined navigation interaction */
+.editorial-nav-links {
+  align-items:center;
+  row-gap:10px!important;
+}
+.editorial-nav-links > button:not(.editorial-live-telemetry-button) {
+  isolation:isolate;
+  border-radius:3px!important;
+  text-shadow:0 1px 0 rgba(0,0,0,.04);
+  transition:color .22s ease,transform .22s cubic-bezier(.2,.75,.25,1),opacity .22s ease!important;
+}
+.editorial-nav-links > button:not(.editorial-live-telemetry-button)::after {
+  height:2px;
+  border-radius:2px;
+  transform:scaleX(0);
+  transform-origin:center;
+  transition:transform .28s cubic-bezier(.16,1,.3,1),opacity .2s ease;
+}
+.editorial-nav-links > button:not(.editorial-live-telemetry-button):hover {
+  transform:translateY(-2px);
+}
+.editorial-nav-links > button:not(.editorial-live-telemetry-button):active {
+  transform:translateY(0) scale(.98);
+}
+.editorial-nav-links button[title*="Keyboard Shortcuts"] {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border-radius:5px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+  transition:transform .22s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease!important;
+}
+.editorial-nav-links button[title*="Keyboard Shortcuts"]:hover {
+  box-shadow:0 5px 14px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.editorial-live-telemetry-button {
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  padding-right:28px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 2px 8px rgba(0,0,0,.06);
+}
+.editorial-live-telemetry-button::after {
+  content:"";
+  position:absolute;
+  right:11px;
+  top:50%;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#69b99b;
+  box-shadow:0 0 0 3px rgba(105,185,155,.12),0 0 10px rgba(105,185,155,.28);
+  transform:translateY(-50%);
+  transition:box-shadow .25s ease,background .25s ease;
+}
+.editorial-live-telemetry-button:hover::after {
+  background:#83d4b2;
+  box-shadow:0 0 0 4px rgba(105,185,155,.16),0 0 14px rgba(105,185,155,.42);
+}
+.editorial-light .editorial-live-telemetry-button::after {
+  background:#278b68;
+  box-shadow:0 0 0 3px rgba(39,139,104,.1);
+}
+.editorial-light .editorial-live-telemetry-button:hover::after {
+  background:#167c59;
+  box-shadow:0 0 0 4px rgba(39,139,104,.14),0 0 12px rgba(39,139,104,.2);
+}
+.editorial-index-link {
+  position:relative;
+  overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+.editorial-index-link:active {
+  transform:translateY(0) scale(.985);
+}
+@media(prefers-reduced-motion:no-preference) {
+  .editorial-nav-links > button:not(.editorial-live-telemetry-button):hover::after {
+    animation:editorial-nav-underline .34s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes editorial-nav-underline {
+    from { transform:scaleX(.35); opacity:.45; }
+    to { transform:scaleX(1); opacity:.9; }
+  }
+}
+@media(max-width:640px) {
+  .editorial-nav-links > button:not(.editorial-live-telemetry-button) {
+    padding:7px 1px!important;
+  }
+  .editorial-nav-links button[title*="Keyboard Shortcuts"] {
+    padding:7px 9px!important;
+  }
+  .editorial-live-telemetry-button {
+    padding:8px 25px 8px 10px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .editorial-nav-links > button:not(.editorial-live-telemetry-button):hover::after {
+    animation:none!important;
+  }
+}
