@@ -2796,3 +2796,68 @@ body.theme-light {
     animation-duration: .01ms !important;
   }
 }
+
+
+/* Dust Horizon: keep the scientific image crisp, framed and secondary to the story. */
+.editorial-astronaut-hero {
+  min-height: clamp(500px, 48vw, 620px) !important;
+  background: #050a12 !important;
+}
+.editorial-astronaut-image.editorial-dust-horizon-image {
+  z-index: -1 !important;
+  top: 11% !important;
+  left: 34% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 39% !important;
+  height: 76% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  border: 1px solid rgba(176,218,239,.26);
+  border-radius: 12px;
+  background: #07111d;
+  box-shadow: 0 18px 48px rgba(0,0,0,.4), 0 0 32px rgba(60,180,220,.09);
+  filter: none !important;
+  image-rendering: auto;
+}
+.editorial-astronaut-shade {
+  z-index: -2 !important;
+  background:
+    linear-gradient(90deg,#030811 0%,rgba(3,8,17,.96) 26%,rgba(3,8,17,.35) 46%,rgba(3,8,17,.18) 62%,rgba(3,8,17,.9) 100%),
+    linear-gradient(0deg,rgba(3,8,17,.72),transparent 32%,rgba(3,8,17,.12) 100%) !important;
+}
+.editorial-astronaut-grid { z-index: -1; opacity: .12; }
+.editorial-astronaut-layout {
+  grid-template-columns: minmax(0,1fr) minmax(180px,.72fr) minmax(245px,.78fr) !important;
+}
+@media (max-width: 900px) {
+  .editorial-astronaut-hero { min-height: 570px !important; }
+  .editorial-astronaut-image.editorial-dust-horizon-image {
+    left: 31% !important;
+    width: 39% !important;
+    height: 66% !important;
+    top: 16% !important;
+  }
+  .editorial-astronaut-layout {
+    grid-template-columns: minmax(0,1fr) minmax(220px,.82fr) !important;
+  }
+}
+@media (max-width: 640px) {
+  .editorial-astronaut-hero { min-height: 0 !important; }
+  .editorial-astronaut-image.editorial-dust-horizon-image {
+    top: 52px !important;
+    left: 8% !important;
+    width: 84% !important;
+    height: 205px !important;
+    object-fit: contain !important;
+    border-radius: 10px;
+  }
+  .editorial-astronaut-shade {
+    background: linear-gradient(180deg,rgba(3,8,17,.08) 0%,rgba(3,8,17,.08) 245px,#050a12 275px,#050a12 100%) !important;
+  }
+  .editorial-astronaut-layout {
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 20px;
+    padding: 275px 17px 19px !important;
+  }
+}
