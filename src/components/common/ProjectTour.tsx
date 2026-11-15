@@ -134,6 +134,9 @@ export const ProjectTour: React.FC<ProjectTourProps> = ({ onComplete, onNavigate
             <h2 id="project-tour-title" className={`max-w-lg text-3xl font-semibold leading-tight tracking-tight sm:text-4xl ${light ? 'text-slate-950' : 'text-white'}`}>{step.title}</h2>
             <p className={`mt-4 text-sm leading-7 ${light ? 'text-slate-600' : 'text-slate-300'}`}>{step.description}</p>
             <p className={`mt-3 border-l-2 border-cyan-500/60 pl-3 text-xs leading-6 ${light ? 'text-slate-500' : 'text-slate-400'}`}>{step.detail}</p>
+            <div className="mt-5 flex flex-wrap gap-2" aria-label="What you can explore">
+              {step.highlights.map((highlight: string) => <span key={highlight} className={`tour-highlight ${light ? 'tour-highlight--light' : ''}`}>{highlight}</span>)}
+            </div>
             <button onClick={() => finish(step.tab)} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-3 text-xs font-bold text-slate-950 transition hover:bg-cyan-300 hover:shadow-lg hover:shadow-cyan-500/20">
               {step.action}<ArrowRight size={15} />
             </button>
@@ -146,6 +149,7 @@ export const ProjectTour: React.FC<ProjectTourProps> = ({ onComplete, onNavigate
               <button key={item.eyebrow} onClick={() => setCurrent(index)} aria-label={`Go to tour step ${index + 1}`} className={`h-1.5 rounded-full transition-all ${index === current ? 'w-8 bg-cyan-500' : `w-3 ${light ? 'bg-slate-300' : 'bg-slate-700'}`}`} />
             ))}
             <span className={`ml-2 text-[10px] font-mono ${light ? 'text-slate-500' : 'text-slate-400'}`}>{current + 1} / {steps.length}</span>
+            <span className="ml-2 hidden sm:inline text-[9px] font-mono tracking-wider text-slate-500">← → TO NAVIGATE · ESC TO EXIT</span>
           </div>
           <div className="flex items-center justify-between gap-3">
             <button onClick={() => current === 0 ? finish() : setCurrent((value) => value - 1)} className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition hover:bg-black/5 ${light ? 'text-slate-600' : 'text-slate-300 hover:bg-white/5'}`}>
