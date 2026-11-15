@@ -182,7 +182,8 @@ export async function fetchAndParseSpherexCutout(
   raDeg: number,
   decDeg: number,
   sizePix = 64,
-  fovArcmin?: number
+  fovArcmin?: number,
+  timeoutMs = 7500
 ) {
   const cacheKey = `fits_cutout_${accessUrl.split('/').pop()}_${raDeg.toFixed(4)}_${decDeg.toFixed(4)}_${sizePix}_${fovArcmin || 'nat'}`;
   const cached = getCached<ReturnType<typeof parseAndReprojectFitsCutout>>(cacheKey);
@@ -190,9 +191,19 @@ export async function fetchAndParseSpherexCutout(
 
   const sep = accessUrl.includes('?') ? '&' : '?';
   const cutoutUrl = `${accessUrl}${sep}center=${raDeg.toFixed(6)},${decDeg.toFixed(6)}&size=${sizePix}pix`;
-  const res = await fetch(cutoutUrl, { signal: AbortSignal.timeout(14000) });
-  if (!res.ok) {
+
+  let res: Response | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    res = await fetch(cutoutUrl, { signal: AbortSignal.timeout(timeoutMs) });
+    if (res.ok) break;
+    if ((res.status === 502 || res.status === 503 || res.status === 429) && attempt === 0) {
+      await new Promise((r) => setTimeout(r, 250));
+      continue;
+    }
     throw new Error(`IRSA IBE cutout HTTP ${res.status}`);
+  }
+  if (!res || !res.ok) {
+    throw new Error(`IRSA IBE cutout HTTP ${res?.status || 'error'}`);
   }
   const ab = await res.arrayBuffer();
   const buf = Buffer.from(ab);
@@ -359,16 +370,22 @@ function buildStarsFromGaiaAndWcs(
 function selectChronologicalRows(
   allRows: SiaObservationRow[],
   preferredBand?: string,
-  maxEpochs = 4
+  maxEpochs = 3
 ): { selected: SiaObservationRow[]; selectedBand: string; availableBands: string[] } {
   const availableBands = [...new Set(allRows.map((r) => r.bandpassName))].sort();
   if (allRows.length === 0) {
     return { selected: [], selectedBand: preferredBand || 'SPHEREx-D5', availableBands };
   }
 
-  // Pick requested band if available, otherwise pick the band with the best time baseline (prefer D5/D4/D6 for IR)
-  let band = preferredBand && preferredBand !== 'ALL' && availableBands.includes(preferredBand)
-    ? preferredBand
+  // Normalize shorthand ('D5' -> 'SPHEREx-D5') and pick requested band if available
+  const normalizedBand = preferredBand
+    ? preferredBand.startsWith('SPHEREx-') || preferredBand === 'ALL'
+      ? preferredBand
+      : `SPHEREx-${preferredBand}`
+    : '';
+
+  let band = normalizedBand && normalizedBand !== 'ALL' && availableBands.includes(normalizedBand)
+    ? normalizedBand
     : '';
 
   if (!band) {
@@ -519,22 +536,27 @@ export async function querySpherexTimeMachine(options: {
     };
   }
 
-  const { selected, selectedBand, availableBands } = selectChronologicalRows(combinedRows, band, 4);
+  const { selected, selectedBand, availableBands } = selectChronologicalRows(combinedRows, band, 3);
 
-  // Fetch FITS cutouts for selected chronological epochs concurrently
-  const epochFitsResults = await Promise.all(
-    selected.map(async (row) => {
-      try {
-        const fits = await fetchAndParseSpherexCutout(row.accessUrl, raDeg, decDeg, 64, fovArcmin);
-        return { row, fits };
-      } catch (err: any) {
-        limitations.push(`Cutout ${row.obsId} (${row.bandpassName}) download error: ${err.message}`);
-        return { row, fits: null };
-      }
-    })
-  );
+  // Fetch FITS cutouts for selected chronological epochs (bounded concurrency prevents IRSA 503s)
+  const epochFitsResults: Array<{ row: SiaObservationRow; fits: ReturnType<typeof parseAndReprojectFitsCutout> | null }> = [];
+  for (let i = 0; i < selected.length; i += 2) {
+    const batch = selected.slice(i, i + 2);
+    const batchRes = await Promise.all(
+      batch.map(async (row) => {
+        try {
+          const fits = await fetchAndParseSpherexCutout(row.accessUrl, raDeg, decDeg, 64, fovArcmin, 6500);
+          return { row, fits };
+        } catch (err: any) {
+          limitations.push(`Cutout ${row.obsId} (${row.bandpassName}) download error: ${err.message}`);
+          return { row, fits: null };
+        }
+      })
+    );
+    epochFitsResults.push(...batchRes);
+  }
 
-  // Sample multi-band SED across D1..D6 using one cutout per band near center
+  // Sample multi-band SED across D1..D6 using already-loaded cutouts + quick bounded fetch if within time budget
   const sedTargets: Array<{ bandName: string; obs: SiaObservationRow }> = [];
   for (const b of ['SPHEREx-D1', 'SPHEREx-D2', 'SPHEREx-D3', 'SPHEREx-D4', 'SPHEREx-D5', 'SPHEREx-D6']) {
     const already = epochFitsResults.find((e) => e.row.bandpassName === b && e.fits);
@@ -546,41 +568,56 @@ export async function querySpherexTimeMachine(options: {
     }
   }
 
-  const sedMeasurements = await Promise.all(
-    sedTargets.map(async ({ bandName, obs }) => {
-      const existing = epochFitsResults.find((e) => e.row.obsId === obs.obsId && e.fits);
-      let fits = existing?.fits || null;
-      if (!fits) {
-        try {
-          fits = await fetchAndParseSpherexCutout(obs.accessUrl, raDeg, decDeg, 48, fovArcmin);
-        } catch {
-          fits = null;
+  const sedMeasurements: Array<{
+    wavelength: number;
+    fluxMJySr: number;
+    uncertainty: number;
+    modelFit: number;
+    bandLabel: string;
+    isMeasured: boolean;
+    obsId: string;
+  }> = [];
+
+  for (let i = 0; i < sedTargets.length; i += 2) {
+    const batch = sedTargets.slice(i, i + 2);
+    const batchOut = await Promise.all(
+      batch.map(async ({ bandName, obs }) => {
+        const existing = epochFitsResults.find((e) => e.row.obsId === obs.obsId && e.fits);
+        let fits = existing?.fits || null;
+        // Skip extra FITS network downloads if elapsed time approaches serverless limits
+        if (!fits && Date.now() - t0 < 6000) {
+          try {
+            fits = await fetchAndParseSpherexCutout(obs.accessUrl, raDeg, decDeg, 48, fovArcmin, 4000);
+          } catch {
+            fits = null;
+          }
         }
-      }
-      const wl = bandCenterMicrons(bandName, obs.emMinMicrons, obs.emMaxMicrons);
-      if (!fits) {
+        const wl = bandCenterMicrons(bandName, obs.emMinMicrons, obs.emMaxMicrons);
+        if (!fits) {
+          return {
+            wavelength: wl,
+            fluxMJySr: 0,
+            uncertainty: 0,
+            modelFit: 0,
+            bandLabel: bandName,
+            isMeasured: false,
+            obsId: obs.obsId,
+          };
+        }
+        const flux = Math.max(0, fits.stats.apertureFluxMJySr);
         return {
           wavelength: wl,
-          fluxMJySr: 0,
-          uncertainty: 0,
-          modelFit: 0,
+          fluxMJySr: Number(flux.toFixed(3)),
+          uncertainty: Number(fits.stats.apertureErrMJySr.toFixed(3)),
+          modelFit: Number(flux.toFixed(3)),
           bandLabel: bandName,
-          isMeasured: false,
+          isMeasured: true,
           obsId: obs.obsId,
         };
-      }
-      const flux = Math.max(0, fits.stats.apertureFluxMJySr);
-      return {
-        wavelength: wl,
-        fluxMJySr: Number(flux.toFixed(3)),
-        uncertainty: Number(fits.stats.apertureErrMJySr.toFixed(3)),
-        modelFit: Number(flux.toFixed(3)),
-        bandLabel: bandName,
-        isMeasured: true,
-        obsId: obs.obsId,
-      };
-    })
-  );
+      })
+    );
+    sedMeasurements.push(...batchOut);
+  }
 
   // Build chronological ObservationFrames
   const epochs: ObservationFrame[] = epochFitsResults.map(({ row, fits }, idx) => {

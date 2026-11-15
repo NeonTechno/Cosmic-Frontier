@@ -537,7 +537,7 @@ export function generateBenchmarkObservation(target: ChallengeBenchmarkTarget): 
     pixelScaleArcsec: 6.2,
     dataQualityFlag: 'CALIBRATED_NOMINAL',
     dataSourceStatus: 'SIMULATED_BENCHMARK',
-    dataSourceLabel: 'CALIBRATED SYNTHETIC BENCHMARK: Challenge Target Pre-Flight Specification (Query IRSA Live Archive to Load Real DR1/QR3 FITS Cutouts)',
+    dataSourceLabel: 'Pre-loaded Challenge Benchmark — click "Query Live IRSA" or select a target to load live DR1/QR3 FITS cutouts',
     documentationUrl: 'https://irsa.ipac.caltech.edu/Missions/spherex.html',
     fitsHeader: {
       'SIMPLE': 'T',

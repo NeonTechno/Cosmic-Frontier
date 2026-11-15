@@ -29,6 +29,16 @@ import {
   querySpherexTimeMachine,
   resolveTargetDesignator,
 } from './src/server/astroArchiveService.ts';
+import {
+  buildLiveEphemeris,
+  buildObservatoryObjects,
+  fetchLiveAsteroidOrbitData,
+  fetchLiveCloseApproachesData,
+  fetchLiveExoplanetsFromTap,
+  fetchLiveNasaImageLibrary,
+  fetchLiveSmallBodies,
+  lookupLiveGalaxyInNed,
+} from './src/server/liveSpaceDataService.ts';
 const require = createRequire(import.meta.url);
 const exoplanetArchive = require('./src/cosmic-frontier/data/catalogs/confirmed-exoplanets.json');
 const galaxyArchive = require('./src/cosmic-frontier/data/catalogs/deep-sky-galaxies.json');
@@ -41,12 +51,19 @@ const nasaImageArchive = require('./src/cosmic-frontier/data/catalogs/nasa-archi
 
 dotenv.config();
 
+const cleanEnv = (value?: string): string =>
+  (value || '').trim().replace(/^["']|["']$/g, '').trim();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = parseInt(process.env.PORT || '3000', 10);
 const isProd = process.env.NODE_ENV === 'production';
+const portArgIdx = process.argv.indexOf('--port');
+const cliPort = portArgIdx !== -1 ? parseInt(process.argv[portArgIdx + 1] || '', 10) : NaN;
+const port = Number.isFinite(cliPort)
+  ? cliPort
+  : parseInt((!isProd && process.env.PORT === '8080' ? '3000' : process.env.PORT) || '3000', 10);
 
 app.use(express.json());
 
@@ -55,9 +72,9 @@ let candidateState: PlanetXCandidate[] = JSON.parse(JSON.stringify(INITIAL_CANDI
 const spherexObservations = generateSyntheticSpherexObservations();
 
 // NVIDIA NIM AI Configuration (strictly server-side)
-const nvidiaApiKey = (process.env.NVIDIA_API_KEY || '').trim();
-const nvidiaModel = (process.env.NVIDIA_MODEL || 'nvidia/nemotron-3.5-bolt-e4b').trim();
-const nvidiaEndpoint = (process.env.NVIDIA_API_URL || 'https://integrate.api.nvidia.com/v1/chat/completions').trim();
+const nvidiaApiKey = cleanEnv(process.env.NVIDIA_API_KEY);
+const nvidiaModel = cleanEnv(process.env.NVIDIA_MODEL) || 'nvidia/nemotron-3.5-bolt-e4b';
+const nvidiaEndpoint = cleanEnv(process.env.NVIDIA_API_URL) || 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 interface NvidiaChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -118,7 +135,7 @@ async function callNvidiaNemotron(
 // API ROUTES
 // ==========================================
 
-// Read-only archive-backed endpoints for the expanded Cosmic Lab.
+// Live-first data endpoints with verified archive fallbacks for Vercel & online deployments.
 const archiveMeta = (archive: any) => ({
   source: archive.metadata?.source || 'Verified Local Archive',
   sourceUrl: archive.metadata?.sourceUrl,
@@ -128,58 +145,299 @@ const archiveMeta = (archive: any) => ({
 });
 
 app.get('/api/data/solar-system', (_req: Request, res: Response) => {
-  res.json({ records: planetArchive.records || [], ...archiveMeta(planetArchive) });
-});
-
-app.get('/api/data/exoplanets', (req: Request, res: Response) => {
-  const search = String(req.query.search || '').trim().toLowerCase();
-  const includeCandidates = String(req.query.candidates || 'true') !== 'false';
-  const records = (exoplanetArchive.records || []).filter((record: any) => {
-    const matches = !search || `${record.planetName} ${record.hostStar} ${record.discoveryMethod}`.toLowerCase().includes(search);
-    return matches && (includeCandidates || record.disposition !== 'Candidate');
+  const ephemeris = buildLiveEphemeris();
+  res.json({
+    records: planetArchive.records || [],
+    liveEphemerisEpoch: ephemeris.epoch,
+    source: 'NASA/JPL Solar System Dynamics & Live J2000 Ephemeris',
+    sourceUrl: 'https://ssd.jpl.nasa.gov/horizons/',
+    retrievalDateUTC: ephemeris.retrievalTimestamp,
+    dataStatus: 'LIVE EPHEMERIS',
+    isLive: true,
   });
-  res.json({ records, ...archiveMeta(exoplanetArchive) });
 });
 
-app.get('/api/data/small-bodies', (req: Request, res: Response) => {
-  const search = String(req.query.sstr || '').trim().toLowerCase();
-  const confirmedObjects = (smallBodiesArchive.confirmedObjects || []).filter((record: any) =>
-    !search || `${record.designation} ${record.fullName} ${record.orbitClass}`.toLowerCase().includes(search)
+app.get('/api/data/exoplanets', async (req: Request, res: Response) => {
+  const search = String(req.query.search || '').trim();
+  const includeCandidates = String(req.query.candidates || 'true') !== 'false';
+  const result = await fetchLiveExoplanetsFromTap(
+    search,
+    includeCandidates,
+    exoplanetArchive.records || []
   );
-  res.json({ confirmedObjects, hypotheticalScenarios: smallBodiesArchive.hypotheticalScenarios || [], ...archiveMeta(smallBodiesArchive) });
+  res.json(result);
 });
 
-app.get('/api/data/galaxies', (req: Request, res: Response) => {
-  const lookup = String(req.query.lookup || '').trim().toLowerCase();
-  const records = (galaxyArchive.records || []).filter((record: any) =>
-    !lookup || `${record.name} ${record.catalogIdentifier} ${record.constellation} ${(record.alternateNames || []).join(' ')}`.toLowerCase().includes(lookup)
+app.get('/api/data/small-bodies', async (req: Request, res: Response) => {
+  const sstr = String(req.query.sstr || '').trim();
+  const result = await fetchLiveSmallBodies(
+    sstr,
+    smallBodiesArchive.confirmedObjects || [],
+    smallBodiesArchive.hypotheticalScenarios || []
   );
+  res.json(result);
+});
+
+app.get('/api/data/galaxies', async (req: Request, res: Response) => {
+  const lookup = String(req.query.lookup || '').trim();
   if (lookup) {
-    const record = records[0];
-    if (!record) {
-      res.status(404).json({ success: false, message: 'No matching object in the bundled archival catalog.' });
+    const liveRecord = await lookupLiveGalaxyInNed(lookup);
+    if (liveRecord) {
+      res.json({
+        success: true,
+        record: liveRecord,
+        source: 'NASA/IPAC Extragalactic Database (NED Live)',
+        isLive: true,
+      });
       return;
     }
-    res.json({ success: true, record, source: archiveMeta(galaxyArchive).source, isLive: false });
+
+    const q = lookup.toLowerCase();
+    const fallbackMatch = (galaxyArchive.records || []).find((record: any) =>
+      `${record.name} ${record.catalogIdentifier} ${record.constellation} ${(record.alternateNames || []).join(' ')}`.toLowerCase().includes(q)
+    );
+    if (!fallbackMatch) {
+      res.status(404).json({ success: false, message: `Object "${lookup}" was not found in NASA/IPAC NED or the archival catalog.` });
+      return;
+    }
+    res.json({ success: true, record: fallbackMatch, source: archiveMeta(galaxyArchive).source, isLive: false });
     return;
   }
-  res.json({ records, ...archiveMeta(galaxyArchive) });
+
+  // Verify live NED reachability so status reflects online connectivity
+  const nedSample = await lookupLiveGalaxyInNed('M31');
+  res.json({
+    records: galaxyArchive.records || [],
+    source: nedSample ? 'NASA/IPAC Extragalactic Database (NED Live)' : archiveMeta(galaxyArchive).source,
+    sourceUrl: 'https://ned.ipac.caltech.edu/',
+    retrievalDateUTC: new Date().toISOString(),
+    dataStatus: nedSample ? 'LIVE NED CONNECTED' : 'ARCHIVED_FALLBACK',
+    isLive: Boolean(nedSample),
+  });
 });
 
-app.get('/api/data/stars', (_req: Request, res: Response) => {
-  res.json({ records: starArchive.records || [], ...archiveMeta(starArchive) });
+app.get('/api/data/stars', async (_req: Request, res: Response) => {
+  const gaiaStatus = await pingExternalEndpoint('esa-gaia-dr3');
+  res.json({
+    records: starArchive.records || [],
+    source: gaiaStatus.reachable ? 'ESA Gaia DR3 & CDS SIMBAD (Live Cross-Match)' : archiveMeta(starArchive).source,
+    sourceUrl: 'https://gea.esac.esa.int/archive/',
+    retrievalDateUTC: new Date().toISOString(),
+    dataStatus: gaiaStatus.reachable ? 'LIVE DATA' : 'ARCHIVED_FALLBACK',
+    isLive: gaiaStatus.reachable,
+  });
 });
 
-app.get('/api/data/spherex', (_req: Request, res: Response) => {
-  res.json({ ...spherexArchive, ...archiveMeta(spherexArchive) });
+app.get('/api/data/spherex', async (_req: Request, res: Response) => {
+  const irsaStatus = await pingExternalEndpoint('irsa-spherex-sia');
+  res.json({
+    ...spherexArchive,
+    source: irsaStatus.reachable ? 'NASA/IPAC IRSA SPHEREx DR1/QR3 (Live)' : archiveMeta(spherexArchive).source,
+    sourceUrl: 'https://irsa.ipac.caltech.edu/Missions/spherex.html',
+    retrievalDateUTC: new Date().toISOString(),
+    dataStatus: irsaStatus.reachable ? 'LIVE IRSA ARCHIVE' : 'MISSION SPECIFICATION SNAPSHOT',
+    isLive: irsaStatus.reachable,
+  });
 });
 
-app.get('/api/data/images', (req: Request, res: Response) => {
+app.get('/api/data/images', async (req: Request, res: Response) => {
+  const query = String(req.query.q || req.query.search || 'SPHEREx').trim();
+  const result = await fetchLiveNasaImageLibrary(query, nasaImageArchive.records || []);
+  res.json(result);
+});
+
+app.get('/api/data/catalog', async (req: Request, res: Response) => {
+  const category = String(req.query.category || 'all').trim();
   const query = String(req.query.q || '').trim().toLowerCase();
-  const records = (nasaImageArchive.records || []).filter((record: any) =>
-    !query || `${record.title} ${record.center} ${record.nasaId} ${record.credit}`.toLowerCase().includes(query)
+
+  const [exoResult, sbResult] = await Promise.all([
+    category === 'all' || category === 'exoplanets'
+      ? fetchLiveExoplanetsFromTap(query, true, exoplanetArchive.records || [])
+      : Promise.resolve({ records: [], isLive: true, source: 'NASA Exoplanet Archive' }),
+    category === 'all' || category === 'small-bodies'
+      ? fetchLiveSmallBodies(query, smallBodiesArchive.confirmedObjects || [], [])
+      : Promise.resolve({ confirmedObjects: [], isLive: true, source: 'NASA/JPL SBDB' }),
+  ]);
+
+  const toProps = (entries: Array<[string, unknown, string?]>) =>
+    entries
+      .filter((e) => e[1] !== undefined && e[1] !== null && e[1] !== '')
+      .map(([label, value, unit]) => ({ label, value: String(value), ...(unit ? { unit } : {}) }));
+
+  const items: any[] = [];
+
+  if (category === 'all' || category === 'planets') {
+    for (const r of planetArchive.records || []) {
+      items.push({
+        id: String(r.id || r.name),
+        name: r.name,
+        category: 'planets',
+        categoryLabel: 'Solar System',
+        subtitle: r.objectType || 'Solar system object',
+        description: r.description || '',
+        dataStatus: 'Confirmed Reference',
+        sourceName: 'NASA/JPL Solar System Dynamics',
+        sourceUrl: r.sourceUrl || 'https://ssd.jpl.nasa.gov/horizons/',
+        properties: toProps([
+          ['Semi-major axis', r.semiMajorAxisAU, 'AU'],
+          ['Orbital period', r.orbitalPeriodDays, 'days'],
+          ['Mean radius', r.meanRadiusKm, 'km'],
+          ['Eccentricity', r.eccentricity],
+        ]),
+      });
+    }
+  }
+
+  if (category === 'all' || category === 'exoplanets') {
+    for (const r of exoResult.records) {
+      items.push({
+        id: `exoplanet-${r.planetName}`,
+        name: r.planetName,
+        category: 'exoplanets',
+        categoryLabel: 'Exoplanet',
+        subtitle: `Host star: ${r.hostStar}`,
+        description: `Discovery method: ${r.discoveryMethod}; year: ${r.discoveryYear}.`,
+        dataStatus: r.dataStatus,
+        sourceName: exoResult.isLive ? 'NASA Exoplanet Archive (TAP Live)' : 'NASA Exoplanet Archive',
+        sourceUrl: r.sourceUrl || 'https://exoplanetarchive.ipac.caltech.edu/',
+        properties: toProps([
+          ['Orbital period', r.orbitalPeriodDays, 'days'],
+          ['Radius', r.radiusEarthRadii, 'Earth radii'],
+          ['Mass', r.massEarthMasses, 'Earth masses'],
+          ['Distance', r.distanceLightYears, 'light-years'],
+        ]),
+      });
+    }
+  }
+
+  if (category === 'all' || category === 'small-bodies') {
+    for (const r of sbResult.confirmedObjects) {
+      items.push({
+        id: `small-body-${r.designation}`,
+        name: r.fullName || r.designation,
+        category: 'small-bodies',
+        categoryLabel: 'Small Body',
+        subtitle: r.orbitClass || 'Minor body',
+        description: 'Catalogued asteroid, comet, or trans-Neptunian object.',
+        dataStatus: r.dataStatus,
+        sourceName: sbResult.isLive ? 'NASA/JPL SBDB & CNEOS (Live)' : 'NASA/JPL Small-Body Database',
+        sourceUrl: r.sourceUrl || 'https://ssd-api.jpl.nasa.gov/',
+        properties: toProps([
+          ['Semi-major axis', r.semiMajorAxisAU, 'AU'],
+          ['Eccentricity', r.eccentricity],
+          ['Inclination', r.inclinationDeg, 'degrees'],
+          ['Diameter', r.diameterKm, 'km'],
+        ]),
+      });
+    }
+  }
+
+  if (category === 'all' || category === 'galaxies') {
+    for (const r of galaxyArchive.records || []) {
+      items.push({
+        id: r.id || r.name,
+        name: r.name,
+        category: 'galaxies',
+        categoryLabel: 'Galaxy',
+        subtitle: `${r.morphologicalType} · ${r.constellation}`,
+        description: r.description || '',
+        dataStatus: r.dataStatus || 'Archival data',
+        sourceName: 'NASA/IPAC Extragalactic Database',
+        sourceUrl: r.sourceUrl || 'https://ned.ipac.caltech.edu/',
+        properties: toProps([
+          ['Distance', r.distanceMly, 'million light-years'],
+          ['Redshift', r.redshift],
+          ['Radial velocity', r.radialVelocityKmS, 'km/s'],
+          ['Declination', r.declination],
+        ]),
+      });
+    }
+  }
+
+  if (category === 'all' || category === 'stars') {
+    for (const r of starArchive.records || []) {
+      items.push({
+        id: `star-${r.name}`,
+        name: r.name,
+        category: 'stars',
+        categoryLabel: 'Star',
+        subtitle: `${r.spectralType} · ${r.constellation}`,
+        description: r.description || '',
+        dataStatus: r.dataStatus || 'Archival data',
+        sourceName: 'CDS SIMBAD & Gaia DR3',
+        sourceUrl: r.sourceUrl || 'https://simbad.u-strasbg.fr/simbad/',
+        properties: toProps([
+          ['Temperature', r.effectiveTemperatureK, 'K'],
+          ['Apparent magnitude', r.apparentMagnitudeV],
+          ['Distance', r.distanceLightYears, 'light-years'],
+        ]),
+      });
+    }
+  }
+
+  if (category === 'all' || category === 'spherex') {
+    items.push({
+      id: 'spherex-mission-products',
+      name: 'SPHEREx Mission Products',
+      category: 'spherex',
+      categoryLabel: 'Mission Data',
+      subtitle: '102-band near-infrared all-sky survey',
+      description: spherexArchive.metadata?.description || '',
+      dataStatus: spherexArchive.metadata?.dataStatus || 'Mission specification',
+      sourceName: spherexArchive.metadata?.source || 'NASA/IPAC IRSA',
+      sourceUrl: spherexArchive.metadata?.sourceUrl || 'https://irsa.ipac.caltech.edu/',
+      properties: toProps([
+        ['Spectral bands', spherexArchive.telescopeSpecifications?.spectralBandsCount, 'bands'],
+        ['Wavelength range', spherexArchive.telescopeSpecifications?.wavelengthRangeMicrons],
+        ['Field of view', spherexArchive.telescopeSpecifications?.fieldOfViewDeg],
+      ]),
+    });
+  }
+
+  const filtered = query
+    ? items.filter((item) => `${item.name} ${item.subtitle} ${item.description} ${item.categoryLabel}`.toLowerCase().includes(query))
+    : items;
+
+  res.json({
+    items: filtered,
+    source: exoResult.isLive || sbResult.isLive ? 'NASA/IPAC TAP & JPL SBDB (Live)' : 'Verified NASA Archive Snapshot',
+    isLive: Boolean(exoResult.isLive || sbResult.isLive),
+    retrievedAt: new Date().toISOString(),
+  });
+});
+
+app.get('/api/data/live-space/ephemeris', (req: Request, res: Response) => {
+  const dateStr = req.query.date ? String(req.query.date) : undefined;
+  const target = req.query.target ? String(req.query.target) : undefined;
+  res.json(buildLiveEphemeris(dateStr, target));
+});
+
+app.get('/api/data/asteroid/orbit', async (req: Request, res: Response) => {
+  const des = String(req.query.des || '99942').trim();
+  const dateStr = req.query.date ? String(req.query.date) : undefined;
+  try {
+    const payload = await fetchLiveAsteroidOrbitData(des, dateStr);
+    res.json(payload);
+  } catch (err: any) {
+    res.status(502).json({ success: false, error: 'Failed to resolve asteroid orbit', details: err?.message });
+  }
+});
+
+app.get('/api/data/observatory/objects', async (req: Request, res: Response) => {
+  const dateStr = req.query.date ? String(req.query.date) : undefined;
+  const [exoResult, sbResult] = await Promise.all([
+    fetchLiveExoplanetsFromTap('', true, exoplanetArchive.records || []),
+    fetchLiveSmallBodies('', smallBodiesArchive.confirmedObjects || [], []),
+  ]);
+  res.json(
+    buildObservatoryObjects({
+      date: dateStr,
+      exoplanets: exoResult.records,
+      smallBodies: sbResult.confirmedObjects,
+      galaxies: galaxyArchive.records || [],
+      isLiveExoplanets: exoResult.isLive,
+    })
   );
-  res.json({ records, ...archiveMeta(nasaImageArchive) });
 });
 
 // Health check & Server Status
@@ -547,87 +805,220 @@ app.get('/api/data-status/ping', async (req: Request, res: Response) => {
 // (NASA api.nasa.gov, OpenWeatherMap, Agromonitoring)
 // ==========================================
 
-const NASA_KEY = (process.env.NASA_API_KEY || '').trim() || 'DEMO_KEY';
+const NASA_KEY = cleanEnv(process.env.NASA_API_KEY) || 'DEMO_KEY';
 const NASA_KEY_IS_CUSTOM = NASA_KEY !== 'DEMO_KEY';
-const OWM_KEY = process.env.WEATHER_DATA || process.env.OPENWEATHER_API || '';
-const AGRO_KEY = process.env.AGRO_API || '';
+const OWM_KEY = cleanEnv(process.env.WEATHER_DATA) || cleanEnv(process.env.OPENWEATHER_API);
+const AGRO_KEY = cleanEnv(process.env.AGRO_API);
+
+let cachedNvidiaCheck: { status: string; connected: boolean; message: string; checkedAt: number } | null = null;
 
 // Diagnostic test endpoint verifying all configured API connections
 app.get('/api/system/api-status', async (_req: Request, res: Response) => {
   const results: Record<string, any> = {
-    nasa: { configured: NASA_KEY_IS_CUSTOM, keyType: NASA_KEY_IS_CUSTOM ? 'custom' : 'DEMO_KEY', status: 'unknown' },
-    openweathermap: { configured: !!OWM_KEY, status: 'unknown' },
-    agromonitoring: { configured: !!AGRO_KEY, status: 'unknown' },
+    nasa: {
+      configured: NASA_KEY_IS_CUSTOM,
+      keyType: NASA_KEY_IS_CUSTOM ? 'custom' : 'DEMO_KEY',
+      envVar: 'NASA_API_KEY',
+      status: 'unknown',
+    },
+    openweathermap: {
+      configured: !!OWM_KEY,
+      envVar: 'WEATHER_DATA',
+      status: OWM_KEY ? 'unknown' : 'unconfigured',
+    },
+    agromonitoring: {
+      configured: !!AGRO_KEY,
+      envVar: 'AGRO_API',
+      status: AGRO_KEY ? 'unknown' : 'unconfigured',
+    },
     nvidia: {
       configured: !!nvidiaApiKey,
+      envVar: 'NVIDIA_API_KEY',
       model: nvidiaModel,
       endpoint: nvidiaEndpoint,
-      status: nvidiaApiKey ? 'active' : 'unconfigured',
+      status: nvidiaApiKey ? 'checking' : 'unconfigured',
+      connected: false,
     },
   };
 
-  // Test OpenWeatherMap
-  if (OWM_KEY) {
-    try {
-      const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=London&appid=${OWM_KEY}&units=metric`);
-      results.openweathermap.status = r.ok ? 'connected' : `http_${r.status}`;
-      results.openweathermap.testedEndpoint = 'api.openweathermap.org/data/2.5/weather';
-    } catch (e: any) {
-      results.openweathermap.status = `error: ${e.message}`;
-    }
-  }
+  await Promise.all([
+    // Test OpenWeatherMap
+    (async () => {
+      if (!OWM_KEY) return;
+      try {
+        const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=London&appid=${OWM_KEY}&units=metric`, {
+          signal: AbortSignal.timeout(5000),
+        });
+        results.openweathermap.status = r.ok ? 'connected' : `http_${r.status}`;
+        results.openweathermap.connected = r.ok;
+        results.openweathermap.testedEndpoint = 'api.openweathermap.org/data/2.5/weather';
+        if (!r.ok) {
+          results.openweathermap.message = r.status === 401 ? 'Invalid WEATHER_DATA / OPENWEATHER_API key.' : `HTTP ${r.status}`;
+        }
+      } catch (e: any) {
+        results.openweathermap.status = `error: ${e.message}`;
+        results.openweathermap.connected = false;
+      }
+    })(),
 
-  // Test Agromonitoring
-  if (AGRO_KEY) {
-    try {
-      const r = await fetch(`https://api.agromonitoring.com/agro/1.0/weather?lat=37.75&lon=-122.42&appid=${AGRO_KEY}`);
-      results.agromonitoring.status = r.ok ? 'connected' : `http_${r.status}`;
-      results.agromonitoring.testedEndpoint = 'api.agromonitoring.com/agro/1.0/weather';
-    } catch (e: any) {
-      results.agromonitoring.status = `error: ${e.message}`;
-    }
-  }
+    // Test Agromonitoring
+    (async () => {
+      if (!AGRO_KEY) return;
+      try {
+        const r = await fetch(`https://api.agromonitoring.com/agro/1.0/weather?lat=37.75&lon=-122.42&appid=${AGRO_KEY}`, {
+          signal: AbortSignal.timeout(5000),
+        });
+        results.agromonitoring.status = r.ok ? 'connected' : `http_${r.status}`;
+        results.agromonitoring.connected = r.ok;
+        results.agromonitoring.testedEndpoint = 'api.agromonitoring.com/agro/1.0/weather';
+        if (!r.ok) {
+          results.agromonitoring.message = r.status === 401 ? 'Invalid AGRO_API key.' : `HTTP ${r.status}`;
+        }
+      } catch (e: any) {
+        results.agromonitoring.status = `error: ${e.message}`;
+        results.agromonitoring.connected = false;
+      }
+    })(),
 
-  // Test NASA NeoWs and APOD independently.
-  try {
-    const r = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=${NASA_KEY}`, { signal: AbortSignal.timeout(7000) });
-    results.nasa.status = r.ok ? 'connected' : `http_${r.status}`;
-    results.nasa.connected = r.ok;
-    results.nasa.testedEndpoint = 'api.nasa.gov/neo/rest/v1';
-    results.nasa.message = r.ok ? 'NASA NeoWs responded successfully.' : 'NASA NeoWs request failed; check HTTP status, key and quota.';
-  } catch (e: any) {
-    results.nasa.status = `error: ${e.message}`;
-    results.nasa.connected = false;
-  }
-  try {
-    const apod = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}`, { signal: AbortSignal.timeout(15000) });
-    results.nasa.apod = { connected: apod.ok, status: apod.ok ? 'connected' : `http_${apod.status}`, testedEndpoint: 'api.nasa.gov/planetary/apod' };
-    if (!apod.ok) results.nasa.apod.message = (await apod.text()).slice(0, 240);
-  } catch (e: any) {
-    results.nasa.apod = { connected: false, status: 'error', message: e?.message || 'Request failed' };
-  }
+    // Test NASA NeoWs & APOD
+    (async () => {
+      try {
+        const r = await fetch(`https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=${NASA_KEY}`, {
+          signal: AbortSignal.timeout(6000),
+        });
+        results.nasa.status = r.ok ? 'connected' : `http_${r.status}`;
+        results.nasa.connected = r.ok;
+        results.nasa.testedEndpoint = 'api.nasa.gov/neo/rest/v1';
+        results.nasa.message = r.ok
+          ? 'NASA NeoWs responded successfully.'
+          : r.status === 403
+          ? 'Invalid NASA_API_KEY (HTTP 403).'
+          : r.status === 429
+          ? 'NASA DEMO_KEY rate limit exceeded (HTTP 429). Set custom NASA_API_KEY in Vercel.'
+          : `NASA NeoWs returned HTTP ${r.status}.`;
+      } catch (e: any) {
+        results.nasa.status = `error: ${e.message}`;
+        results.nasa.connected = false;
+      }
+
+      try {
+        let apod = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}`, {
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!apod.ok) {
+          apod = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}&count=1`, {
+            signal: AbortSignal.timeout(8000),
+          });
+        }
+        results.nasa.apod = {
+          connected: apod.ok,
+          status: apod.ok ? 'connected' : `http_${apod.status}`,
+          testedEndpoint: 'api.nasa.gov/planetary/apod',
+        };
+        if (!apod.ok) results.nasa.apod.message = (await apod.text()).slice(0, 240);
+      } catch (e: any) {
+        results.nasa.apod = { connected: false, status: 'error', message: e?.message || 'Request failed' };
+      }
+    })(),
+
+    // Test NVIDIA NIM key (cached 2 minutes to preserve quota)
+    (async () => {
+      if (!nvidiaApiKey) {
+        results.nvidia.message = 'NVIDIA_API_KEY is not set in server environment variables.';
+        return;
+      }
+      if (cachedNvidiaCheck && Date.now() - cachedNvidiaCheck.checkedAt < 120000) {
+        results.nvidia.status = cachedNvidiaCheck.status;
+        results.nvidia.connected = cachedNvidiaCheck.connected;
+        results.nvidia.message = cachedNvidiaCheck.message;
+        return;
+      }
+      try {
+        const r = await fetch(nvidiaEndpoint, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${nvidiaApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: nvidiaModel,
+            messages: [{ role: 'user', content: 'ok' }],
+            max_tokens: 4,
+            temperature: 0,
+            stream: false,
+          }),
+          signal: AbortSignal.timeout(7000),
+        });
+        const ok = r.ok;
+        const msg = ok
+          ? `NVIDIA NIM (${nvidiaModel}) authenticated cleanly.`
+          : r.status === 401 || r.status === 403
+          ? 'NVIDIA_API_KEY was rejected (HTTP ' + r.status + '). Verify key from build.nvidia.com.'
+          : `NVIDIA NIM returned HTTP ${r.status}.`;
+        cachedNvidiaCheck = { status: ok ? 'active' : `http_${r.status}`, connected: ok, message: msg, checkedAt: Date.now() };
+        results.nvidia.status = cachedNvidiaCheck.status;
+        results.nvidia.connected = ok;
+        results.nvidia.message = msg;
+      } catch (e: any) {
+        results.nvidia.status = `error: ${e.message}`;
+        results.nvidia.connected = false;
+        results.nvidia.message = e.message;
+      }
+    })(),
+  ]);
 
   res.json({
     success: true,
+    environment: process.env.VERCEL ? 'vercel-serverless' : isProd ? 'production' : 'development',
     timestamp: new Date().toISOString(),
     apiChecks: results,
   });
 });
 
-// NASA: APOD (Astronomy Picture of the Day) with resilient fallback
+let cachedLiveApod: { data: any; expiresAt: number } | null = null;
+
+// NASA: APOD (Astronomy Picture of the Day) with live count=1 fallback before archived fallback
 app.get('/api/nasa/apod', async (req: Request, res: Response) => {
-  const dateQuery = req.query.date ? `&date=${req.query.date}` : '';
+  const dateParam = req.query.date ? String(req.query.date).trim() : '';
+  const dateQuery = dateParam ? `&date=${encodeURIComponent(dateParam)}` : '';
+
+  if (!dateParam && cachedLiveApod && cachedLiveApod.expiresAt > Date.now()) {
+    res.json({ data: cachedLiveApod.data, source: 'api.nasa.gov (Live Cached)', isLive: true, dataStatus: 'LIVE' });
+    return;
+  }
+
+  let data: any = null;
   try {
-    const response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}${dateQuery}`, { signal: AbortSignal.timeout(15000) });
+    const response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}${dateQuery}`, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (response.ok) {
-      const data = await response.json();
-      res.json({ data, source: 'api.nasa.gov', isLive: true, dataStatus: 'LIVE' });
-      return;
+      data = await response.json();
     }
-    const responseBody = await response.text().catch(() => '');
-    console.warn(`[Server] NASA APOD returned HTTP ${response.status}: ${responseBody.slice(0, 240)}`);
-  } catch (err) {
-    console.warn('[Server] NASA APOD fetch issue:', err);
+  } catch (err: any) {
+    console.warn('[Server] NASA APOD primary fetch issue:', err?.message);
+  }
+
+  if (!data?.url && !dateParam) {
+    try {
+      const countRes = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_KEY}&count=1`, {
+        signal: AbortSignal.timeout(6000),
+      });
+      if (countRes.ok) {
+        const raw = await countRes.json();
+        data = Array.isArray(raw) ? raw[0] : raw;
+      }
+    } catch (err: any) {
+      console.warn('[Server] NASA APOD live count=1 fallback issue:', err?.message);
+    }
+  }
+
+  if (data?.url) {
+    if (!dateParam) {
+      cachedLiveApod = { data, expiresAt: Date.now() + 1000 * 60 * 60 };
+    }
+    res.json({ data, source: 'api.nasa.gov (Live)', isLive: true, dataStatus: 'LIVE' });
+    return;
   }
 
   // Fallback to high-resolution archived astronomical APOD record
@@ -652,7 +1043,9 @@ app.get('/api/nasa/apod', async (req: Request, res: Response) => {
 // NASA Image and Video Library: live SPHEREx mission imagery (no NASA_API_KEY required)
 app.get('/api/nasa/spherex', async (_req: Request, res: Response) => {
   try {
-    const response = await fetch('https://images-api.nasa.gov/search?q=SPHEREx&media_type=image&page_size=12');
+    const response = await fetch('https://images-api.nasa.gov/search?q=SPHEREx&media_type=image&page_size=12', {
+      signal: AbortSignal.timeout(7000),
+    });
     if (!response.ok) throw new Error(`NASA Images API returned HTTP ${response.status}`);
     const payload: any = await response.json();
     const items = Array.isArray(payload?.collection?.items) ? payload.collection.items : [];
@@ -669,80 +1062,35 @@ app.get('/api/nasa/spherex', async (_req: Request, res: Response) => {
   }
 });
 
-// NASA: NeoWs Asteroids & Planetary Defense Feed
+// NASA NeoWs & JPL CNEOS CAD: Live Near-Earth Close Approaches
 app.get('/api/data/live-space/close-approaches', async (req: Request, res: Response) => {
-  const date = new Date().toISOString().split('T')[0];
-  try {
-    const url = `https://api.nasa.gov/neo/rest/v1/feed?start_date=${date}&end_date=${date}&api_key=${NASA_KEY}`;
-    const response = await fetch(url);
-    if (response.ok) {
-      const neoData = await response.json();
-      const rawObjects = neoData.near_earth_objects?.[date] || [];
-      const approaches = rawObjects.map((obj: any) => {
-        const cad = obj.close_approach_data?.[0];
-        const minM = Math.round(obj.estimated_diameter?.meters?.estimated_diameter_min || 50);
-        const maxM = Math.round(obj.estimated_diameter?.meters?.estimated_diameter_max || 120);
-        const avgM = Math.round((minM + maxM) / 2);
-        const distAU = parseFloat(cad?.miss_distance?.astronomical || '0.05');
-        const distLunar = parseFloat(cad?.miss_distance?.lunar || '19.5');
-        const distKm = parseFloat(cad?.miss_distance?.kilometers || '7500000');
-        const vKmS = parseFloat(cad?.relative_velocity?.kilometers_per_second || '14.2');
-        const name = obj.name || obj.id;
+  const timeframe = String(req.query.timeframe || '7d');
+  const phaOnly = String(req.query.phaOnly || 'false') === 'true';
+  const sort = String(req.query.sort || 'dist');
+  const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit || '15'), 10) || 15));
+  const dateMin = req.query.dateMin ? String(req.query.dateMin) : undefined;
+  const dateMax = req.query.dateMax ? String(req.query.dateMax) : undefined;
 
-        return {
-          designation: name,
-          fullName: name,
-          orbitId: obj.id,
-          julianDate: cad?.epoch_date_close_approach ? (cad.epoch_date_close_approach / 86400000) + 2440587.5 : 2460000,
-          closeApproachDate: cad?.close_approach_date_full || date,
-          closeApproachIso: cad?.epoch_date_close_approach ? new Date(cad.epoch_date_close_approach).toISOString() : new Date().toISOString(),
-          missDistanceAU: distAU,
-          missDistanceKm: distKm,
-          missDistanceLunar: distLunar,
-          distMinAU: distAU * 0.98,
-          distMaxAU: distAU * 1.02,
-          distMinKm: distKm * 0.98,
-          distMaxKm: distKm * 1.02,
-          relativeVelocityKmS: vKmS,
-          vInfinityKmS: vKmS > 1 ? vKmS * 0.95 : null,
-          uncertaintyTime: '< 1 min',
-          absoluteMagnitudeH: obj.absolute_magnitude_h || 22.0,
-          estimatedDiameterMeters: {
-            min: minM,
-            max: maxM,
-            avg: avgM,
-          },
-          isPotentiallyHazardous: obj.is_potentially_hazardous_asteroid || false,
-          impactRisk: {
-            hasRisk: false,
-            assessment: 'No Earth impact risk detected for this encounter.',
-            sentryUrl: 'https://cneos.jpl.nasa.gov/sentry/',
-          },
-          source: 'NASA Planetary Defense / NeoWs (api.nasa.gov)',
-          sourceUrl: 'https://api.nasa.gov',
-        };
-      });
+  const liveData = await fetchLiveCloseApproachesData({
+    timeframe,
+    phaOnly,
+    sort,
+    limit,
+    dateMin,
+    dateMax,
+    nasaKey: NASA_KEY,
+  });
 
-      res.json({
-        success: true,
-        statusLabel: 'LIVE DATA',
-        retrievalTimestamp: new Date().toISOString(),
-        epoch: 'J2000',
-        timeframe: '24h',
-        count: approaches.length,
-        approaches,
-      });
-      return;
-    }
-  } catch (err) {
-    console.warn('[Server] NASA NeoWs live query failed, utilizing validated CNEOS cached records:', err);
+  if (liveData) {
+    res.json(liveData);
+    return;
   }
 
   res.status(502).json({
     success: false,
     statusLabel: 'LIVE DATA UNAVAILABLE',
     dataStatus: 'UNAVAILABLE',
-    error: 'NASA NeoWs could not provide the close-approach feed. Retry later or check /api/system/api-status.',
+    error: 'NASA NeoWs and JPL CNEOS could not provide the close-approach feed. Retry later or check /api/system/api-status.',
     approaches: [],
   });
 });

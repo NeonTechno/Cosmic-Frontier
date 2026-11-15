@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import confirmedExoplanetsData from '../../cosmic-frontier/data/catalogs/confirmed-exoplanets.json';
 import { ArrowUpRight, Search, Sparkles, Filter, Database, ShieldCheck, Compass, Eye, RefreshCw, Moon, Sun, LayoutGrid, Table2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -12,6 +12,20 @@ interface EditorialVariation3Props {
   onOpenShortcutsHelp?: () => void;
 }
 
+interface EditorialExoplanetRecord {
+  planetName: string;
+  hostStar: string;
+  discoveryMethod: string;
+  discoveryYear: number;
+  orbitalPeriodDays: number | null;
+  radiusEarthRadii: number | null;
+  massEarthMasses: number | null;
+  stellarEffectiveTempK: number | null;
+  distanceLightYears: number | null;
+  distanceParsecs?: number | null;
+  dataStatus?: string;
+}
+
 export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
   onNavigate,
   onOpenDataModal,
@@ -23,6 +37,8 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [catalogView, setCatalogView] = useState<'cards' | 'table'>('cards');
+  const [liveExoplanets, setLiveExoplanets] = useState<EditorialExoplanetRecord[] | null>(null);
+  const [isLiveCatalog, setIsLiveCatalog] = useState(false);
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -31,22 +47,28 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
     }
   };
 
-  // Load real 25 confirmed exoplanets from confirmed-exoplanets.json
-  const exoplanets = useMemo(() => {
-    return (confirmedExoplanetsData as { records?: Array<{
-      planetName: string;
-      hostStar: string;
-      discoveryMethod: string;
-      discoveryYear: number;
-      orbitalPeriodDays: number;
-      radiusEarthRadii: number;
-      massEarthMasses: number;
-      stellarEffectiveTempK: number;
-      distanceLightYears: number;
-      distanceParsecs?: number;
-      dataStatus?: string;
-    }> }).records || [];
+  useEffect(() => {
+    let active = true;
+    fetch('/api/data/exoplanets')
+      .then((res) => (res.ok && (res.headers.get('content-type') || '').includes('application/json') ? res.json() : null))
+      .then((json) => {
+        if (active && json && Array.isArray(json.records) && json.records.length > 0) {
+          setLiveExoplanets(json.records);
+          setIsLiveCatalog(Boolean(json.isLive));
+        }
+      })
+      .catch(() => {
+        // Keep bundled fallback gracefully
+      });
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const exoplanets = useMemo(() => {
+    if (liveExoplanets && liveExoplanets.length > 0) return liveExoplanets;
+    return ((confirmedExoplanetsData as { records?: EditorialExoplanetRecord[] }).records || []);
+  }, [liveExoplanets]);
 
   const filteredPlanets = useMemo(() => {
     if (!searchQuery.trim()) return exoplanets;
@@ -332,8 +354,12 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
         }`}>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
             <div>
-              <span className={`editorial-label ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>CALTECH IPAC / IRSA COMPLIANT DATA</span>
-              <h2 className={`editorial-h2 ${!isLight ? 'text-white' : ''}`}>Exoplanet Catalog // 25 Verified Records</h2>
+              <span className={`editorial-label ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>
+                {isLiveCatalog ? 'LIVE CALTECH IPAC / NASA EXOPLANET ARCHIVE (TAP)' : 'CALTECH IPAC / IRSA COMPLIANT DATA'}
+              </span>
+              <h2 className={`editorial-h2 ${!isLight ? 'text-white' : ''}`}>
+                Exoplanet Catalog // {exoplanets.length} {isLiveCatalog ? 'Live' : 'Verified'} Records
+              </h2>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -432,11 +458,11 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                       <td className="py-3 px-4 whitespace-nowrap">{planet.hostStar}</td>
                       <td className="py-3 px-4 whitespace-nowrap">{planet.discoveryMethod}</td>
                       <td className="py-3 px-4">{planet.discoveryYear}</td>
-                      <td className="py-3 px-4 font-semibold">{planet.radiusEarthRadii}</td>
-                      <td className="py-3 px-4">{planet.massEarthMasses}</td>
-                      <td className="py-3 px-4">{planet.orbitalPeriodDays.toFixed(2)}</td>
-                      <td className="py-3 px-4">{planet.distanceLightYears.toFixed(1)}</td>
-                      <td className="py-3 px-4">{planet.stellarEffectiveTempK} K</td>
+                      <td className="py-3 px-4 font-semibold">{planet.radiusEarthRadii ?? 'N/A'}</td>
+                      <td className="py-3 px-4">{planet.massEarthMasses ?? 'N/A'}</td>
+                      <td className="py-3 px-4">{planet.orbitalPeriodDays !== null ? planet.orbitalPeriodDays.toFixed(2) : 'N/A'}</td>
+                      <td className="py-3 px-4">{planet.distanceLightYears !== null ? planet.distanceLightYears.toFixed(1) : 'N/A'}</td>
+                      <td className="py-3 px-4">{planet.stellarEffectiveTempK !== null ? `${planet.stellarEffectiveTempK} K` : 'N/A'}</td>
                       <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
@@ -504,8 +530,11 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                     <p className={`text-sm font-editorial-sans leading-relaxed max-w-3xl ${
                       isLight ? 'text-[#1a1a1a]/70' : 'text-slate-300'
                     }`}>
-                      Exoplanet orbit detected around {planet.hostStar} with an equilibrium stellar temperature of{' '}
-                      {planet.stellarEffectiveTempK} K. Analyzed via high-precision photometric light curve transit depth observations.
+                      Exoplanet orbit detected around {planet.hostStar}
+                      {planet.stellarEffectiveTempK !== null
+                        ? ` with an equilibrium stellar temperature of ${planet.stellarEffectiveTempK} K.`
+                        : '.'}{' '}
+                      Analyzed via high-precision photometric light curve and radial velocity observations.
                     </p>
 
                     {/* Discovery 4-stat Grid */}
@@ -513,7 +542,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                       <div className={`border-l pl-3 ${isLight ? 'border-[#1a1a1a]/15' : 'border-slate-800'}`}>
                         <span className="editorial-label !mb-0 text-[10px]">RADIUS</span>
                         <span className={`font-mono text-base font-bold block mt-1 ${isLight ? 'text-[#1a1a1a]' : 'text-white'}`}>
-                          {planet.radiusEarthRadii} R⊕
+                          {planet.radiusEarthRadii !== null ? `${planet.radiusEarthRadii} R⊕` : 'N/A'}
                         </span>
                         <span className={`text-[10px] font-mono ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>Earth Radii</span>
                       </div>
@@ -521,7 +550,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                       <div className={`border-l pl-3 ${isLight ? 'border-[#1a1a1a]/15' : 'border-slate-800'}`}>
                         <span className="editorial-label !mb-0 text-[10px]">PLANETARY MASS</span>
                         <span className={`font-mono text-base font-bold block mt-1 ${isLight ? 'text-[#1a1a1a]' : 'text-white'}`}>
-                          {planet.massEarthMasses} M⊕
+                          {planet.massEarthMasses !== null ? `${planet.massEarthMasses} M⊕` : 'N/A'}
                         </span>
                         <span className={`text-[10px] font-mono ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>Earth Masses</span>
                       </div>
@@ -529,7 +558,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                       <div className={`border-l pl-3 ${isLight ? 'border-[#1a1a1a]/15' : 'border-slate-800'}`}>
                         <span className="editorial-label !mb-0 text-[10px]">ORBITAL PERIOD</span>
                         <span className={`font-mono text-base font-bold block mt-1 ${isLight ? 'text-[#1a1a1a]' : 'text-white'}`}>
-                          {planet.orbitalPeriodDays.toFixed(2)} d
+                          {planet.orbitalPeriodDays !== null ? `${planet.orbitalPeriodDays.toFixed(2)} d` : 'N/A'}
                         </span>
                         <span className={`text-[10px] font-mono ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>Days</span>
                       </div>
@@ -537,7 +566,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                       <div className={`border-l pl-3 ${isLight ? 'border-[#1a1a1a]/15' : 'border-slate-800'}`}>
                         <span className="editorial-label !mb-0 text-[10px]">DISTANCE</span>
                         <span className={`font-mono text-base font-bold block mt-1 ${isLight ? 'text-[#1a1a1a]' : 'text-white'}`}>
-                          {planet.distanceLightYears.toFixed(1)} ly
+                          {planet.distanceLightYears !== null ? `${planet.distanceLightYears.toFixed(1)} ly` : 'N/A'}
                         </span>
                         <span className={`text-[10px] font-mono ${isLight ? 'text-[#8c8c8c]' : 'text-slate-400'}`}>Light Years</span>
                       </div>

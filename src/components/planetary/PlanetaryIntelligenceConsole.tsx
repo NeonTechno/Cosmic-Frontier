@@ -214,45 +214,40 @@ export const PlanetaryIntelligenceConsole: React.FC = () => {
 
       {/* API Verification Status Pills */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 relative z-10 font-mono text-xs">
-        <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/10 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] text-slate-400 block">agromonitoring.com</span>
-            <span className="font-bold text-white text-[11px]">Radar & Soil</span>
-          </div>
-          <span className="px-2 py-0.5 rounded-md text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800">
-            {apiStatus.agromonitoring?.status === 'connected' ? '✓ LIVE' : 'CONNECTING'}
-          </span>
-        </div>
-
-        <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/10 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] text-slate-400 block">openweathermap.org</span>
-            <span className="font-bold text-white text-[11px]">Atmosphere</span>
-          </div>
-          <span className="px-2 py-0.5 rounded-md text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800">
-            {apiStatus.openweathermap?.status === 'connected' ? '✓ LIVE' : 'CONNECTING'}
-          </span>
-        </div>
-
-        <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/10 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] text-slate-400 block">api.nasa.gov</span>
-            <span className="font-bold text-white text-[11px]">NeoWs & APOD</span>
-          </div>
-          <span className="px-2 py-0.5 rounded-md text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800">
-            {apiStatus.nasa?.status === 'connected' ? '✓ LIVE' : 'CONNECTING'}
-          </span>
-        </div>
-
-        <div className="p-3 rounded-2xl bg-slate-900/60 border border-white/10 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] text-slate-400 block">WEATHER_DATA Key</span>
-            <span className="font-bold text-white text-[11px]">Authenticated</span>
-          </div>
-          <span className="px-2 py-0.5 rounded-md text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800">
-            VALIDATED
-          </span>
-        </div>
+        {[
+          { host: 'agromonitoring.com', sub: 'Radar & Soil', check: apiStatus.agromonitoring },
+          { host: 'openweathermap.org', sub: 'Atmosphere', check: apiStatus.openweathermap },
+          { host: 'api.nasa.gov', sub: 'NeoWs & APOD', check: apiStatus.nasa },
+          { host: 'NVIDIA NIM', sub: 'Nemotron AI', check: apiStatus.nvidia },
+        ].map(({ host, sub, check }) => {
+          const isOk = check?.status === 'connected' || check?.status === 'active';
+          const isMissing = check?.status === 'unconfigured' || check?.configured === false;
+          const badge = isOk
+            ? '✓ LIVE'
+            : !check
+            ? 'CHECKING'
+            : isMissing && host !== 'api.nasa.gov'
+            ? 'SET KEY'
+            : check?.status?.startsWith('http_')
+            ? check.status.toUpperCase()
+            : 'OFFLINE';
+          const badgeClass = isOk
+            ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+            : !check
+            ? 'bg-slate-900 text-slate-300 border-slate-700'
+            : 'bg-amber-950 text-amber-300 border-amber-800';
+          return (
+            <div key={host} className="p-3 rounded-2xl bg-slate-900/60 border border-white/10 flex items-center justify-between gap-2" title={check?.message || ''}>
+              <div className="min-w-0">
+                <span className="text-[10px] text-slate-400 block truncate">{host}</span>
+                <span className="font-bold text-white text-[11px] block truncate">{sub}</span>
+              </div>
+              <span className={`px-2 py-0.5 rounded-md text-[10px] border shrink-0 ${badgeClass}`}>
+                {badge}
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {/* Main Telemetry Readout */}

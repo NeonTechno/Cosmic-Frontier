@@ -1037,6 +1037,28 @@ html.theme-light kbd,
   background-color: #f4f1ea !important;
 }
 
+/* Permanent typography & colors for the Launching Page across both Light & Dark themes */
+.theme-light .launching-page-locked h1,
+.theme-light .launching-page-locked .font-nasa,
+.launching-page-locked h1,
+.launching-page-locked .font-nasa {
+  font-family: 'Orbitron', 'Audiowide', 'Michroma', sans-serif !important;
+}
+.theme-light .launching-page-locked h1,
+.launching-page-locked h1 {
+  letter-spacing: 0.2em !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+}
+.theme-light .launching-page-locked .text-white {
+  color: #ffffff !important;
+}
+.theme-light .launching-page-locked .font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace !important;
+}
+.theme-light .launching-page-locked .bg-slate-950\/90 {
+  background-color: rgba(2, 6, 23, 0.9) !important;
+}
 
 
 

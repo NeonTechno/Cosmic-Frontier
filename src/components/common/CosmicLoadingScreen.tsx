@@ -76,7 +76,7 @@ export const CosmicLoadingScreen: React.FC<CosmicLoadingScreenProps> = ({
   if (!isLoading && !showIntroMode) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#030611]">
+    <div className="launching-page-locked fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#030611]">
       {/* 1. Full-Bleed Cosmic Dust Artwork Background with High Luminance & Cinematic Glow */}
       <div className="absolute inset-0 overflow-hidden">
         <img

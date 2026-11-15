@@ -179,7 +179,14 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       const data = await res.json();
       const obs = data as SpherexObservation;
       setLocalObservations((prev) => {
-        const filtered = prev.filter((o) => o.id !== obs.id);
+        const filtered = prev.filter(
+          (o) =>
+            o.id !== obs.id &&
+            !(
+              o.dataSourceStatus === 'SIMULATED_BENCHMARK' &&
+              o.targetName.toLowerCase() === obs.targetName.toLowerCase()
+            )
+        );
         return [obs, ...filtered];
       });
       setSelectedObsId(obs.id);
@@ -647,9 +654,11 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
       {/* Live vs Fallback Provenance & Archive Status Banner */}
       <div
         className={`rounded-xl px-4 py-2.5 border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono ${
-          activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX'
+          isSearchingLive
+            ? 'bg-cyan-950/35 border-cyan-700/50 text-cyan-200'
+            : activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX'
             ? 'bg-emerald-950/35 border-emerald-700/50 text-emerald-200'
-            : 'bg-amber-950/30 border-amber-800/40 text-amber-200'
+            : 'bg-slate-900/80 border-amber-700/40 text-amber-200'
         }`}
       >
         <div className="flex items-center gap-2 min-w-0">
@@ -661,11 +670,19 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
           )}
           <span className="truncate">
-            <strong>{activeObs.dataSourceStatus}:</strong> {activeObs.dataSourceLabel}
+            {isSearchingLive ? (
+              <>
+                <strong>CONNECTING TO IRSA ARCHIVE:</strong> Fetching live SPHEREx DR1/QR3 FITS cutouts, Gaia DR3, and AllWISE baselines...
+              </>
+            ) : (
+              <>
+                <strong>{activeObs.dataSourceStatus}:</strong> {activeObs.dataSourceLabel}
+              </>
+            )}
           </span>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0 text-[11px]">
+        <div className="flex items-center gap-3 shrink-0 text-[11px] flex-wrap">
           {activeObs.archiveSummary && (
             <span className="text-slate-300">
               DR1: <strong>{activeObs.archiveSummary.dr1ObservationCount}</strong> • QR3:{' '}
@@ -680,6 +697,23 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           )}
           {activeObs.allWiseCutouts && activeObs.allWiseCutouts.length > 0 && (
             <span className="text-amber-300">AllWISE: {activeObs.allWiseCutouts.length} bands</span>
+          )}
+          {!isSearchingLive && activeObs.dataSourceStatus !== 'LIVE_IRSA_SPHEREX' && (
+            <button
+              onClick={() =>
+                fetchLiveTimeMachine({
+                  q: activeObs.targetName,
+                  ra: activeObs.raDeg,
+                  dec: activeObs.decDeg,
+                  band: selectedDetectorBand || undefined,
+                  fov: selectedFov || activeObs.fieldOfViewArcmin || 6.5,
+                })
+              }
+              className="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-200 font-semibold transition cursor-pointer flex items-center gap-1"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Query Live IRSA</span>
+            </button>
           )}
         </div>
       </div>
@@ -736,8 +770,19 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
             <select
               value={selectedObsId}
               onChange={(e) => {
-                setSelectedObsId(e.target.value);
+                const nextId = e.target.value;
+                setSelectedObsId(nextId);
                 setSelectedEpochIdx(0);
+                const chosen = localObservations.find((o) => o.id === nextId);
+                if (chosen && chosen.dataSourceStatus !== 'LIVE_IRSA_SPHEREX') {
+                  fetchLiveTimeMachine({
+                    q: chosen.targetName,
+                    ra: chosen.raDeg,
+                    dec: chosen.decDeg,
+                    band: selectedDetectorBand || undefined,
+                    fov: chosen.fieldOfViewArcmin || 6.5,
+                  });
+                }
               }}
               aria-label="Select active SPHEREx target field"
               className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-sm font-semibold text-white focus:outline-none focus:border-cyan-500 cursor-pointer max-w-xs truncate"
