@@ -289,12 +289,12 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
             </aside>
           </div>
 
-          <div className="editorial-astronaut-caption">
+          <footer className="editorial-astronaut-caption">
             <span>FIG. 01 — HUMAN PRESENCE IN LOW EARTH ORBIT</span>
             <a href="https://www.nasa.gov/image-article/nasa-spacewalker-nick-hague-3/" target="_blank" rel="noreferrer">
               IMAGE: NASA / NICK HAGUE · ISS059E002192 ↗
             </a>
-          </div>
+          </footer>
         </section>
 
         {/* --- CATALOG SECTION --- */}
