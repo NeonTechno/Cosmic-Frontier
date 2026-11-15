@@ -3082,3 +3082,145 @@ body.theme-light {
 .theme-light .planetx-dashboard :is(.bg-amber-950\/30,.bg-amber-950\/40){background:#f4f5f5!important;border-color:#d8e0e6!important;color:#485762!important}
 @media(max-width:700px){.planetx-dashboard .sticky{top:58px!important;padding:12px!important}.planetx-dashboard .sticky>div:last-child{display:flex;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.planetx-dashboard .sticky>div:last-child button{flex:0 0 auto;white-space:nowrap}}
 @media(prefers-reduced-motion:reduce){.planetx-dashboard>*{animation:none!important}.planetx-dashboard *{transition-duration:.01ms!important}}
+
+
+/* COSMIC LAB — restrained observatory design system */
+:root {
+  --lab-ink: #e7ebef;
+  --lab-muted: #a2adb7;
+  --lab-line: rgba(157,170,181,.19);
+  --lab-panel: #151d25;
+  --lab-panel-raised: #1b252e;
+  --lab-accent: #aebbc6;
+  --lab-accent-strong: #d4dce2;
+}
+.cosmic-galaxy-explorer {
+  --gx-ink: #e7ebef;
+  --gx-muted: #a2adb7;
+  --gx-line: rgba(157,170,181,.2);
+  --gx-panel: #151d25;
+  --gx-panel-raised: #1b252e;
+  color: var(--gx-ink);
+  font-family: Inter, "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -.018em;
+}
+.cosmic-galaxy-explorer :is(h1,h2,h3,h4) {
+  font-family: Inter, "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  letter-spacing: -.045em !important;
+  font-weight: 650 !important;
+}
+.cosmic-galaxy-explorer :is(p,span,label,button,input,select) {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.cosmic-galaxy-explorer :is(.font-mono,[class*="font-mono"]) {
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace !important;
+  letter-spacing: -.015em;
+  font-variant-numeric: tabular-nums;
+}
+.cosmic-galaxy-explorer h1 { font-size: clamp(2.35rem,5vw,4.1rem)!important; line-height:1.02!important; }
+.cosmic-galaxy-explorer > div:first-child { border-color:var(--gx-line)!important; }
+.cosmic-galaxy-explorer :is(input,select) {
+  background:var(--gx-panel)!important;
+  border-color:var(--gx-line)!important;
+  color:var(--gx-ink)!important;
+  border-radius:9px!important;
+  min-height:42px;
+}
+.cosmic-galaxy-explorer input::placeholder { color:#83909b!important; }
+.cosmic-galaxy-explorer :is(button) {
+  border-radius:9px;
+  transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease!important;
+}
+.cosmic-galaxy-explorer button:not(:disabled):hover { transform:translateY(-1px); filter:none!important; }
+.cosmic-galaxy-explorer :is(.bg-\[\#0B1630\],.bg-\[\#050B1A\]) {
+  background:var(--gx-panel)!important;
+}
+.cosmic-galaxy-explorer :is(.border-\[\#1E293B\],.border-\[\#8B5CF6\]\/40,.border-\[\#8B5CF6\]\/30) {
+  border-color:var(--gx-line)!important;
+}
+.cosmic-galaxy-explorer :is(.text-\[\#F8FAFC\]) { color:var(--gx-ink)!important; }
+.cosmic-galaxy-explorer :is(.text-\[\#A7B4CC\]) { color:var(--gx-muted)!important; }
+.cosmic-galaxy-explorer :is(.text-\[\#8B5CF6\],.text-\[\#38BDF8\],.text-\[\#F5C451\],.text-emerald-400,.text-amber-400,.text-red-400) {
+  color:#b6c2cc!important;
+}
+.cosmic-galaxy-explorer :is(.bg-\[\#8B5CF6\],.bg-\[\#38BDF8\],.bg-\[\#F5C451\]) {
+  background:#647582!important;
+  color:#fff!important;
+}
+.cosmic-galaxy-explorer :is([class*="shadow-[#8B5CF6]"],[class*="shadow-2xl"]) { box-shadow:0 14px 36px rgba(0,0,0,.22)!important; }
+.cosmic-galaxy-explorer .card-interactive {
+  background:linear-gradient(155deg,#1a242d,#141c24)!important;
+  border-color:var(--gx-line)!important;
+  border-radius:13px!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+}
+.cosmic-galaxy-explorer .card-interactive:hover,
+.cosmic-galaxy-explorer .card-interactive:focus-within {
+  border-color:rgba(184,198,209,.42)!important;
+  box-shadow:0 16px 34px rgba(0,0,0,.2);
+}
+.cosmic-galaxy-explorer :is(.rounded-full.bg-\[\#8B5CF6\]\/10,.rounded-full.bg-\[\#38BDF8\]\/10) {
+  background:rgba(166,181,194,.09)!important;
+  color:#bdc8d1!important;
+  border-color:var(--gx-line)!important;
+}
+.cosmic-galaxy-explorer :is(.bg-\[\#38BDF8\]\/15,.bg-\[\#F5C451\]\/10,.bg-\[\#38BDF8\]\/10,.bg-emerald-500\/15,.bg-amber-500\/15) {
+  background:rgba(166,181,194,.1)!important;
+}
+.cosmic-galaxy-explorer :is(.from-\[\#8B5CF6\],.to-\[\#F5C451\]) {
+  --tw-gradient-from:#8b9aa6 var(--tw-gradient-from-position)!important;
+  --tw-gradient-to:#c0cbd3 var(--tw-gradient-to-position)!important;
+}
+.cosmic-galaxy-explorer :is(.bg-\[\#050B1A\]) { background:#10171e!important; }
+.cosmic-galaxy-explorer :is(.border-b,.border-t) { border-color:var(--gx-line)!important; }
+.cosmic-galaxy-explorer :is(button,input,select):focus-visible {
+  outline:2px solid #aab8c3!important; outline-offset:2px;
+}
+.cosmic-galaxy-explorer .grid { align-items:stretch; }
+.cosmic-galaxy-explorer .card-interactive img { filter:saturate(.72); transition:filter .25s ease,transform .35s ease; }
+.cosmic-galaxy-explorer .card-interactive:hover img { filter:saturate(.9); transform:scale(1.025); }
+.cf-navbar {
+  background:rgba(15,22,29,.96)!important;
+  border-color:rgba(157,170,181,.18)!important;
+  box-shadow:0 5px 24px rgba(0,0,0,.12);
+}
+.cf-navbar .cf-nav-item { color:#aab5bf!important; border-radius:8px!important; }
+.cf-navbar .cf-nav-item[aria-current="page"] {
+  color:#f0f3f5!important; background:#26323c!important; border:1px solid rgba(177,191,202,.2)!important;
+  box-shadow:none!important;
+}
+.cf-navbar .cf-nav-item span:first-child,
+.cf-navbar button :is(svg) { color:inherit!important; }
+.cf-navbar button { border-radius:8px!important; }
+.cf-navbar .cf-menu-panel { background:#151d25!important; border-color:rgba(157,170,181,.2)!important; }
+.cf-lab-bar {
+  background:rgba(20,28,36,.96)!important;
+  border-color:rgba(157,170,181,.18)!important;
+}
+.cf-lab-bar :is(h2,span) { color:#d5dde3!important; }
+.cf-lab-bar button { filter:grayscale(1); }
+.theme-light .cosmic-galaxy-explorer {
+  --gx-ink:#26323c; --gx-muted:#64717c; --gx-line:#d9e0e6;
+  --gx-panel:#f6f8f9; --gx-panel-raised:#fff; color:var(--gx-ink);
+}
+.theme-light .cosmic-galaxy-explorer :is(input,select) { background:#fff!important;color:#26323c!important;border-color:#d9e0e6!important; }
+.theme-light .cosmic-galaxy-explorer .card-interactive { background:linear-gradient(155deg,#fff,#f5f7f8)!important;box-shadow:0 8px 24px rgba(25,42,56,.055); }
+.theme-light .cosmic-galaxy-explorer :is(.bg-\[\#0B1630\],.bg-\[\#050B1A\]) { background:#f5f7f8!important; }
+.theme-light .cosmic-galaxy-explorer :is(.text-\[\#F8FAFC\]) { color:#26323c!important; }
+.theme-light .cf-navbar { background:rgba(250,251,252,.96)!important; }
+.theme-light .cf-navbar .cf-nav-item { color:#596773!important; }
+.theme-light .cf-navbar .cf-nav-item[aria-current="page"] { background:#e9eef1!important;color:#26323c!important;border-color:#d3dce2!important; }
+.theme-light .cf-lab-bar { background:rgba(246,248,249,.97)!important; }
+.theme-light .cf-lab-bar :is(h2,span) { color:#34424d!important; }
+@media(max-width:767px) {
+ .cosmic-galaxy-explorer { padding-top:22px!important; }
+ .cosmic-galaxy-explorer .grid { gap:14px!important; }
+ .cosmic-galaxy-explorer :is(input,select) { max-width:100%; }
+ .cosmic-galaxy-explorer form { width:100%; }
+ .cosmic-galaxy-explorer form>div { flex:1; min-width:0; }
+ .cosmic-galaxy-explorer form input { width:100%!important; }
+ .cosmic-galaxy-explorer h1 { font-size:clamp(2.3rem,11vw,3.1rem)!important; }
+}
+@media(prefers-reduced-motion:reduce) {
+ .cosmic-galaxy-explorer *, .cf-navbar *, .cf-lab-bar * { transition-duration:.01ms!important;animation-duration:.01ms!important; }
+}
