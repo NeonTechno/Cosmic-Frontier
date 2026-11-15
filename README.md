@@ -69,29 +69,3 @@ npm run dev
 Open `http://localhost:3000`. Production build: `npm run build && npm start`.
 
 ---
-
-## Deploying Online (Vercel — Recommended Full-Stack)
-
-Black Star Orbit includes `vercel.json` and a serverless API entrypoint (`api/index.ts`) so **both the Vite frontend and all `/api/*` Express routes** (live IRSA SPHEREx FITS cutouts, Gaia DR3, AllWISE, NASA NED, and NVIDIA NIM AI) run together on Vercel.
-
-1. Push your repository to **GitHub** (or GitLab / Bitbucket).
-2. Log in to [vercel.com](https://vercel.com), click **Add New → Project**, and import your repository.
-3. Keep the auto-detected settings (`Framework Preset: Vite`, `Build Command: npm run build`, `Output Directory: dist`).
-4. *(Optional, for live AI & NASA keys)* Under **Environment Variables**, add:
-   - `NVIDIA_API_KEY` — enables live `nvidia/nemotron-3.5-bolt-e4b` explanations & chat (otherwise uses built-in deterministic astrophysics responses).
-   - `NASA_API_KEY` — optional key for higher rate limits on `api.nasa.gov`.
-5. Click **Deploy**. Your full-stack site will be live at `https://<your-project>.vercel.app`.
-
----
-
-## Alternative: GitHub Pages (Static-Only Hosting)
-
-If you prefer static hosting without serverless functions, `.github/workflows/deploy-pages.yml` builds `dist/` with automatic subpath resolution and a `404.html` SPA fallback:
-
-1. Push to `main` on GitHub.
-2. Go to **Settings → Pages → Source** and select **GitHub Actions**.
-3. Wait for **Deploy Website to GitHub Pages** to complete (`https://<username>.github.io/<repo>/`).
-
-> **Note on static mode**: GitHub Pages serves only static frontend files (`dist/`), so `/api/*` calls automatically fall back to bundled catalogs, synthetic SPHEREx benchmarks, and deterministic scientific explanations.
-
-
