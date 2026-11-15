@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --font-nasa: 'Orbitron', 'Audiowide', 'Michroma', sans-serif;
-  --font-display: 'Orbitron', 'Audiowide', 'Michroma', sans-serif;
-  --font-heading: 'Orbitron', 'Space Grotesk', sans-serif;
-  --font-sans: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-nasa: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: 'Inter', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-editorial-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-editorial-mono: 'Space Mono', 'JetBrains Mono', monospace;
 }
@@ -29,22 +29,22 @@
     margin: 0;
     background: #050711;
     color: #f3f4f6;
-    font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Inter', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.012em;
   }
   h1, h2, h3, .font-display, .font-serif-title {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: 'Inter', Georgia, serif;
     letter-spacing: -0.015em;
   }
   h4, h5, h6, .font-heading {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: 'Inter', Georgia, serif;
     letter-spacing: -0.01em;
   }
   .font-nasa {
-    font-family: 'Orbitron', 'Audiowide', 'Michroma', sans-serif;
+    font-family: 'Inter', 'Inter', 'Inter', sans-serif;
     letter-spacing: 0.04em;
   }
   button, a, select { -webkit-tap-highlight-color: transparent; }
@@ -211,7 +211,7 @@
 .mission-kicker,.mission-tag { display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid rgba(125,211,252,.2);border-radius:999px;background:rgba(8,20,39,.58);color:#a5eaf8;font:500 10px/1.2 'JetBrains Mono',monospace;letter-spacing:.13em; }
 .mission-tag { color:#a5b4fc;border-color:rgba(165,180,252,.16);letter-spacing:.08em; }
 .mission-kicker__dot,.status-dot { display:inline-block;width:6px;height:6px;border-radius:50%;background:#5eead4;box-shadow:0 0 12px rgba(94,234,212,.7); }
-.mission-title { font-family: 'Orbitron', 'Audiowide', 'Michroma', sans-serif; font-size:clamp(2.4rem,5.5vw,4.8rem);font-weight:800;letter-spacing:0.04em;line-height:1.02;color:#f8fafc;text-transform:uppercase; }
+.mission-title { font-family: 'Inter', 'Inter', 'Inter', sans-serif; font-size:clamp(2.4rem,5.5vw,4.8rem);font-weight:800;letter-spacing:0.04em;line-height:1.02;color:#f8fafc;text-transform:uppercase; }
 .mission-title span { color:transparent;background:linear-gradient(105deg,#a5f3fc 0%,#67e8f9 35%,#a5b4fc 78%,#c4b5fd 100%);background-clip:text;-webkit-background-clip:text; }
 .nasa-pill {
   display: inline-flex;
@@ -224,7 +224,7 @@
   border: 1.5px solid rgba(56, 189, 248, 0.65);
   box-shadow: 0 0 18px rgba(56, 189, 248, 0.45), inset 0 0 12px rgba(56, 189, 248, 0.25);
   color: #E0F2FE;
-  font-family: 'Orbitron', 'Audiowide', sans-serif;
+  font-family: 'Inter', 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -239,14 +239,14 @@
   color: #FFFFFF;
 }
 .mission-primary-button,.mission-secondary-button { display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:0 16px;border-radius:12px;font-size:13px;font-weight:600;transition:transform .2s ease,border-color .2s ease,background .2s ease,box-shadow .2s ease; }
-.mission-primary-button { color:#06111d;background:linear-gradient(110deg,#a5f3fc,#67e8f9 55%,#a5b4fc);box-shadow:0 8px 26px rgba(34,211,238,.13);font-family:'Orbitron','Audiowide',sans-serif;letter-spacing:0.04em; }
+.mission-primary-button { color:#06111d;background:linear-gradient(110deg,#a5f3fc,#67e8f9 55%,#a5b4fc);box-shadow:0 8px 26px rgba(34,211,238,.13);font-family:'Inter','Inter',sans-serif;letter-spacing:0.04em; }
 .mission-primary-button:hover { transform:translateY(-2px);box-shadow:0 12px 32px rgba(34,211,238,.22); }
-.mission-secondary-button { color:#e2e8f0;background:rgba(255,255,255,.035);border:1px solid rgba(148,163,184,.23);font-family:'Orbitron','Audiowide',sans-serif;letter-spacing:0.04em; }
+.mission-secondary-button { color:#e2e8f0;background:rgba(255,255,255,.035);border:1px solid rgba(148,163,184,.23);font-family:'Inter','Inter',sans-serif;letter-spacing:0.04em; }
 .mission-secondary-button:hover { transform:translateY(-2px);background:rgba(255,255,255,.07);border-color:rgba(165,180,252,.48); }
 .mission-console { overflow:hidden;border:1px solid rgba(148,163,184,.19);border-radius:18px;background:rgba(7,12,26,.76);box-shadow:0 22px 70px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.035);backdrop-filter:blur(18px); }
 .mission-stat { min-width:0;padding:17px 16px;background:rgba(13,19,38,.8); }
 .mission-stat__label { display:block;color:#7f91b0;font:500 9px/1.4 'JetBrains Mono',monospace;letter-spacing:.14em; }
-.mission-stat strong { display:block;margin-top:9px;color:#f1f5f9;font:600 19px/1.2 'Space Grotesk',sans-serif;letter-spacing:.02em; }
+.mission-stat strong { display:block;margin-top:9px;color:#f1f5f9;font:600 19px/1.2 'Inter',sans-serif;letter-spacing:.02em; }
 .mission-stat small { display:block;margin-top:5px;color:#94a3b8;font-size:11px; }
 .mission-stat--wide { grid-column:1 / -1;padding-top:14px;padding-bottom:15px; }
 .mission-console__footer { display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;color:#cbd5e1;font-size:11px;background:rgba(255,255,255,.018);transition:background .2s ease; }
@@ -298,7 +298,7 @@
 body {
   background-color: #050B1A;
   color: #F8FAFC;
-  font-family: 'Plus Jakarta Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   margin: 0;
   padding: 0;
   overflow-x: clip;
@@ -576,7 +576,7 @@ body {
   --ink: #1a1a1a;
   --accent: #d44d5c;
   --muted: #8c8c8c;
-  --serif: 'Cormorant Garamond', Georgia, serif;
+  --serif: 'Inter', Georgia, serif;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono: 'Space Mono', monospace;
   background-color: var(--bg);
@@ -682,7 +682,7 @@ body {
 }
 
 .editorial-title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Inter', Georgia, serif;
   font-size: clamp(2.5rem, 6vw, 5rem);
   font-weight: 600;
   line-height: 0.9;
@@ -691,7 +691,7 @@ body {
 }
 
 .editorial-h2 {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Inter', Georgia, serif;
   font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 600;
   line-height: 1.05;
@@ -803,7 +803,7 @@ html.theme-light h6,
 .theme-light .font-nasa,
 .theme-light .font-heading,
 .theme-light .mission-title {
-  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-family: 'Inter', Georgia, serif !important;
   letter-spacing: -0.018em !important;
   color: #1a1a1a !important;
   font-weight: 600 !important;
@@ -884,7 +884,7 @@ html.theme-light kbd,
 
 .theme-light .mission-stat strong {
   color: #1a1a1a !important;
-  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-family: 'Inter', Georgia, serif !important;
   font-size: 24px !important;
 }
 
@@ -1080,7 +1080,7 @@ html.theme-light kbd,
 .theme-light .launching-page-locked .font-nasa,
 .launching-page-locked h1,
 .launching-page-locked .font-nasa {
-  font-family: 'Orbitron', 'Audiowide', 'Michroma', sans-serif !important;
+  font-family: 'Inter', 'Inter', 'Inter', sans-serif !important;
 }
 .theme-light .launching-page-locked h1,
 .launching-page-locked h1 {
@@ -1148,7 +1148,7 @@ html.theme-light kbd,
 .cf-module-hero { position: relative; }
 .cf-module-hero h1 {
   color: #f4f8ff;
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: 'Inter', 'Inter', sans-serif;
   font-weight: 650;
   letter-spacing: -.045em;
 }
