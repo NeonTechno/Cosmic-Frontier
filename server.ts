@@ -197,15 +197,35 @@ app.get('/api/health', (_req: Request, res: Response) => {
 });
 
 // Unified AI & NASA runtime status endpoint (used by Cosmic AI Guide)
-app.get('/api/status', (_req: Request, res: Response) => {
+app.get('/api/status', async (_req: Request, res: Response) => {
   const configuredNasaKey = Boolean((process.env.NASA_API_KEY || '').trim()) && (process.env.NASA_API_KEY || '').trim() !== 'DEMO_KEY';
+  const [nasa, spherex] = await Promise.all([
+    pingExternalEndpoint('nasa-open-data-api'),
+    pingExternalEndpoint('irsa-spherex-sia'),
+  ]);
   res.json({
-    isAiConfigured: !!nvidiaApiKey, isNasaConfigured: configuredNasaKey, nasaApiConnected: false,
-    mode: nvidiaApiKey ? 'live' : 'demonstration', provider: 'NVIDIA NIM', model: nvidiaModel,
+    isAiConfigured: !!nvidiaApiKey,
+    isNasaConfigured: configuredNasaKey,
+    nasaApiConnected: nasa.reachable,
+    mode: nvidiaApiKey ? 'live' : 'demonstration',
+    provider: 'NVIDIA NIM',
+    model: nvidiaModel,
     message: nvidiaApiKey ? `NVIDIA NIM configured via ${nvidiaModel}.` : 'Educational fallback active.',
     services: {
-      nasaOpenData: { status: configuredNasaKey ? 'key_configured_unverified' : 'using_demo_key', source: 'api.nasa.gov', authenticated: configuredNasaKey, note: 'SPHEREx IRSA access is independent of NASA_API_KEY.' },
-      spherexIrsa: { status: 'not_checked', source: 'NASA/IPAC IRSA SIA', requiresApiKey: false },
+      nasaOpenData: {
+        status: nasa.reachable ? 'connected' : 'unavailable',
+        source: 'api.nasa.gov',
+        authenticated: configuredNasaKey,
+        message: nasa.message,
+        latencyMs: nasa.latencyMs,
+      },
+      spherexIrsa: {
+        status: spherex.reachable ? 'connected' : 'unavailable',
+        source: 'NASA/IPAC IRSA SIA',
+        requiresApiKey: false,
+        message: spherex.message,
+        latencyMs: spherex.latencyMs,
+      },
     },
   });
 });
