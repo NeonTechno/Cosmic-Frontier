@@ -111,7 +111,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
             </div>
 
             {/* Editorial Nav Links */}
-            <div className={`flex flex-wrap items-center gap-3 sm:gap-6 font-mono text-xs uppercase tracking-widest pr-12 sm:pr-14 ${
+            <div className={`editorial-nav-links flex flex-wrap items-center gap-3 sm:gap-6 font-mono text-xs uppercase tracking-widest pr-12 sm:pr-14 ${
               isLight ? 'text-[#1a1a1a]' : 'text-slate-300'
             }`}>
               <button
@@ -155,7 +155,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
               )}
               <button
                 onClick={() => onNavigate('spherex')}
-                className={`px-3 py-1 border font-bold transition-all cursor-pointer ${
+                className={`editorial-live-telemetry-button px-3 py-1 border font-bold transition-all cursor-pointer ${
                   isLight
                     ? 'border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-[#fdfcf8]'
                     : 'border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/20'
@@ -189,7 +189,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                   key={item.id}
                   type="button"
                   onClick={() => scrollToSection(item.id)}
-                  className={`px-2.5 py-1 border transition-colors cursor-pointer ${
+                  className={`editorial-index-link px-2.5 py-1 border transition-colors cursor-pointer ${
                     isLight
                       ? 'border-[#1a1a1a]/15 text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-[#fdfcf8]'
                       : 'border-slate-800 text-slate-300 hover:border-cyan-500/50 hover:text-cyan-300'
