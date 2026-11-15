@@ -676,12 +676,12 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         isLight={isLight}
       />
 
-      {/* Live vs Fallback Provenance & Archive Status Banner */}
+      {/* Verified live and local archive provenance banner */}
       <div
         className={`rounded-xl px-4 py-2.5 border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono ${
           isSearchingLive
             ? 'bg-cyan-950/35 border-cyan-700/50 text-cyan-200'
-            : activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX'
+            : (activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || activeObs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX')
             ? 'bg-emerald-950/35 border-emerald-700/50 text-emerald-200'
             : 'bg-slate-900/80 border-amber-700/40 text-amber-200'
         }`}
@@ -689,7 +689,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
         <div className="flex items-center gap-2 min-w-0">
           {isSearchingLive ? (
             <Loader2 className="w-4 h-4 text-cyan-400 animate-spin shrink-0" />
-          ) : activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' ? (
+          ) : (activeObs.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || activeObs.dataSourceStatus === 'LOCAL_IRSA_SPHEREX') ? (
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
           ) : (
             <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />

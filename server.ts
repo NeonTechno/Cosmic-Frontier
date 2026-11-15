@@ -1278,7 +1278,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
         'Caltech / JPL SPHEREx Mission Handbook (2025)',
         'Batygin, K. & Brown, M.E. (2016, 2021), Astronomical Journal',
       ],
-      dataVerificationStatus: 'SIMULATION_GROUNDED',
+      dataVerificationStatus: ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus)) ? 'GROUNDED_VERIFIED' : 'REFERENCE_ONLY',
       confidenceRating: 'THEORETICAL_MODEL',
       modelUsed: `deterministic-scientific-rules-fallback (Set NVIDIA_API_KEY for live ${nvidiaModel})`,
       timestamp: new Date().toISOString(),
