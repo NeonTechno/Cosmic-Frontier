@@ -296,10 +296,24 @@ export async function fetchAndParseSpherexCutout(
   cutoutUrl.searchParams.set('center', `${raDeg.toFixed(6)},${decDeg.toFixed(6)}`);
   const cutoutSizeDeg = (sizePix * 6.15) / 3600;
   cutoutUrl.searchParams.set('size', cutoutSizeDeg.toFixed(5));
-  const res = await fetch(cutoutUrl.toString(), { signal: AbortSignal.timeout(15000) });
-  if (!res.ok) {
-    throw new Error(`IRSA IBE cutout HTTP ${res.status}`);
+  let res: Response | null = null;
+  let lastError: Error | null = null;
+  // IRSA documents transient cutout read failures; retry 502/503/504 and network timeouts once.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await fetch(cutoutUrl.toString(), { signal: AbortSignal.timeout(12000) });
+      if (response.ok) { res = response; lastError = null; break; }
+      const status = response.status;
+      const detail = (await response.text().catch(() => '')).slice(0, 120);
+      lastError = new Error(`IRSA IBE cutout HTTP ${status}${detail ? `: ${detail}` : ''}`);
+      if (![502, 503, 504].includes(status) || attempt === 1) break;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (attempt === 1) break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 450));
   }
+  if (!res) throw lastError || new Error('IRSA IBE cutout request failed');
   const ab = await res.arrayBuffer();
   const buf = Buffer.from(ab);
   const parsed = parseAndReprojectFitsCutout(buf, raDeg, decDeg, sizePix, fovArcmin);
@@ -743,8 +757,10 @@ export async function querySpherexTimeMachine(options: {
 
   // Check if any real FITS data succeeded
   const realCutoutCount = epochs.filter((e) => e.isRealArchive).length;
-  if (realCutoutCount === 0) {
-    limitations.push('IRSA returned observation metadata rows, but FITS cutout downloads timed out or returned no valid image array.');
+  const measuredSedCount = sedMeasurements.filter((measurement) => measurement.isMeasured).length;
+  const hasLivePixelData = realCutoutCount > 0 || measuredSedCount > 0;
+  if (realCutoutCount === 0 && combinedRows.length > 0) {
+    limitations.push('IRSA returned observation metadata rows, but the selected timeline FITS cutouts were unavailable; measured SED cutouts are reported separately.');
   }
   limitations.push('SPHEREx Level-2 images use Linear Variable Filters (wavelength varies across detector Y-axis) and 6.15″/px sampling; North-Up WCS bilinear reprojection is applied for multi-epoch alignment.');
 
@@ -805,11 +821,13 @@ export async function querySpherexTimeMachine(options: {
     detectorTempK: 80.0,
     pixelScaleArcsec: epochs[0]?.fitsData?.wcs?.pixelScaleArcsec || 6.15,
     dataQualityFlag: 'CALIBRATED_NOMINAL',
-    dataSourceStatus: realCutoutCount > 0 ? 'LIVE_IRSA_SPHEREX' : 'FALLBACK_SIMULATED',
+    dataSourceStatus: hasLivePixelData ? 'LIVE_IRSA_SPHEREX' : 'FALLBACK_SIMULATED',
     dataSourceLabel:
       realCutoutCount > 0
-        ? `LIVE NASA/IPAC IRSA ARCHIVE: ${dr1Res.length} SPHEREx DR1 + ${qr3Res.length} SPHEREx QR3 exposures (${realCutoutCount} Level-2 FITS cutouts parsed & North-Up WCS aligned)`
-        : 'LIVE METADATA ONLY — Cutout pixel retrieval failed; showing metadata.',
+        ? `LIVE NASA/IPAC IRSA ARCHIVE: ${dr1Res.length} DR1 + ${qr3Res.length} QR3 exposures; ${realCutoutCount} Level-2 FITS timeline cutouts parsed and WCS-aligned`
+        : measuredSedCount > 0
+          ? `LIVE NASA/IPAC IRSA ARCHIVE: ${dr1Res.length} DR1 + ${qr3Res.length} QR3 exposures; ${measuredSedCount} measured SED-band cutouts retrieved; timeline cutouts unavailable`
+          : 'LIVE METADATA ONLY — FITS pixel cutouts are temporarily unavailable; showing archive metadata.',
     documentationUrl: 'https://irsa.ipac.caltech.edu/Missions/spherex.html',
     fitsHeader: {
       TELESCOP: 'SPHEREx',
