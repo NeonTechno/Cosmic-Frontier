@@ -31,7 +31,8 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
   if (!data || data.length === 0) return null;
 
   const hasMeasured = data.some((d) => d.isMeasured);
-  const isLive = observation.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX';
+  const isDemo = observation.dataSourceStatus === 'SIMULATED_DEMO';
+  const isLive = observation.dataSourceStatus === 'LIVE_IRSA_SPHEREX' || observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' || observation.dataSourceStatus === 'REAL_MISSION_ARCHIVAL';
 
   const width = 680;
   const height = 220;
@@ -68,7 +69,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
         <div className="flex items-center space-x-2 flex-wrap">
           <Activity className="h-5 w-5 text-cyan-400" />
           <h3 className="text-sm font-semibold text-white tracking-wide">
-            {observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Measured Aperture Flux — Nominal Band Center' : hasMeasured ? 'Measured Multi-Band Aperture SED' : 'Spectroscopic SED Profile'}
+            {isDemo ? 'Simulated Benchmark SED Profile' : observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Measured Aperture Flux — Nominal Band Center' : hasMeasured ? 'Measured Multi-Band Aperture SED' : 'Spectroscopic SED Profile'}
           </h3>
           <span
             className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
@@ -77,7 +78,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
                 : 'bg-amber-950/70 border-amber-700/50 text-amber-300'
             }`}
           >
-            {hasMeasured ? `${data.length} IRSA FITS Bands` : 'No measured FITS data'}
+            {hasMeasured ? `${data.length} IRSA FITS Bands` : isDemo ? `${data.length} SIMULATED CHANNELS` : 'No measured FITS data'}
           </span>
         </div>
 
@@ -223,7 +224,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
             fontFamily="Space Grotesk"
             textAnchor="middle"
           >
-            Surface Brightness (MJy / sr)
+            {isDemo ? 'Illustrative Signal Scale (not calibrated MJy/sr)' : 'Surface Brightness (MJy / sr)'}
           </text>
         </svg>
 
@@ -236,7 +237,7 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
               Flux: {hoveredPoint.fluxMJySr.toFixed(3)} ± {hoveredPoint.uncertainty.toFixed(3)} MJy/sr
             </div>
             <div className="text-[10px] text-slate-400">
-              {observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Measured FITS flux; wavelength is nominal detector center' : hoveredPoint.isMeasured ? 'Measured from IRSA FITS HDU' : 'Reference Model'}
+              {isDemo ? 'SIMULATED_BENCHMARK — illustrative value, not measured' : observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX' ? 'Measured FITS flux; wavelength is nominal detector center' : hoveredPoint.isMeasured ? 'Measured from IRSA FITS HDU' : 'Reference Model'}
             </div>
           </div>
         )}
@@ -245,11 +246,13 @@ export const SpectralPlot: React.FC<SpectralPlotProps> = ({
       <div className="flex items-start space-x-2 text-[11px] text-slate-400 font-mono">
         <Info className="h-3.5 w-3.5 text-cyan-400 flex-shrink-0 mt-0.5" />
         <span>
-          {isLive && hasMeasured
-            ? observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX'
-              ? 'Green points are measured aperture fluxes from imported IRSA FITS pixels. Wavelength positions use nominal detector-band centers because this FITS header lacks explicit wavelength bounds; this is not pixel-level LVF calibration.'
-              : 'Green points represent direct aperture photometry (Zodi-subtracted) extracted from downloaded IRSA SPHEREx DR1/QR3 FITS cutouts across observed bands; unobserved channels are not interpolated.'
-            : 'No measured FITS data are available. No synthetic SED is displayed.'}
+          {isDemo
+            ? 'Orange points and the blue guide curve are a target-specific synthetic benchmark SED across all 102 SPHEREx passbands. This preview is for interface demonstration only; it is not a calibrated spectrum, FITS measurement, or detection.'
+            : isLive && hasMeasured
+              ? observation.dataSourceStatus === 'LOCAL_IRSA_SPHEREX'
+                ? 'Green points are measured aperture fluxes from imported IRSA FITS pixels. Wavelength positions use nominal detector-band centers because this FITS header lacks explicit wavelength bounds; this is not pixel-level LVF calibration.'
+                : 'Green points represent direct aperture photometry (Zodi-subtracted) extracted from downloaded IRSA SPHEREx DR1/QR3 FITS cutouts across observed bands; unobserved channels are not interpolated.'
+              : 'No measured FITS data are available. No synthetic SED is displayed.'}
         </span>
       </div>
     </div>
