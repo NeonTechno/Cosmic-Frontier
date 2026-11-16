@@ -114,11 +114,11 @@ export const AstrobiologyLab: React.FC<AstrobiologyLabProps> = ({ onNavigateToSp
           <div className="flex items-center gap-2 mb-2">
             <span className="px-2.5 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-500/40 text-cyan-300 font-mono text-xs flex items-center gap-1.5">
               <FlaskConical className="w-3.5 h-3.5 text-cyan-400" />
-              NASA Ames Astrochemistry & Caltech SPHEREx Integration
+              Astrobiology
             </span>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-mono text-xs flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              Verified PubChem & UniProt Datasets
+              Molecular reference data
             </span>
           </div>
           <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
