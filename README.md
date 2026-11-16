@@ -9,7 +9,7 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
 ## Core Architecture & Live Data Pipeline
 
 1. **Live NASA/IPAC IRSA SPHEREx Query Engine (`src/server/astroArchiveService.ts`)**
-   - Queries **IRSA SIAv2** (`https://irsa.ipac.caltech.edu/SIA`) across both **`spherex_dr1`** and **`spherex_qr3`** for any user-supplied RA/Dec (decimal or sexagesimal) or resolved object name.
+   - Queries **IRSA SIAv2** (`https://irsa.ipac.caltech.edu/SIA`) across both **`spherex_dr1`** and **`spherex_qr3`** across all four DR1/QR3 wide and deep collections (`spherex_dr1`, `spherex_dr1_deep`, `spherex_qr3`, `spherex_qr3_deep`) for user-supplied RA/Dec (decimal or sexagesimal) or resolved object name.
    - Groups available observations chronologically across survey dates (`t_min` / `MJD`) and detector arrays (`D1`–`D6`), and fetches calibrated **Level-2 Multi-Extension FITS cutouts** (`IMAGE`, `FLAGS`, `VARIANCE`, `ZODI`) via IRSA IBE (`?center={ra},{dec}&size=64pix`).
    - The archive API never substitutes synthetic frames when IRSA is unavailable or returns zero rows. The viewer can open a separate, visibly labelled synthetic demo so visitors can explore the interface; it is never presented as a NASA/IPAC observation.
 
@@ -31,6 +31,12 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
 
 ---
 
+## Research Operations
+
+- **Research Source Monitor:** the NASA Data Centre runs cached reachability checks against SPHEREx IRSA, Gaia DR3, AllWISE, the NASA Exoplanet Archive, JPL SBDB, JPL CAD, and NASA Open Data. A responding endpoint is not treated as proof that a target has archive coverage or that a measurement is scientifically valid.
+- **Reproducibility export:** the SPHEREx metadata panel exports a human-readable Markdown report and structured JSON record containing target coordinates, source provenance, archive query summary, observation identifiers, FITS/WCS/statistics metadata, SED values, and explicit limitations.
+- **Calculated ephemeris labels:** Solar System positions propagated from bundled reference orbital elements are labelled as calculated models, not live JPL Horizons telemetry.
+
 ## SPHEREx Interactive Demo Mode (Judges / Offline Preview)
 
 When the live IRSA query is unavailable, the SPHEREx viewer opens an explicitly labelled **SIMULATED_DEMO** field so visitors can inspect the interface without mistaking generated values for mission data. The benchmark library contains eight target-specific fields: the five challenge targets (Barnard's Star, Epsilon Indi B, WISE 0855-0714, RW Aurigae and R Draconis), plus L1688 Ophiuchus, the COSMOS deep-field strip and the North Ecliptic Pole calibration field. Each preview has four illustrative six-month epochs, a synthetic source field and transient candidates, and a 102-channel spectrum sampled on the SPHEREx band table.
@@ -45,7 +51,7 @@ The demo exercises the viewer controls: 102-band selection across six detector a
 
 - **Fetch live:** `GET /api/spherex/time-machine` resolves target names or RA/Dec, checks indexed local DR1/QR3 files first, then queries IRSA DR1/QR3 and requires successfully parsed FITS pixels before an observation is returned.
 - **Download FITS:** `GET /api/spherex/download-fits` accepts only official HTTPS IRSA IBE product URLs and returns a bounded 64-pixel FITS cutout after validating the FITS signature. The metadata panel exposes per-epoch cutout downloads and the original IRSA product URL.
-- **Export analysis:** the metadata panel exports the SED as CSV. In demo mode, it also exports the full benchmark fixture as JSON; both exports preserve `SIMULATED_DEMO` provenance and `isMeasured=false` semantics.
+- **Export analysis:** the metadata panel exports the SED as CSV plus a provenance-aware research report in Markdown and JSON. In demo mode, the report explicitly records `SIMULATED_DEMO` provenance and `isMeasured=false` semantics.
 - **Build a local dataset:** place downloaded products under `data/spherex/incoming/dr1/` or `data/spherex/incoming/qr3/`, run the Astropy indexer, then query the indexed FITS files offline. The in-app Hybrid SPHEREx Data Engine panel reports local manifest availability and guides collection.
 - **Hosted storage:** the Render free test service does not automatically persist files downloaded to a user's laptop. A shared hosted dataset requires a persistent volume or object-storage adapter and should be configured separately; no local file is silently assumed to exist in the cloud.
 
