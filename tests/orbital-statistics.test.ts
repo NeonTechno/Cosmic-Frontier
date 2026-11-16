@@ -44,6 +44,8 @@ test('uniformly spaced perihelion longitudes do not appear strongly clustered', 
   const result = calculateClusteringSignificance(sample, 5000, 99);
 
   assert.ok(result.rayleighR < 0.000001);
+  assert.equal(result.meanVarpiDeg, null);
+  assert.equal(result.dispersionDeg, null);
   assert.equal(result.pValueClustering, 1);
 });
 
