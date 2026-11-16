@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { healpixNestedIndex, normalizeMpcDistantRecords, SPHEREX_HIPS_TILE_SIZE } from '../src/server/spherexAdvancedService.ts';
+import { healpixNestedIndex, normalizeMpcDistantRecords, SPHEREX_HIPS_TILE_SIZE, SPHEREX_HIPS_CUBE_DEPTH, validateSpherexHipsCubeDimensions } from '../src/server/spherexAdvancedService.ts';
+
+test('official SPHEREx HiPS FITS dimensions are enforced', () => {
+  assert.equal(SPHEREX_HIPS_TILE_SIZE, 512);
+  assert.equal(SPHEREX_HIPS_CUBE_DEPTH, 102);
+  assert.doesNotThrow(() => validateSpherexHipsCubeDimensions(512, 512, 102));
+  assert.throws(() => validateSpherexHipsCubeDimensions(256, 256, 102), /expected 512×512×102/);
+  assert.throws(() => validateSpherexHipsCubeDimensions(512, 512, 101), /expected 512×512×102/);
+});
 
 test('SPHEREx tutorial coordinate resolves to nested Norder 5 pixel 445', () => {
   const tile = healpixNestedIndex(32, 60.8109955, 51.3404038);
