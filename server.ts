@@ -6,8 +6,7 @@
  * NASA Space Apps Challenge 2026
  * 
  * Handles secure server-side API integrations, SPHEREx observation telemetry,
- * Planet X candidate astrometry, and strictly grounded NVIDIA NIM scientific intelligence
- * powered by nvidia/nemotron-3.5-bolt-e4b.
+ * Planet X candidate astrometry, and grounded AI science explanations using Google Gemini or NVIDIA NIM.
  */
 
 import express, { Request, Response } from 'express';
@@ -1588,7 +1587,7 @@ app.post('/api/chat', async (req: Request, res: Response) => {
   const defaultReference =
     verifiedMatch?.scientificReference || 'NASA Astrophysics, Caltech/IPAC IRSA & Minor Planet Center Educational Archive';
 
-  const chatSystemInstruction = `You are a friendly, knowledgeable astronomy guide for Black Star Orbit (NASA Space Apps Challenge 2026), powered by NVIDIA Nemotron (${nvidiaModel}).
+  const chatSystemInstruction = `You are a friendly, knowledgeable astronomy guide for Black Star Orbit (NASA Space Apps Challenge 2026), powered by the configured server-side AI model.
 Speak naturally and clearly, like a planetarium astronomer chatting with a curious visitor—warm, direct, and free of robotic filler.
 
 SCIENTIFIC INTEGRITY RULES:
@@ -1630,7 +1629,7 @@ SCIENTIFIC INTEGRITY RULES:
       });
       return;
     } catch (err: any) {
-      console.warn('[Server] /api/chat NVIDIA NIM call failed, using verified educational fallback:', err?.message);
+      console.warn('[Server] /api/chat AI provider call failed, using verified educational fallback:', err?.message);
     }
   }
 
@@ -1661,7 +1660,7 @@ Try asking about infrared light, how SPHEREx maps 102 spectral bands, or how ast
 
 /**
  * Deterministic scientific explanation generator
- * Used as an ultra-reliable fallback when NVIDIA_API_KEY is not configured.
+ * Used as an ultra-reliable fallback when no AI provider is configured or reachable.
  */
 function generateDeterministicScientificExplanation(
   contextType: string,
