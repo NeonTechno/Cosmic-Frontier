@@ -83,24 +83,23 @@ function readHdus(input: Buffer): { buffer: Buffer; hdus: FitsHdu[] } {
   }
   return { buffer, hdus };
 }
-function numericArray(buffer: Buffer, hdu: FitsHdu): Float32Array {
+function numericAccessor(buffer: Buffer, hdu: FitsHdu): (index: number) => number {
   const count = hdu.axes.reduce((a, b) => a * b, 1);
-  const out = new Float32Array(count);
   const dv = new DataView(buffer.buffer, buffer.byteOffset + hdu.dataOffset, hdu.dataBytes);
   const scale = Number(hdu.header.BSCALE ?? 1);
   const zero = Number(hdu.header.BZERO ?? 0);
   const bytes = Math.abs(hdu.bitpix) / 8;
-  for (let i = 0; i < count; i++) {
-    let v = NaN;
-    const p = i * bytes;
-    if (hdu.bitpix === -32) v = dv.getFloat32(p, false);
-    else if (hdu.bitpix === -64) v = dv.getFloat64(p, false);
-    else if (hdu.bitpix === 32) v = dv.getInt32(p, false);
-    else if (hdu.bitpix === 16) v = dv.getInt16(p, false);
-    else if (hdu.bitpix === 8) v = dv.getUint8(p);
-    out[i] = Number.isFinite(v) ? v * scale + zero : NaN;
-  }
-  return out;
+  return (index: number) => {
+    if (!Number.isInteger(index) || index < 0 || index >= count) return NaN;
+    const p = index * bytes;
+    let value = NaN;
+    if (hdu.bitpix === -32) value = dv.getFloat32(p, false);
+    else if (hdu.bitpix === -64) value = dv.getFloat64(p, false);
+    else if (hdu.bitpix === 32) value = dv.getInt32(p, false);
+    else if (hdu.bitpix === 16) value = dv.getInt16(p, false);
+    else if (hdu.bitpix === 8) value = dv.getUint8(p);
+    return Number.isFinite(value) ? value * scale + zero : NaN;
+  };
 }
 function tableColumns(header: Record<string, FitsScalar>) {
   const count = Number(header.TFIELDS || 0);
@@ -356,9 +355,12 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   const hipsWcs = skyToHpxPixel(raDeg, decDeg, image.header);
   const x = Math.round(hipsWcs.px1 - 1), y = Math.round(hipsWcs.py1 - 1);
   if (x < 0 || x >= width || y < 0 || y >= height) throw new Error('The selected sky position maps outside the retrieved HiPS FITS tile according to its HPX WCS.');
-  const cube = numericArray(buffer, image);
-  const hitArray = hits && hits.axes.length === 3 ? numericArray(buffer, hits) : null;
-  const flagArray = flags && flags.axes.length === 3 ? numericArray(buffer, flags) : null;
+  // Read only aperture/annulus samples from the FITS buffer. A 512×512×102
+  // cube can be >300 MB across IMAGE/NHITS/FLAGS; materializing three more
+  // Float32Arrays would unnecessarily double peak memory on the web service.
+  const readCube = numericAccessor(buffer, image);
+  const readHits = hits && hits.axes.length === 3 ? numericAccessor(buffer, hits) : null;
+  const readFlags = flags && flags.axes.length === 3 ? numericAccessor(buffer, flags) : null;
   const spec = [];
   const blankLayers = [50, 51];
   const notes = [
@@ -380,12 +382,15 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
       for (let px = Math.max(0, x - annulusOuter); px <= Math.min(width - 1, x + annulusOuter); px++) {
         const radius = Math.hypot(px - x, py - y);
         const idx = layerOffset + py * width + px;
-        const value = cube[idx];
+        const value = readCube(idx);
         if (!Number.isFinite(value)) continue;
         if (radius <= apertureRadius) {
           ap.push(value);
-          if (flagArray && flagArray[idx] !== 0) flaggedPixels++;
-          if (hitArray && Number.isFinite(hitArray[idx])) hitsValues.push(hitArray[idx]);
+          if (readFlags && readFlags(idx) !== 0) flaggedPixels++;
+          if (readHits) {
+            const hitValue = readHits(idx);
+            if (Number.isFinite(hitValue)) hitsValues.push(hitValue);
+          }
         } else if (radius >= annulusInner && radius <= annulusOuter) ann.push(value);
       }
     }
