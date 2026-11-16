@@ -367,7 +367,7 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
               Mission Control Dashboard
             </h1>
             <p className="text-xs sm:text-sm text-[#A7B4CC] max-w-xl leading-relaxed">
-              Live celestial astrometry, near-Earth asteroid approaches, and planetary telemetry.
+              Calculated planetary ephemerides, live close-approach data, and reproducible JPL observing queries.
             </p>
           </div>
 
@@ -413,7 +413,7 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
             <span className="text-[#A7B4CC] text-[11px]">Earth Orbital Velocity:</span>
             <div className="text-base font-bold text-[#F5C451] tabular-nums">
-              {ephemData?.earthReference.orbitalVelocityKmS ?? 29.78} km/s
+              {ephemData?.earthReference.orbitalVelocityKmS != null ? ephemData.earthReference.orbitalVelocityKmS : '—'} km/s
             </div>
             <div className="text-[10px] text-[#A7B4CC]">~107,200 km/h in space</div>
           </div>
@@ -421,17 +421,17 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
             <span className="text-[#A7B4CC] text-[11px]">Heliocentric Earth Distance:</span>
             <div className="text-base font-bold text-[#38BDF8] tabular-nums">
-              {ephemData?.objects.find(o => o.id === 'earth')?.distSunAU ?? 0.995} AU
+              {ephemData?.objects.find(o => o.id === 'earth')?.distSunAU != null ? ephemData.objects.find(o => o.id === 'earth')?.distSunAU : '—'} AU
             </div>
-            <div className="text-[10px] text-[#A7B4CC]">~148.8 million km</div>
+            <div className="text-[10px] text-[#A7B4CC]">{ephemData?.objects.find(o => o.id === 'earth')?.distSunMillionKm != null ? ephemData.objects.find(o => o.id === 'earth')?.distSunMillionKm + ' million km' : 'Calculated when ephemeris loads'}</div>
           </div>
 
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
             <span className="text-[#A7B4CC] text-[11px]">Lunar Distance (Moon):</span>
             <div className="text-base font-bold text-[#F8FAFC] tabular-nums">
-              {ephemData?.objects.find(o => o.id === 'moon')?.distEarthLunar ?? 1.02} LD
+              {ephemData?.objects.find(o => o.id === 'moon')?.distEarthLunar != null ? ephemData.objects.find(o => o.id === 'moon')?.distEarthLunar : '—'} LD
             </div>
-            <div className="text-[10px] text-[#A7B4CC]">~392,000 km from Earth</div>
+            <div className="text-[10px] text-[#A7B4CC]">{ephemData?.objects.find(o => o.id === 'moon')?.distEarthMillionKm != null ? ephemData.objects.find(o => o.id === 'moon')?.distEarthMillionKm + ' million km from Earth' : 'Calculated when ephemeris loads'}</div>
           </div>
 
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
