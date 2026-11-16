@@ -68,6 +68,32 @@ During technical due diligence of the initial prototype:
 
 ---
 
+## Official SPHEREx Calibration, HiPS Cube & MPC eTNO Workflows
+
+### Position-specific SPHEREx ePSF
+- **UI:** SPHEREx → PSF Calibration. **API:** `GET /api/spherex/psf?ra={deg}&dec={deg}`.
+- Searches the four IRSA DR1/QR3 wide/deep SIAv2 collections, retrieves real Level-2 FITS cutouts, and reads the `EPSF` binary-table extension from v7+ products.
+- Uses the cutout celestial WCS plus `CRPIX1A` / `CRPIX2A` to map the requested coordinate back to parent LVF detector pixels. Selects the nearest detector-zone row by Euclidean distance in `XCENTER` / `YCENTER`.
+- Returns the 33×33 float64 ePSF, detector, image version, 5× oversampling, `NEFF_MEAN`, wavelength, and all 441 zone locations. Legacy pre-v7 external calibration files are not substituted; those products return an explicit unsupported-version message.
+- The returned ePSF is oversampled. Forward modelling on native detector pixels still requires sub-pixel phase shifting, pixel integration and normalization as described by the official notebook.
+
+### SPHEREx HiPS all-sky cube
+- **UI:** SPHEREx → HiPS Cube. **API:** `GET /api/spherex/hips-cube?ra={deg}&dec={deg}`.
+- Reads the official HiPS `properties`, resolves the Norder-5 nested HEALPix tile and retrieves the corresponding IRSA FITS cube from the official DR1 HiPS cube data path.
+- Reads the 102-plane `IMAGE` cube plus `NHITS` and `FLAGS`; wavelength coordinates come from `data_cube_crval3_arr` in the HiPS properties.
+- Extracts a quick-look spectrum using a 5-pixel circular aperture and a 40–60-pixel annulus with iterative 3σ background clipping. Flux is converted to mJy using the equal-area HEALPix pixel solid angle.
+- Layers 50 and 51 are explicitly excluded as the documented blank dichroic channels. The UI can inspect the spectrum and export the 102-layer measurements as CSV.
+
+### Live Minor Planet Center ingestion
+- **UI:** Planet X → Live MPC Catalogue. **API:** `GET /api/planetx/mpc-etnos`; append `?refresh=1` to bypass the 12-hour in-memory cache.
+- Downloads the official MPC `distant_extended.json.gz` feed (TNOs, Centaurs and scattered-disk objects), parses the documented extended JSON orbital fields and filters bound objects with `a > 150 AU`, `q > 30 AU`, and `e < 1`.
+- Preserves MPC designations, osculating elements, epoch, last-observed date, observation count and opposition count. Missing fields remain unknown.
+- The MPC catalogue does **not** label objects as Planet X evidence. The app leaves apsidal-clustering status unassessed; any later clustering analysis must state its sample selection and observational-bias treatment.
+
+Official methods: [SPHEREx ePSF notebook](https://caltech-ipac.github.io/irsa-tutorials/spherex-psf/) · [SPHEREx HiPS cube notebook](https://caltech-ipac.github.io/irsa-tutorials/spherex-hipscube/) · [MPC data files](https://data.minorplanetcenter.net/data) · [MPC extended JSON format manual](https://minorplanetcenter.net/Extended_Files/Extended_MPCORB_Data_Format_Manual.pdf).
+
+---
+
 ## Methodological Limitations & Mission Scope Notes
 
 - **SPHEREx Spatial Scale & LVF Coupling**: At `6.15″/pixel`, PSFs are undersampled, and repeated passes over a target often land on different Linear Variable Filter (LVF) bands (`D1`–`D6`) and roll angles. Chromatic PSF differences near bright sources can leave bipolar subtraction residuals.
