@@ -94,6 +94,8 @@ app.use(express.json({ limit: '1mb' }));
 let candidateState: PlanetXCandidate[] = JSON.parse(JSON.stringify(INITIAL_CANDIDATE_QUEUE));
 
 // NVIDIA NIM AI Configuration (strictly server-side)
+const geminiApiKey = cleanEnv(process.env.GEMINI_API_KEY);
+const geminiModel = cleanEnv(process.env.GEMINI_MODEL) || 'gemini-2.5-flash';
 const nvidiaApiKey = cleanEnv(process.env.NVIDIA_API_KEY);
 const nvidiaModel = cleanEnv(process.env.NVIDIA_MODEL) || 'nvidia/nemotron-3.5-bolt-e4b';
 const nvidiaEndpoint = cleanEnv(process.env.NVIDIA_API_URL) || 'https://integrate.api.nvidia.com/v1/chat/completions';
@@ -148,6 +150,52 @@ async function callNvidiaNemotron(
     }
 
     return cleanedContent;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function callGemini(
+  messages: NvidiaChatMessage[],
+  options: { temperature?: number; maxTokens?: number; timeoutMs?: number } = {}
+): Promise<string> {
+  if (!geminiApiKey) throw new Error('GEMINI_API_KEY is not configured');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 20000);
+  try {
+    const systemText = messages.filter((message) => message.role === 'system').map((message) => message.content).join('\n\n');
+    const contents = messages
+      .filter((message) => message.role !== 'system')
+      .map((message) => ({
+        role: message.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: message.content }],
+      }));
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...(systemText ? { systemInstruction: { parts: [{ text: systemText }] } } : {}),
+          contents,
+          generationConfig: {
+            temperature: options.temperature ?? 0.2,
+            maxOutputTokens: options.maxTokens ?? 1024,
+          },
+        }),
+        signal: controller.signal,
+      }
+    );
+    if (!response.ok) {
+      const details = await response.text().catch(() => '');
+      throw new Error(`Gemini API returned HTTP ${response.status}: ${details.slice(0, 300)}`);
+    }
+    const data: any = await response.json();
+    const result = (data?.candidates?.[0]?.content?.parts || [])
+      .map((part: any) => typeof part.text === 'string' ? part.text : '')
+      .join('\n').trim();
+    if (!result) throw new Error('Gemini returned no text candidate');
+    return result;
   } finally {
     clearTimeout(timer);
   }
@@ -1436,6 +1484,30 @@ ${serializedData}
 Answer directly and naturally, grounding your explanation in the values above.`;
 
   try {
+    if (geminiApiKey) {
+      const explanationText = await callGemini(
+        [
+          { role: 'system', content: systemInstruction.replace('powered by NVIDIA Nemotron', 'powered by Google Gemini') },
+          { role: 'user', content: prompt },
+        ],
+        { temperature: 0.2, maxTokens: 1024, timeoutMs: 20000 }
+      );
+      res.json({
+        success: true,
+        explanation: explanationText,
+        groundedAttributes: Object.keys(dataPayload),
+        scientificReferences: [
+          'NASA/IPAC IRSA SPHEREx Archive documentation',
+          'Batygin & Brown (2021), The Orbit of Planet Nine, ApJL, 921, L14',
+          'NASA/JPL Solar System Dynamics',
+        ],
+        dataVerificationStatus,
+        confidenceRating: 'HIGH_PRECISION',
+        modelUsed: `Google Gemini (${geminiModel})`,
+        timestamp: new Date().toISOString(),
+      });
+      return;
+    }
     if (nvidiaApiKey) {
       const explanationText = await callNvidiaNemotron(
         [
@@ -1475,7 +1547,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
       ],
       dataVerificationStatus: dataVerificationStatus,
       confidenceRating: 'THEORETICAL_MODEL',
-      modelUsed: `deterministic-scientific-rules-fallback (Set NVIDIA_API_KEY for live ${nvidiaModel})`,
+      modelUsed: `deterministic-scientific-rules-fallback (Set GEMINI_API_KEY or NVIDIA_API_KEY for live AI)`,
       timestamp: new Date().toISOString(),
     });
   } catch (err: unknown) {
@@ -1525,7 +1597,7 @@ SCIENTIFIC INTEGRITY RULES:
 3. Describe SPHEREx accurately: it maps the sky every 6 months across 102 infrared bands from 0.75 to 5.00 µm using Linear Variable Filters.
 4. Use plain Unicode symbols (µm, °, ≈) instead of raw LaTeX syntax, and keep explanations concise and conversational.`;
 
-  if (nvidiaApiKey) {
+  if (geminiApiKey || nvidiaApiKey) {
     try {
       const formattedHistory: NvidiaChatMessage[] = historyRaw
         .slice(-6)
@@ -1542,18 +1614,16 @@ SCIENTIFIC INTEGRITY RULES:
           ? [{ role: 'system', content: chatSystemInstruction }, ...formattedHistory]
           : [{ role: 'system', content: chatSystemInstruction }, ...formattedHistory, { role: 'user', content: message }];
 
-      const reply = await callNvidiaNemotron(conversationMessages, {
-        temperature: 0.3,
-        maxTokens: 900,
-        timeoutMs: 20000,
-      });
+      const reply = geminiApiKey
+        ? await callGemini(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 })
+        : await callNvidiaNemotron(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 });
 
       res.json({
         reply,
         mode: 'live',
         isAiConnected: true,
-        model: nvidiaModel,
-        provider: 'NVIDIA NIM',
+        model: geminiApiKey ? geminiModel : nvidiaModel,
+        provider: geminiApiKey ? 'Google Gemini' : 'NVIDIA NIM',
         suggestions: defaultSuggestions,
         links: defaultLinks,
         scientificReference: defaultReference,
@@ -1583,9 +1653,9 @@ Try asking about infrared light, how SPHEREx maps 102 spectral bands, or how ast
     suggestions: defaultSuggestions,
     links: defaultLinks,
     scientificReference: defaultReference,
-    notice: nvidiaApiKey
-      ? `NVIDIA NIM (${nvidiaModel}) encountered a transient issue; verified local knowledge base responded.`
-      : `Demonstration Mode: Operating with verified educational knowledge base (Add NVIDIA_API_KEY for live ${nvidiaModel}).`,
+    notice: geminiApiKey || nvidiaApiKey
+      ? 'The configured AI provider was temporarily unavailable; the verified local knowledge base responded.'
+      : 'Demonstration mode: add GEMINI_API_KEY or NVIDIA_API_KEY for live AI explanations.',
   });
 });
 
@@ -1677,7 +1747,8 @@ async function startServer() {
 
   app.listen(port, '0.0.0.0', () => {
     console.log(`🌌 COSMIC FRONTIER server running at http://0.0.0.0:${port}`);
-    console.log(`📡 NVIDIA NIM API Key present: ${!!nvidiaApiKey} (model: ${nvidiaModel})`);
+    console.log(`✨ Gemini API key present: ${!!geminiApiKey} (model: ${geminiModel})`);
+    console.log(`📡 NVIDIA NIM API key present: ${!!nvidiaApiKey} (model: ${nvidiaModel})`);
   });
 }
 
