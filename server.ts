@@ -806,7 +806,7 @@ app.post('/api/planetx/candidates/from-spherex', (req: Request, res: Response) =
   const sourceIds = Array.isArray(observationIds) ? observationIds.filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0) : [];
   const unavailableMeasurements = [
     'heliocentric distance', 'WISE W1 magnitude', 'WISE W2 magnitude', 'W1−W2 colour',
-    'parallax', 'mass estimate', 'per-epoch W1/W2 photometry',
+    'parallax', 'mass estimate', 'per-epoch W1/W2 photometry', 'confidence score', 'Planet X hypothesis-fit score',
     ...(pmRa === null || pmDec === null ? ['proper motion'] : []),
     ...(signalToNoise === null ? ['astrometric signal-to-noise'] : []),
   ];
@@ -819,7 +819,7 @@ app.post('/api/planetx/candidates/from-spherex', (req: Request, res: Response) =
     heliocentricDistanceAU: null, apparentMagW1: null, apparentMagW2: null, colorW1W2: null,
     properMotionAlphaArcsecYr: pmRa, properMotionDeltaArcsecYr: pmDec,
     parallaxArcsec: null, estimatedMassEarths: null, astrometricSnr: signalToNoise,
-    status: 'unvetted', confidenceScore: 0,
+    status: 'unvetted', confidenceScore: null,
     notes: String(notes || [
       'SPHEREx residual submitted for follow-up only; this is not a Planet X detection.',
       deltaFlux === null ? 'Residual flux difference was not supplied.' : `Input residual flux difference: ${deltaFlux.toFixed(4)} MJy/sr.`,
@@ -833,7 +833,7 @@ app.post('/api/planetx/candidates/from-spherex', (req: Request, res: Response) =
     })),
     unavailableMeasurements, sourceObservationIds: sourceIds,
     provenanceNote: 'Source survey: SPHEREx. No WISE/NEOWISE measurements are attached. Null values mean not measured, not zero.',
-    theoreticalConsistency: 0,
+    theoreticalConsistency: null,
   };
   candidateState = [newCandidate, ...candidateState];
   res.json({ success: true, candidate: newCandidate });
