@@ -31,5 +31,5 @@ test('keeps unavailable Horizons quantities null rather than inventing values', 
 });
 
 test('rejects incomplete Horizons tables', () => {
-  assert.throws(() => parseHorizonsObserverResult('no observer table'), /\\$\\$SOE/);
+  assert.throws(() => parseHorizonsObserverResult('no observer table'), /\$\$SOE/);
 });
