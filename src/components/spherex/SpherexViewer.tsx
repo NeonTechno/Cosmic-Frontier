@@ -64,6 +64,7 @@ import { DownloadViewModal } from './DownloadViewModal.tsx';
 import { FreezePaneButton } from '../common/FreezePaneButton.tsx';
 import { useTheme } from '../../context/ThemeContext.tsx';
 import { SpherexDataCollectionGuide } from './SpherexDataCollectionGuide.tsx';
+import { SpherexAdvancedWorkflows } from './SpherexAdvancedWorkflows.tsx';
 import { createSpherexDemoObservation, createSpherexDemoObservations } from './spherexDemoData.ts';
 
 interface SpherexViewerProps {
@@ -91,7 +92,7 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
   const [selectedEpochIdx, setSelectedEpochIdx] = useState<number>(0);
   const [selectedBandId, setSelectedBandId] = useState<number>(SPHEREX_BANDS[54]?.bandId || 55);
   const [selectedDetectorBand, setSelectedDetectorBand] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'single' | 'signal-analysis' | 'compare' | 'timelapse' | 'difference' | 'sed'>('single');
+  const [activeTab, setActiveTab] = useState<'single' | 'signal-analysis' | 'compare' | 'timelapse' | 'difference' | 'sed' | 'psf' | 'hips'>('single');
   const [panesFrozen, setPanesFrozen] = useState<boolean>(true);
   const [isSearchingLive, setIsSearchingLive] = useState<boolean>(false);
   const [liveSearchError, setLiveSearchError] = useState<string | null>(null);
@@ -811,6 +812,8 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
               {activeTab === 'timelapse' && 'Time-lapse Motion Blink'}
               {activeTab === 'difference' && 'Change Highlights (Image Subtraction)'}
               {activeTab === 'sed' && 'SED Spectrum (102 LVF Bands)'}
+              {activeTab === 'psf' && 'Spatial PSF Calibration'}
+              {activeTab === 'hips' && 'HiPS Cube Spectroscopy'}
             </span>
           </div>
 
@@ -944,6 +947,34 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           >
             <Activity className="h-3.5 w-3.5" />
             <span>SED Spectrum</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('psf')}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'psf'
+                ? 'bg-amber-600 text-white shadow-sm'
+                : isLight
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Telescope className="h-3.5 w-3.5" />
+            <span>PSF Calibration</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('hips')}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'hips'
+                ? 'bg-cyan-600 text-white shadow-sm'
+                : isLight
+                  ? 'text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Activity className="h-3.5 w-3.5" />
+            <span>HiPS Cube</span>
           </button>
 
           <button
@@ -1674,6 +1705,9 @@ export const SpherexViewer: React.FC<SpherexViewerProps> = ({
           />
         </div>
       )}
+
+      {activeTab === 'psf' && <SpherexAdvancedWorkflows mode="psf" />}
+      {activeTab === 'hips' && <SpherexAdvancedWorkflows mode="hips" />}
 
       {/* High-Resolution Astronomical Map Export Modal */}
       <DownloadViewModal
