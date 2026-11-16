@@ -1488,21 +1488,23 @@ ${isLocalArchive ? '\n*The image pixels and observation metadata in this view ca
 
   if (contextType === 'planet_x_candidate') {
     const des = (payload.designation as string) || 'this candidate';
-    const dist = Number(payload.heliocentricDistanceAU || 400);
-    const properMotion = Math.hypot(
-      Number(payload.properMotionAlphaArcsecYr || 0),
-      Number(payload.properMotionDeltaArcsecYr || 0)
-    ).toFixed(4);
-    const snr = payload.astrometricSnr;
-    const parallaxApprox = (1 / dist).toFixed(4);
-    const velKmS = (30 / Math.sqrt(dist)).toFixed(1);
+    const dist = finiteNumberOrNull(payload.heliocentricDistanceAU);
+    const pmRa = finiteNumberOrNull(payload.properMotionAlphaArcsecYr);
+    const pmDec = finiteNumberOrNull(payload.properMotionDeltaArcsecYr);
+    const properMotion = pmRa === null || pmDec === null ? 'not measured' : Math.hypot(pmRa, pmDec).toFixed(4);
+    const snr = finiteNumberOrNull(payload.astrometricSnr);
+    const distLabel = dist === null ? 'not measured' : String(dist) + ' AU';
+    const parallaxLabel = dist === null || dist <= 0 ? 'unavailable until distance is measured' : (1 / dist).toFixed(4) + ' arcseconds';
+    const velocityLabel = dist === null || dist <= 0 ? 'unavailable until distance is measured' : (30 / Math.sqrt(dist)).toFixed(1) + ' km/s';
 
-    return `For **${des}**, the modeled heliocentric distance of roughly **${dist} AU** puts it far out in the outer Solar System, where orbital motion is remarkably slow—around ${velKmS} km/s, corresponding to an apparent proper motion of about ${properMotion} arcsec/year${snr !== undefined ? ` (astrometric SNR: ${snr}σ)` : ''}.
+    return `For **${des}**, heliocentric distance is **${distLabel}**. The circular-orbit speed scale is ${velocityLabel}; proper motion is ${properMotion} arcsec/year${snr === null ? '' : ` (input SNR: ${snr}σ)`}.
 
-How astronomers tell such a distant object apart from closer bodies:
-- **Annual reflex parallax:** As Earth orbits the Sun, a distant body around ${dist} AU shifts back and forth on the sky by roughly ${parallaxApprox} arcseconds over a year—much smaller than the shift of a main-belt or Kuiper Belt object, helping rule out foreground asteroids.
-- **Thermal infrared glow:** At hundreds of AU, reflected sunlight is extremely faint, so mid-infrared surveys like WISE (3.4 µm W1 and 4.6 µm W2) look for residual internal heat that makes cold planets or brown dwarfs stand out at longer wavelengths.
-${userPrompt ? `\nTo answer your question ("${userPrompt}"): combining multi-epoch astrometry with infrared color helps distinguish genuine outer-system candidates from detector artifacts or background stars.` : ''}`;
+How astronomers distinguish a genuine outer-Solar-System candidate:
+- **Annual reflex parallax:** ${parallaxLabel}. A full fit requires time-tagged astrometry and observer geometry.
+- **Multi-epoch astrometry:** Compare independently dated positions and fit a physical orbit; do not treat a residual or an assumed distance as an orbit.
+- **Infrared photometry:** WISE/NEOWISE W1/W2 measurements can provide complementary thermal-colour evidence, but they must be separately cross-matched and must not be inferred from SPHEREx residual flux.
+
+${userPrompt ? `\nTo answer your question ("${userPrompt}"): interpret this candidate only from measurements actually attached to it. Missing values are unknown, not zero or evidence for a distant planet.` : ''}`;
   }
 
   const targetLabel =
