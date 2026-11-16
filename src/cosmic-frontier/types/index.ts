@@ -611,7 +611,7 @@ export interface AsteroidMotionResponse {
     orbitClass: string;
     isPotentiallyHazardous: boolean;
     diameterKm: number | null;
-    diameterMeters: { min: number; max: number; avg: number };
+    diameterMeters: { min: number | null; max: number | null; avg: number | null };
     absoluteMagnitudeH: number | null;
     orbitalElements: AsteroidOrbitalElements;
     closeApproach: {
