@@ -42,6 +42,7 @@ import {
   fetchLiveSmallBodies,
   lookupLiveGalaxyInNed,
 } from './src/server/liveSpaceDataService.ts';
+import { fetchHorizonsObserverEphemeris } from './src/server/horizonsService.ts';
 const require = createRequire(import.meta.url);
 const exoplanetArchive = require('./src/cosmic-frontier/data/catalogs/confirmed-exoplanets.json');
 const galaxyArchive = require('./src/cosmic-frontier/data/catalogs/deep-sky-galaxies.json');
