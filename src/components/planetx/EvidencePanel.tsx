@@ -59,7 +59,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
             <span className="text-emerald-400 font-bold">p = {stats.pValueClustering}</span>
           </div>
           <div className="text-2xl font-bold text-white font-mono">
-            {stats.meanVarpiDeg}°
+            {stats.meanVarpiDeg === null ? 'No preferred direction' : `${stats.meanVarpiDeg}°`}
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
             Mean longitude across {stats.sampleSize} catalogue objects. The p-value compares the observed concentration with a uniform-angle null; it is not corrected for survey selection.
