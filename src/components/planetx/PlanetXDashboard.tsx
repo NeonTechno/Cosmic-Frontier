@@ -256,7 +256,18 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
           onExplainEvidence={() =>
             onExplainWithAi('etno_clustering', {
               etnoCatalogCount: etnoCatalog.length,
-              clusteredObjects: etnoCatalog.filter((o) => o.antiAligned).map((o) => o.name),
+              orbitalElements: etnoCatalog.map((object) => ({
+                name: object.name,
+                semiMajorAxisAU: object.semiMajorAxisAU,
+                eccentricity: object.eccentricity,
+                inclinationDeg: object.inclinationDeg,
+                longitudeAscendingNodeDeg: object.longAscNodeDeg,
+                longitudePerihelionDeg: object.longPerihelionDeg,
+                orbitEpochJD: object.orbitEpochJD ?? null,
+                source: object.source ?? 'bundled reference catalogue',
+                clusteringStatus: object.clusteringStatus ?? 'not assessed',
+              })),
+              note: 'Do not infer Planet Nine evidence from this catalogue alone. Selection effects and common-epoch propagation are not yet modelled.',
               hypothesisParams: hypothesis,
             })
           }
