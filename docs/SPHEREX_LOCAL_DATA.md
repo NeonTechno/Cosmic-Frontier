@@ -42,7 +42,7 @@ For a synthetic benchmark, the export controls instead provide a JSON preview pa
 
 ## Deployment limitation
 
-\`data/spherex/\` is ignored by Git. A Vercel deployment cannot read files from your laptop. Local datasets are available to the local Node server only. A hosted dataset feature needs a persistent object store or approved dataset host and a separately tested retrieval adapter.
+\`data/spherex/\` is ignored by Git. A hosted Render deployment cannot read files from your laptop. Local datasets are available to the local Node server only. A hosted dataset feature needs a persistent object store or approved dataset host and a separately tested retrieval adapter.
 
 ## Scientific-integrity notes
 
