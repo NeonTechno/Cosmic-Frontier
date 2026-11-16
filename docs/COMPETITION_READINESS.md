@@ -25,6 +25,19 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 - [x] Add Gemini-powered astronomy concept-art generation in the Editorial Journal; generated artwork is labelled illustrative and never presented as telescope imagery or a measured result.
 - [ ] Evaluate AI answers against a curated astronomy question set, including adversarial prompts that try to elicit invented observations.
 
+## Scientific hardening — phase 1
+
+- [x] Correct the HiPS FITS tile dimensions to the official 512 × 512 × 102 layout and align the nested HEALPix child scale and pixel solid-angle conversion.
+- [x] Add a regression fixture using the official IRSA notebook coordinate example and expected Norder-5 pixel 445.
+- [x] Label the HiPS aperture spectrum as visualization-only and direct scientific photometry to the IRSA Spectrophotometry Tool.
+- [x] Report non-zero HiPS FLAGS values without silently masking them before the flag-bit policy is validated.
+- [x] Replace the Planet X evidence panel's hardcoded “less than 0.1% / 3.4σ” statement with reproducible Monte Carlo null diagnostics.
+- [x] Include all catalogue objects with valid angles; do not pre-filter on the legacy `antiAligned` label.
+- [x] Add separate uniform-`varpi` and isotropic-orbital-pole null comparisons with deterministic seeds and explicit warnings.
+- [ ] Do not call the Planet X analysis selection-corrected until survey-specific pointing, depth, cadence, weather, tracking, and follow-up selection functions are implemented and validated.
+- [ ] Propagate MPC osculating elements to a common epoch before comparing angular orbital elements.
+- [ ] Validate HiPS aperture photometry against the official notebook on a real downloaded cube; validate FITS FLAGS interpretation and science-grade uncertainties.
+
 ## Scientific research integrity
 
 - [ ] Verify each SPHEREx query against the official IRSA archive response and retain query parameters, retrieval time, product identifiers, and source URLs.
