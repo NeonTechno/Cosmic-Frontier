@@ -26,6 +26,16 @@ const HIPS_DATA_ROOT = process.env.SPHEREX_HIPS_DATA_URL ||
 const MPC_DISTANT_URL = 'https://minorplanetcenter.net/Extended_Files/distant_extended.json.gz';
 const FITS_BLOCK = 2880;
 export const SPHEREX_HIPS_TILE_SIZE = 512;
+export const SPHEREX_HIPS_CUBE_DEPTH = 102;
+
+export function validateSpherexHipsCubeDimensions(width: number, height: number, depth: number): void {
+  if (width !== SPHEREX_HIPS_TILE_SIZE || height !== SPHEREX_HIPS_TILE_SIZE || depth !== SPHEREX_HIPS_CUBE_DEPTH) {
+    throw new Error(
+      'Unexpected SPHEREx HiPS cube dimensions ' + width + '×' + height + '×' + depth +
+      '; expected 512×512×102 per the official IRSA notebook.'
+    );
+  }
+}
 const fitsCaches = new Map<string, { expires: number; value: unknown }>();
 
 function cacheGet<T>(key: string): T | null {
@@ -334,7 +344,7 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   const props = await getSpherexProperties();
   const waveValues = String(props.data_cube_crval3_arr || '').trim().split(/\s+/).map(Number).filter(Number.isFinite);
   const depth = Number(props.hips_cube_depth || waveValues.length);
-  if (depth !== 102 || waveValues.length !== 102) throw new Error('IRSA HiPS metadata did not report the expected 102 spectral layers.');
+  if (depth !== SPHEREX_HIPS_CUBE_DEPTH || waveValues.length !== SPHEREX_HIPS_CUBE_DEPTH) throw new Error('IRSA HiPS metadata did not report the expected 102 spectral layers.');
   const order = 5, nside = 1 << order;
   const coarse = healpixNestedIndex(nside, raDeg, decDeg);
   const fineNside = nside * SPHEREX_HIPS_TILE_SIZE;
@@ -351,7 +361,7 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   const flags = hdus.find(h => h.extname === 'FLAGS');
   if (!image || image.axes.length !== 3 || image.axes[2] !== 102) throw new Error('HiPS IMAGE extension is not a 102-layer 3D cube.');
   const width = image.axes[0], height = image.axes[1], layers = image.axes[2];
-  if (width !== SPHEREX_HIPS_TILE_SIZE || height !== SPHEREX_HIPS_TILE_SIZE) throw new Error('Unexpected HiPS tile dimensions ' + width + '×' + height + '; expected 512×512 per the official IRSA notebook.');
+  validateSpherexHipsCubeDimensions(width, height, depth);
   const hipsWcs = skyToHpxPixel(raDeg, decDeg, image.header);
   // Preserve the sub-pixel sky position returned by the HPX WCS, as in the IRSA notebook.
   const x = hipsWcs.px1 - 1, y = hipsWcs.py1 - 1;
