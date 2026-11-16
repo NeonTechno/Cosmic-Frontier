@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { SpacecraftFlightHud } from './mission-control/SpacecraftFlightHud';
 import { PlanetaryIntelligenceConsole } from '../../components/planetary/PlanetaryIntelligenceConsole';
+import { JplObserverEphemeris } from './JplObserverEphemeris';
 
 interface MissionControlDashboardProps {
   onNavigate: (page: AppPage) => void;
@@ -150,6 +151,10 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
     return cadData.approaches[0];
   }, [cadData]);
 
+  const earthObject = ephemData?.objects.find((object) => object.id === 'earth');
+  const moonObject = ephemData?.objects.find((object) => object.id === 'moon');
+  const earthOrbitalVelocity = ephemData?.earthReference?.orbitalVelocityKmS;
+
   // Status Badge Helper
   const renderStatusBadge = (status: LiveDataBadgeStatus) => {
     switch (status) {
@@ -164,6 +169,12 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30">
             RECENT DATA (CACHED)
+          </span>
+        );
+      case 'CALCULATED MODEL':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-sky-500/10 text-sky-300 border border-sky-500/30">
+            CALCULATED MODEL
           </span>
         );
       case 'PREDICTED':
@@ -360,7 +371,7 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
               Mission Control Dashboard
             </h1>
             <p className="text-xs sm:text-sm text-[#A7B4CC] max-w-xl leading-relaxed">
-              Live celestial astrometry, near-Earth asteroid approaches, and planetary telemetry.
+              Calculated planetary ephemerides, live close-approach data, and reproducible JPL observing queries.
             </p>
           </div>
 
@@ -404,9 +415,9 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
         {/* Real-Time Space Telemetry Metric Strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-[#1E293B]/70 text-xs font-mono">
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
-            <span className="text-[#A7B4CC] text-[11px]">Earth Orbital Velocity:</span>
+            <span className="text-[#A7B4CC] text-[11px]">Mean Earth Orbital Velocity:</span>
             <div className="text-base font-bold text-[#F5C451] tabular-nums">
-              {ephemData?.earthReference.orbitalVelocityKmS ?? 29.78} km/s
+              {earthOrbitalVelocity != null ? earthOrbitalVelocity : '—'} km/s
             </div>
             <div className="text-[10px] text-[#A7B4CC]">~107,200 km/h in space</div>
           </div>
@@ -414,17 +425,17 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
             <span className="text-[#A7B4CC] text-[11px]">Heliocentric Earth Distance:</span>
             <div className="text-base font-bold text-[#38BDF8] tabular-nums">
-              {ephemData?.objects.find(o => o.id === 'earth')?.distSunAU ?? 0.995} AU
+              {earthObject?.distSunAU != null ? earthObject.distSunAU : '—'} AU
             </div>
-            <div className="text-[10px] text-[#A7B4CC]">~148.8 million km</div>
+            <div className="text-[10px] text-[#A7B4CC]">{earthObject?.distSunMillionKm != null ? earthObject.distSunMillionKm + ' million km' : 'Calculated when ephemeris loads'}</div>
           </div>
 
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
             <span className="text-[#A7B4CC] text-[11px]">Lunar Distance (Moon):</span>
             <div className="text-base font-bold text-[#F8FAFC] tabular-nums">
-              {ephemData?.objects.find(o => o.id === 'moon')?.distEarthLunar ?? 1.02} LD
+              {moonObject?.distEarthLunar != null ? moonObject.distEarthLunar : '—'} LD
             </div>
-            <div className="text-[10px] text-[#A7B4CC]">~392,000 km from Earth</div>
+            <div className="text-[10px] text-[#A7B4CC]">{moonObject?.distEarthMillionKm != null ? moonObject.distEarthMillionKm + ' million km from Earth' : 'Calculated when ephemeris loads'}</div>
           </div>
 
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
@@ -691,6 +702,8 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
           </div>
         </div>
       </div>
+
+      <JplObserverEphemeris />
 
       {/* 4. SECTION C: EARTH APPROACH MONITOR SUMMARY */}
       <div className="p-6 sm:p-8 rounded-2xl bg-[#0B1630] border border-[#1E293B] shadow-2xl space-y-6">

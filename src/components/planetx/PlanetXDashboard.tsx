@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { PlanetXCandidate, ExtremeTNO, PlanetXHypothesisParams } from '../../types/index.ts';
 import { CandidateInvestigation } from './CandidateInvestigation.tsx';
+import { MpcCatalogPanel } from './MpcCatalogPanel.tsx';
 import { OrbitalSimulation } from './OrbitalSimulation.tsx';
 import { EvidencePanel } from './EvidencePanel.tsx';
 import { UncertaintyIndicator } from './UncertaintyIndicator.tsx';
@@ -22,6 +23,7 @@ import {
   MapPin,
   ShieldCheck,
   Activity,
+  Database,
 } from 'lucide-react';
 
 interface PlanetXDashboardProps {
@@ -41,7 +43,7 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
   onUpdateHypothesis,
   onExplainWithAi,
 }) => {
-  const [activeTab, setActiveTab] = useState<'workbench' | 'resonances' | 'simulation' | 'evidence' | 'uncertainty'>('workbench');
+  const [activeTab, setActiveTab] = useState<'workbench' | 'resonances' | 'simulation' | 'evidence' | 'uncertainty' | 'mpc'>('workbench');
   const [panesFrozen, setPanesFrozen] = useState<boolean>(true);
 
 
@@ -65,6 +67,10 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
     uncertainty: {
       title: 'Uncertainty & Posteriors',
       subtitle: 'Parameter posterior bounds & observational selection bias',
+    },
+    mpc: {
+      title: 'Live MPC Distant Catalogue',
+      subtitle: 'Official Minor Planet Center orbital elements and reproducible eTNO filtering',
     },
   };
 
@@ -169,6 +175,18 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('mpc')}
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
+              activeTab === 'mpc'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Database className="h-3.5 w-3.5" />
+            <span>Live MPC Catalogue</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('uncertainty')}
             className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg transition ${
               activeTab === 'uncertainty'
@@ -248,6 +266,8 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
       {activeTab === 'uncertainty' && (
         <UncertaintyIndicator hypothesis={hypothesis} />
       )}
+
+      {activeTab === 'mpc' && <MpcCatalogPanel />}
     </div>
   );
 };

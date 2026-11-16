@@ -35,7 +35,7 @@ export const ExoplanetDiscoveryLab: FC<ExoplanetDiscoveryLabProps> = ({ onNaviga
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<string>('Connecting to NASA Exoplanet Archive...');
-  const [isLive, setIsLive] = useState<boolean>(true);
+  const [isLive, setIsLive] = useState<boolean>(false);
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import type { CatalogCategory, CatalogItem, AppPage } from '../types';
 import { fetchCatalogItems } from '../services/astronomyDataService';
+import { ResearchStatusPanel } from './ResearchStatusPanel';
 import { AstronomicalImage } from './astronomy-images/AstronomicalImage';
 import { AstronomicalImageGallery } from './astronomy-images/AstronomicalImageGallery';
 import { 
@@ -31,7 +32,7 @@ export const NasaDataCentre: FC<NasaDataCentreProps> = ({ onNavigate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModalItem, setActiveModalItem] = useState<CatalogItem | null>(null);
   const [dataSource, setDataSource] = useState<string>('Connecting to Gateways...');
-  const [isLiveGateway, setIsLiveGateway] = useState<boolean>(true);
+  const [isLiveGateway, setIsLiveGateway] = useState<boolean>(false);
 
   // Load items whenever category or search changes
   const loadData = async (cat: CatalogCategory, query: string) => {
@@ -156,6 +157,10 @@ export const NasaDataCentre: FC<NasaDataCentreProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <ResearchStatusPanel />
+      </div>
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">

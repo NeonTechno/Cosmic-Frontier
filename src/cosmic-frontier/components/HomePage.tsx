@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { assetUrl } from '../../utils/assetUrl';
 import type { AppPage } from '../types';
 import { NasaLiveDispatch } from './NasaLiveDispatch';
 import { 
@@ -19,7 +20,16 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
   return (
     <div className="cf-lab-home space-y-8 pb-12 pt-3">
       {/* DISCOVERY CATEGORIES GATEWAY */}
-      <section id="observatories-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <section id="observatories-section" className="cf-home-hero max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <img
+          className="cf-home-hero__image"
+          src={assetUrl('/assets/JWST Messier 16 processed.jpg')}
+          alt="JWST NIRCam infrared image of the Pillars of Creation in the Eagle Nebula (Messier 16)"
+          loading="eager"
+          fetchPriority="high"
+          aria-hidden="true"
+        />
+        <div className="cf-home-hero__shade" aria-hidden="true" />
         <div className="max-w-3xl space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30 text-xs font-mono font-semibold uppercase tracking-wider">
             COSMIC LAB

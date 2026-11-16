@@ -1,5 +1,5 @@
 {
-  "name": "react-example",
+  "name": "black-star-orbit",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "spherex:index": "python3 scripts/index_spherex_datasets.py"
+    "spherex:index": "python3 scripts/index_spherex_datasets.py",
+    "prebuild": "npm run lint && npm test",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@fontsource/audiowide": "^5.3.0",

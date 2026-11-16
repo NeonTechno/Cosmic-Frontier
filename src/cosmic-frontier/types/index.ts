@@ -369,7 +369,7 @@ export interface CatalogItem {
   image?: AstronomicalImageRecord;
 }
 
-export type LiveDataBadgeStatus = 'LIVE DATA' | 'RECENT DATA' | 'PREDICTED' | 'SIMULATION' | 'UNAVAILABLE';
+export type LiveDataBadgeStatus = 'LIVE DATA' | 'RECENT DATA' | 'PREDICTED' | 'CALCULATED MODEL' | 'SIMULATION' | 'UNAVAILABLE';
 
 export interface LiveEphemerisObject {
   id: string;
@@ -611,7 +611,7 @@ export interface AsteroidMotionResponse {
     orbitClass: string;
     isPotentiallyHazardous: boolean;
     diameterKm: number | null;
-    diameterMeters: { min: number; max: number; avg: number };
+    diameterMeters: { min: number | null; max: number | null; avg: number | null };
     absoluteMagnitudeH: number | null;
     orbitalElements: AsteroidOrbitalElements;
     closeApproach: {

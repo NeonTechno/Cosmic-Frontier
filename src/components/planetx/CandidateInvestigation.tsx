@@ -50,6 +50,10 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
   const trajectoryCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const candidate = candidates.find((c) => c.id === selectedId) || candidates[0];
+  const hasEpochMeasurements = Boolean(candidate?.observationHistory.some((obs) =>
+    obs.dxArcsec !== null || obs.dyArcsec !== null || obs.w1FluxMjy !== null || obs.w2FluxMjy !== null
+  ));
+  const hasMeasuredDistance = candidate?.heliocentricDistanceAU != null && candidate.heliocentricDistanceAU > 0;
 
   // Auto-select newly added candidate when candidates list grows or selection is missing
   useEffect(() => {
@@ -78,7 +82,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
   // Draw simulated multi-epoch blink comparator canvas
   useEffect(() => {
     const canvas = blinkCanvasRef.current;
-    if (!canvas || !candidate) return;
+    if (!canvas || !candidate || !candidate.observationHistory.some((obs) => obs.dxArcsec !== null || obs.dyArcsec !== null || obs.w1FluxMjy !== null || obs.w2FluxMjy !== null)) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -131,7 +135,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     }
 
     // Candidate Point Source
-    const isColdCandidate = candidate.colorW1W2 > 1.8;
+    const isColdCandidate = (candidate.colorW1W2 ?? 0) > 1.8;
     ctx.fillStyle = lightCanvas ? '#526779' : '#C4D0DA';
     ctx.shadowColor = lightCanvas ? '#8495A3' : '#AAB8C5';
     ctx.shadowBlur = 8;
@@ -175,7 +179,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
   // Draw astrometric reflex parallax trajectory
   useEffect(() => {
     const canvas = trajectoryCanvasRef.current;
-    if (!canvas || !candidate) return;
+    if (!canvas || !candidate || candidate.heliocentricDistanceAU == null || candidate.heliocentricDistanceAU <= 0) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -352,31 +356,40 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               <div className="flex items-center space-x-2">
                 <Eye className="h-4 w-4 text-cyan-400" />
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-                  Infrared Astrometric Blinker (WISE / NEOWISE Coadds)
+                  Multi-epoch Evidence Viewer · {candidate?.survey}
                 </h4>
               </div>
               <div className="flex items-center space-x-2 text-xs font-mono">
                 <button
                   onClick={() => setIsBlinking(!isBlinking)}
-                  className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
+                  disabled={!hasEpochMeasurements}
+                  className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {isBlinking ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                  <span>{isBlinking ? 'Pause Blink' : 'Auto Blink'}</span>
+                  <span>{!hasEpochMeasurements ? 'No epoch data' : isBlinking ? 'Pause Blink' : 'Auto Blink'}</span>
                 </button>
               </div>
             </div>
 
             {/* Blink Canvas */}
             <div className="relative aspect-square max-w-md mx-auto rounded-lg overflow-hidden border border-slate-800 bg-black">
-              <canvas
-                ref={blinkCanvasRef}
-                width={420}
-                height={420}
-                className="w-full h-full object-contain"
-              />
+              {hasEpochMeasurements ? (
+                <canvas
+                  ref={blinkCanvasRef}
+                  width={420}
+                  height={420}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
+                  <Eye className="h-8 w-8 text-slate-600" />
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300">No epoch imagery attached</span>
+                  <span className="max-w-xs text-[11px] leading-relaxed text-slate-500">This candidate has no time-tagged pixel frames, measured positional offsets, or WISE photometry yet. The viewer will not synthesize an observation.</span>
+                </div>
+              )}
 
               {/* Epoch Tag on Canvas */}
-              {candidate?.observationHistory[activeEpochIdx] && (
+              {hasEpochMeasurements && candidate?.observationHistory[activeEpochIdx] && (
                 <div className="absolute top-2 left-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded border border-slate-800 text-xs font-mono text-cyan-300">
                   <span className="font-bold text-white">
                     {candidate.observationHistory[activeEpochIdx].surveyTag}
@@ -388,40 +401,44 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               )}
 
               {/* Candidate Info Pill */}
-              <div className="absolute bottom-2 left-2 right-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between text-[11px] font-mono">
+              {hasEpochMeasurements && <div className="absolute bottom-2 left-2 right-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between text-[11px] font-mono">
                 <span className="text-slate-300">
-                  Δx: {candidate?.observationHistory[activeEpochIdx]?.dxArcsec.toFixed(2)}″ | Δy:{' '}
-                  {candidate?.observationHistory[activeEpochIdx]?.dyArcsec.toFixed(2)}″
+                  Δx: {candidate?.observationHistory[activeEpochIdx]?.dxArcsec == null ? '—' : candidate.observationHistory[activeEpochIdx].dxArcsec.toFixed(2)}″ | Δy:{' '}
+                  {candidate?.observationHistory[activeEpochIdx]?.dyArcsec == null ? '—' : candidate.observationHistory[activeEpochIdx].dyArcsec.toFixed(2)}″
                 </span>
                 <span
                   className={`font-semibold ${
-                    candidate?.colorW1W2 > 1.8 ? 'text-red-400' : 'text-amber-400'
+                    (candidate?.colorW1W2 ?? 0) > 1.8 ? 'text-red-400' : 'text-amber-400'
                   }`}
                 >
-                  W1−W2: {candidate?.colorW1W2.toFixed(1)} mag
+                  W1−W2: {candidate?.colorW1W2 == null ? 'Not measured' : candidate.colorW1W2.toFixed(1) + ' mag'}
                 </span>
-              </div>
+              </div>}
             </div>
 
             {/* Epoch Selector Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs font-mono pt-1">
-              {candidate?.observationHistory.map((ep, i) => (
-                <button
-                  key={ep.epoch}
-                  onClick={() => {
-                    setIsBlinking(false);
-                    setActiveEpochIdx(i);
-                  }}
-                  className={`px-2.5 py-1 rounded border transition ${
-                    activeEpochIdx === i
-                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 font-bold'
-                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
-                  }`}
-                >
-                  Ep {i + 1} ({ep.epoch.split('-')[0]})
-                </button>
-              ))}
-            </div>
+            {hasEpochMeasurements ? (
+              <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs font-mono pt-1">
+                {candidate?.observationHistory.map((ep, i) => (
+                  <button
+                    key={ep.epoch}
+                    onClick={() => {
+                      setIsBlinking(false);
+                      setActiveEpochIdx(i);
+                    }}
+                    className={`px-2.5 py-1 rounded border transition ${
+                      activeEpochIdx === i
+                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 font-bold'
+                        : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    Ep {i + 1} ({ep.epoch.split('-')[0]})
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="pt-1 text-center text-[10px] font-mono text-slate-500">No time-tagged observations attached</p>
+            )}
           </div>
 
           {/* Astrometric Parallax Ellipse Fit */}
@@ -434,17 +451,25 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
                 </h4>
               </div>
               <span className="text-xs font-mono text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/40">
-                Distance: {candidate?.heliocentricDistanceAU} AU
+                Distance: {candidate?.heliocentricDistanceAU == null ? 'Not measured' : `${candidate.heliocentricDistanceAU} AU`}
               </span>
             </div>
 
             <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-800 bg-black">
-              <canvas
-                ref={trajectoryCanvasRef}
-                width={600}
-                height={320}
-                className="w-full h-full object-contain"
-              />
+              {hasMeasuredDistance ? (
+                <canvas
+                  ref={trajectoryCanvasRef}
+                  width={600}
+                  height={320}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
+                  <Compass className="h-7 w-7 text-slate-600" />
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300">No orbit fit available</span>
+                  <span className="max-w-md text-[11px] leading-relaxed text-slate-500">A heliocentric distance and time-tagged astrometry are required before this workbench can plot a candidate-specific parallax or orbital trajectory. No default distance is substituted.</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -472,22 +497,22 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Astrometric SNR</span>
-                <span className="text-amber-400 font-bold text-sm">{candidate?.astrometricSnr} σ</span>
+                <span className="text-amber-400 font-bold text-sm">{candidate?.astrometricSnr == null ? 'Not measured' : `${candidate.astrometricSnr} σ`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Infrared Color W1−W2</span>
-                <span className="text-white font-bold text-sm">{candidate?.colorW1W2} mag</span>
+                <span className="text-white font-bold text-sm">{candidate?.colorW1W2 == null ? 'Not measured' : candidate.colorW1W2 + ' mag'}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Annual Parallax (π)</span>
-                <span className="text-cyan-400 font-bold text-sm">{(candidate?.parallaxArcsec * 1000).toFixed(1)} mas</span>
+                <span className="text-cyan-400 font-bold text-sm">{candidate?.parallaxArcsec == null ? 'Not measured' : `${(candidate.parallaxArcsec * 1000).toFixed(1)} mas`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Predicted Mass</span>
-                <span className="text-purple-300 font-bold text-sm">~{candidate?.estimatedMassEarths} M⊕</span>
+                <span className="text-purple-300 font-bold text-sm">{candidate?.estimatedMassEarths == null ? 'Not estimated' : `~${candidate.estimatedMassEarths} M⊕`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
@@ -495,17 +520,25 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
                 <span className="text-slate-200 font-semibold truncate block">
                   {candidate?.raDeg.toFixed(2)}°, {candidate?.decDeg.toFixed(2)}°
                 </span>
+                {candidate && <a
+                  href={`https://byw.tools/wiseview#ra=${candidate.raDeg}&dec=${candidate.decDeg}&size=176&band=2&speed=500`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex items-center gap-1 text-[10px] font-mono text-cyan-400 hover:text-cyan-200"
+                >
+                  Compare this position in WiseView <ExternalLink className="h-3 w-3" />
+                </a>}
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Batygin & Brown Fit</span>
-                <span className="text-emerald-400 font-bold text-sm">{candidate?.theoreticalConsistency}%</span>
+                <span className="text-emerald-400 font-bold text-sm">{candidate?.theoreticalConsistency == null ? 'Not evaluated' : `${candidate.theoreticalConsistency}%`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">MMR Protected eTNOs</span>
                 <span className="text-cyan-400 font-bold text-sm">
-                  {candidate?.heliocentricDistanceAU > 200 ? '6 / 7 Resonances' : '0 (Centaur Orbit)'}
+                  {candidate?.heliocentricDistanceAU == null ? 'Insufficient data' : candidate.heliocentricDistanceAU > 200 ? '6 / 7 Resonances' : '0 (Centaur Orbit)'}
                 </span>
               </div>
             </div>
@@ -514,9 +547,11 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
             <div className="bg-slate-950/70 p-2.5 rounded border border-slate-800 text-[11px] font-mono text-slate-300 space-y-1">
               <div className="text-amber-300 font-semibold">Photometric Diagnosis:</div>
               <p className="text-slate-400 leading-relaxed">
-                {candidate?.colorW1W2 > 1.8
-                  ? 'Extremely red W1-W2 color (> 2.0) matches methane absorption in 40K giant planet atmospheres. Passes photometric vetting.'
-                  : 'Neutral or blue W1-W2 color (< 1.0) is inconsistent with cold outer planets. Strong indicator of rocky asteroid or stellar diffraction.'}
+                {candidate?.colorW1W2 == null
+                  ? 'W1/W2 photometry is unavailable. No infrared-colour classification or photometric vetting can be made for this candidate.'
+                  : candidate.colorW1W2 > 1.8
+                    ? 'Extremely red W1-W2 colour can be consistent with cold infrared sources; confirm with calibrated photometry and independent observations.'
+                    : 'This measured W1-W2 colour is not strongly red. Interpret it with uncertainties and other observations; colour alone does not classify the object.'}
               </p>
             </div>
           </div>
