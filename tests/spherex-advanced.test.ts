@@ -1,14 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { healpixNestedIndex, normalizeMpcDistantRecords } from '../src/server/spherexAdvancedService.ts';
+import { healpixNestedIndex, normalizeMpcDistantRecords, SPHEREX_HIPS_TILE_SIZE } from '../src/server/spherexAdvancedService.ts';
 
 test('SPHEREx tutorial coordinate resolves to nested Norder 5 pixel 445', () => {
   const tile = healpixNestedIndex(32, 60.8109955, 51.3404038);
   assert.equal(tile.pixel, 445);
-  const child = healpixNestedIndex(8192, 60.8109955, 51.3404038);
-  assert.equal(Math.floor(child.pixel / (256 * 256)), tile.pixel);
-  assert.equal(child.ix % 256, 149);
-  assert.equal(child.iy % 256, 120);
+  assert.equal(SPHEREX_HIPS_TILE_SIZE, 512);
+  const child = healpixNestedIndex(32 * SPHEREX_HIPS_TILE_SIZE, 60.8109955, 51.3404038);
+  assert.equal(child.pixel, 116764229);
+  assert.equal(Math.floor(child.pixel / (SPHEREX_HIPS_TILE_SIZE ** 2)), tile.pixel);
+  assert.equal(child.ix % SPHEREX_HIPS_TILE_SIZE, 299);
+  assert.equal(child.iy % SPHEREX_HIPS_TILE_SIZE, 240);
 });
 
 test('MPC distant records are filtered to bound eTNOs and preserve published elements', () => {
