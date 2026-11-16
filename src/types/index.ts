@@ -156,8 +156,8 @@ export interface SpherexObservation {
   detectorArray: string;
   detectorTempK?: number;
   pixelScaleArcsec: number;
-  dataQualityFlag: 'CALIBRATED_NOMINAL' | 'HIGH_BACKGROUND_ZODIACAL' | 'PASSING_CALIBRATION';
-  dataSourceStatus: 'LIVE_IRSA_SPHEREX' | 'LOCAL_IRSA_SPHEREX' | 'REAL_MISSION_ARCHIVAL';
+  dataQualityFlag: 'CALIBRATED_NOMINAL' | 'HIGH_BACKGROUND_ZODIACAL' | 'PASSING_CALIBRATION' | 'SIMULATED_DEMO';
+  dataSourceStatus: 'LIVE_IRSA_SPHEREX' | 'LOCAL_IRSA_SPHEREX' | 'REAL_MISSION_ARCHIVAL' | 'SIMULATED_DEMO';
   dataSourceLabel: string;
   documentationUrl: string;
   fitsHeader: Record<string, string | number>;
@@ -221,32 +221,35 @@ export interface SpherexObservation {
 export interface PlanetXCandidate {
   id: string;
   designation: string;
-  survey: 'WISE / NEOWISE' | 'Subaru HSC Deep' | 'Pan-STARRS' | 'Rubin LSST Mock Drill';
+  survey: 'SPHEREx' | 'WISE / NEOWISE' | 'Subaru HSC Deep' | 'Pan-STARRS' | 'Rubin LSST Mock Drill';
   raDeg: number;
   decDeg: number;
   eclipticLonDeg: number;
   eclipticLatDeg: number;
-  heliocentricDistanceAU: number;
-  apparentMagW1: number; // 3.4 µm
-  apparentMagW2: number; // 4.6 µm
-  colorW1W2: number;
-  properMotionAlphaArcsecYr: number; // Proper motion in RA
-  properMotionDeltaArcsecYr: number; // Proper motion in Dec
-  parallaxArcsec: number;            // Annual heliocentric parallax
-  estimatedMassEarths: number;
-  astrometricSnr: number;
+  heliocentricDistanceAU: number | null;
+  apparentMagW1: number | null; // 3.4 µm; null when not measured
+  apparentMagW2: number | null; // 4.6 µm; null when not measured
+  colorW1W2: number | null;
+  properMotionAlphaArcsecYr: number | null; // Proper motion in RA
+  properMotionDeltaArcsecYr: number | null; // Proper motion in Dec
+  parallaxArcsec: number | null;            // Annual heliocentric parallax
+  estimatedMassEarths: number | null;
+  astrometricSnr: number | null;
   status: 'unvetted' | 'candidate' | 'known_asteroid' | 'instrumental_artifact' | 'brown_dwarf';
-  confidenceScore: number; // 0 - 100
+  confidenceScore: number | null; // null when not evaluated
   notes: string;
   observationHistory: {
     epoch: string;
-    dxArcsec: number;
-    dyArcsec: number;
-    w1FluxMjy: number;
-    w2FluxMjy: number;
+    dxArcsec: number | null;
+    dyArcsec: number | null;
+    w1FluxMjy: number | null;
+    w2FluxMjy: number | null;
     surveyTag: string;
   }[];
-  theoreticalConsistency: number; // Alignment with Batygin & Brown 2021 predictions
+  unavailableMeasurements?: string[];
+  sourceObservationIds?: string[];
+  provenanceNote?: string;
+  theoreticalConsistency: number | null; // null when not evaluated
   vettedBy?: string;
   vettingTimestamp?: string;
   vettingVerdict?: string;
@@ -263,10 +266,17 @@ export interface ExtremeTNO {
   longAscNodeDeg: number;
   argPerihelionDeg: number;
   longPerihelionDeg: number; // varpi = Omega + omega
-  discoveryYear: number;
+  discoveryYear: number | null;
   discoverySurvey: string;
-  antiAligned: boolean; // Part of the clustered population argument
+  antiAligned: boolean | null; // null means no clustering assessment has been applied
   orbitalPeriodYears: number;
+  source?: 'MPC' | 'literature';
+  mpcDesignation?: string;
+  lastObserved?: string | null;
+  observationCount?: number | null;
+  oppositionCount?: number | null;
+  orbitEpochJD?: number | null;
+  clusteringStatus?: 'not-assessed' | 'anti-aligned' | 'aligned' | 'other';
 }
 
 export interface PlanetXHypothesisParams {
@@ -320,7 +330,7 @@ export interface AiExplanationResponse {
   explanation: string;
   groundedAttributes: string[];
   scientificReferences: string[];
-  dataVerificationStatus: 'GROUNDED_VERIFIED' | 'SIMULATION_GROUNDED';
+  dataVerificationStatus: 'GROUNDED_VERIFIED' | 'SIMULATION_GROUNDED' | 'REFERENCE_ONLY';
   confidenceRating: 'HIGH_PRECISION' | 'THEORETICAL_MODEL';
   modelUsed: string;
   timestamp: string;
