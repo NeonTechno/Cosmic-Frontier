@@ -63,6 +63,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
   const [showErrorEnvelope, setShowErrorEnvelope] = useState<boolean>(true);
   const [showSpectralMarkers, setShowSpectralMarkers] = useState<boolean>(true);
   const [activeLineFilter, setActiveLineFilter] = useState<string | null>(null);
+  const isDemo = observation.dataSourceStatus === 'SIMULATED_DEMO';
   const hasModelFit = observation.dataSourceStatus !== 'LOCAL_IRSA_SPHEREX';
 
   useEffect(() => {
@@ -151,7 +152,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
     : null;
 
   const yLabel = metricMode === 'flux'
-    ? 'Flux Density (MJy/sr)'
+    ? (isDemo ? 'Illustrative signal scale (not calibrated)' : 'Flux Density (MJy/sr)')
     : metricMode === 'energy'
     ? 'Energy Flux νF_ν (Relative)'
     : 'Absorption Residual (%)';
@@ -281,13 +282,13 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
 
           <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5">
             <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
-              Peak Spectral Flux
+              {isDemo ? 'Peak Simulated Signal' : 'Peak Spectral Flux'}
             </span>
             <div className="text-base font-bold text-cyan-300 font-mono mt-0.5">
-              {stats.peakFluxMJySr.toFixed(1)} <span className="text-xs text-slate-400 font-normal">MJy/sr</span>
+              {stats.peakFluxMJySr.toFixed(1)} <span className="text-xs text-slate-400 font-normal">{isDemo ? "demo units" : "MJy/sr"}</span>
             </div>
             <span className="text-[10px] text-slate-400 font-mono">
-              Observed maximum
+              {isDemo ? 'Illustrative demo maximum' : 'Observed maximum'}
             </span>
           </div>
 
@@ -305,13 +306,13 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
 
           <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5">
             <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
-              Mean Astrometric SNR
+              {isDemo ? 'Illustrative SNR Ratio' : 'Mean Spectral SNR'}
             </span>
             <div className="text-base font-bold text-emerald-300 font-mono mt-0.5">
               {stats.avgSnr}σ <span className="text-xs text-slate-400 font-normal">Significance</span>
             </div>
             <span className="text-[10px] text-emerald-400 font-mono">
-              Nominal Calibrated
+              {isDemo ? 'SIMULATED — NOT CALIBRATED' : 'Nominal Calibrated'}
             </span>
           </div>
         </div>
@@ -424,7 +425,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
               stroke="#38bdf8"
               strokeWidth={2}
               fill="url(#signalGradient)"
-              name="Observed Infrared Signal"
+              name={isDemo ? "Simulated Benchmark Signal" : "Observed Infrared Signal"}
               dot={{ r: 2.5, fill: '#f59e0b', stroke: '#ffffff', strokeWidth: 1 }}
               activeDot={{ r: 5, fill: '#38bdf8', stroke: '#ffffff', strokeWidth: 2 }}
             />
@@ -438,7 +439,7 @@ export const InfraredSignalAnalysisChart: React.FC<InfraredSignalAnalysisChartPr
                 strokeWidth={1.8}
                 strokeDasharray="4 3"
                 dot={false}
-                name="Astrophysical Baseline Model"
+                name={isDemo ? 'Illustrative Demo Continuum' : 'Astrophysical Baseline Model'}
               />
             )}
 
