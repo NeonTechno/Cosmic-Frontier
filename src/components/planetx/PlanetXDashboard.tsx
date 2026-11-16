@@ -273,7 +273,7 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
                 source: object.source ?? 'bundled reference catalogue',
                 clusteringStatus: object.clusteringStatus ?? 'not assessed',
               })),
-              note: 'Do not infer Planet Nine evidence from this catalogue alone. Selection effects and common-epoch propagation are not yet modelled.',
+              note: 'Legacy antiAligned labels are not supplied to the AI. These diagnostics use idealized null models only; survey selection and common-epoch propagation are not yet modelled.',
               hypothesisParams: hypothesis,
             })
           }
