@@ -372,7 +372,7 @@ export interface OrbitalClusteringDiagnostics {
   meanPoleLongitudeDeg: number | null;
   meanPoleLatitudeDeg: number | null;
   poleRayleighR: number;
-  poleDispersionDeg: number;
+  poleDispersionDeg: number | null;
   pValuePoleClustering: number;
   simulations: number;
   nullModel: string;
@@ -412,14 +412,14 @@ function orbitalPoleVector(inclinationDeg: number, nodeDeg: number): [number, nu
 
 function vectorSummary(vectors: [number, number, number][]) {
   const n = vectors.length;
-  if (!n) return { longitude: null as number | null, latitude: null as number | null, r: 0, dispersion: 0 };
+  if (!n) return { longitude: null as number | null, latitude: null as number | null, r: 0, dispersion: null as number | null };
   const sum = vectors.reduce(
     (acc, v) => [acc[0] + v[0], acc[1] + v[1], acc[2] + v[2]] as [number, number, number],
     [0, 0, 0] as [number, number, number]
   );
   const magnitude = Math.hypot(...sum);
   const r = magnitude / n;
-  if (magnitude < 1e-12) return { longitude: null, latitude: null, r, dispersion: 90 };
+  if (magnitude < 1e-12) return { longitude: null, latitude: null, r, dispersion: null };
   const mean = sum.map(value => value / magnitude) as [number, number, number];
   const longitude = (Math.atan2(mean[1], mean[0]) * 180 / Math.PI + 360) % 360;
   const latitude = Math.asin(Math.max(-1, Math.min(1, mean[2]))) * 180 / Math.PI;
@@ -519,7 +519,7 @@ export function calculateClusteringSignificance(
     meanPoleLongitudeDeg: poles.longitude === null ? null : Number(poles.longitude.toFixed(2)),
     meanPoleLatitudeDeg: poles.latitude === null ? null : Number(poles.latitude.toFixed(2)),
     poleRayleighR: Number(poles.r.toFixed(4)),
-    poleDispersionDeg: Number(poles.dispersion.toFixed(2)),
+    poleDispersionDeg: poles.dispersion === null ? null : Number(poles.dispersion.toFixed(2)),
     pValuePoleClustering: Number(pPole.toFixed(5)),
     simulations,
     nullModel: 'Uniform varpi angles; isotropic orbital-pole directions',
