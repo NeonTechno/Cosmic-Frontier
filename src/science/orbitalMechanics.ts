@@ -10,9 +10,8 @@
 import { ExtremeTNO, PlanetXCandidate, PlanetXHypothesisParams, AstrometryFitResult } from '../types/index.ts';
 
 /**
- * Peer-reviewed catalog of Extreme Trans-Neptunian Objects (eTNOs)
- * with semi-major axes a > 150 AU and perihelia q > 30 AU
- * Data source: Minor Planet Center (MPC) & Batygin et al. (2021)
+ * Bundled literature-reference examples of Extreme Trans-Neptunian Objects (eTNOs).
+ * This small teaching sample is not a complete MPC catalogue or a survey-selection sample.
  */
 export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
   {
@@ -28,6 +27,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     longPerihelionDeg: 95.93, // (144.55 + 311.38) % 360
     discoveryYear: 2003,
     discoverySurvey: 'Palomar Quest / Brown, Trujillo, Rabinowitz',
+    source: 'literature',
     antiAligned: true,
     orbitalPeriodYears: 11400,
   },
@@ -44,6 +44,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     longPerihelionDeg: 24.62,
     discoveryYear: 2012,
     discoverySurvey: 'CTIO Dark Energy Camera / Trujillo & Sheppard',
+    source: 'literature',
     antiAligned: true,
     orbitalPeriodYears: 4210,
   },
@@ -60,6 +61,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     longPerihelionDeg: 33.13,
     discoveryYear: 2004,
     discoverySurvey: 'Cerro Tololo / CTIO Deep Survey',
+    source: 'literature',
     antiAligned: true,
     orbitalPeriodYears: 5630,
   },
@@ -76,6 +78,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     longPerihelionDeg: 118.42,
     discoveryYear: 2010,
     discoverySurvey: 'Canada-France-Hawaii Telescope (CFHT)',
+    source: 'literature',
     antiAligned: true,
     orbitalPeriodYears: 7140,
   },
@@ -92,6 +95,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     longPerihelionDeg: 16.17,
     discoveryYear: 2014,
     discoverySurvey: 'Dark Energy Survey / Trujillo & Sheppard',
+    source: 'literature',
     antiAligned: true,
     orbitalPeriodYears: 4920,
   },
@@ -108,6 +112,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     longPerihelionDeg: 59.00,
     discoveryYear: 2015,
     discoverySurvey: 'Subaru Telescope / Tholen, Trujillo, Sheppard',
+    source: 'literature',
     antiAligned: true,
     orbitalPeriodYears: 36200,
   },
@@ -124,6 +129,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     longPerihelionDeg: 258.02,
     discoveryYear: 2013,
     discoverySurvey: 'Cerro Tololo Inter-American Observatory',
+    source: 'literature',
     antiAligned: false, // Inverted anti-cluster stable resonance test
     orbitalPeriodYears: 5460,
   }
@@ -152,12 +158,13 @@ export const DEFAULT_PLANET_X_HYPOTHESIS: PlanetXHypothesisParams = {
 };
 
 /**
- * Authentic candidates queue for student / citizen science investigation
- * Formatted with observational data from WISE/NEOWISE, Subaru, and synthetic test suites.
+ * Synthetic teaching fixtures for the candidate-vetting interface.
+ * These records are invented examples, not WISE/NEOWISE, Subaru, or SPHEREx detections.
  */
 export const INITIAL_CANDIDATE_QUEUE: PlanetXCandidate[] = [
   {
     id: 'CAND-WISE-PX01',
+    dataOrigin: 'SYNTHETIC_DEMO',
     designation: 'C-2026-PX-01A (Taurus High-SNR Source)',
     survey: 'WISE / NEOWISE',
     raDeg: 54.8124,
@@ -186,6 +193,7 @@ export const INITIAL_CANDIDATE_QUEUE: PlanetXCandidate[] = [
   },
   {
     id: 'CAND-SUBARU-HSC-04',
+    dataOrigin: 'SYNTHETIC_DEMO',
     designation: 'C-2026-PX-04B (Orion Deep Faint Shift)',
     survey: 'Subaru HSC Deep',
     raDeg: 59.4210,
@@ -213,6 +221,7 @@ export const INITIAL_CANDIDATE_QUEUE: PlanetXCandidate[] = [
   },
   {
     id: 'CAND-ARTIFACT-DIFFR-09',
+    dataOrigin: 'SYNTHETIC_DEMO',
     designation: 'C-2026-PX-09X (Fast Moving Point Source)',
     survey: 'Pan-STARRS',
     raDeg: 51.2201,
@@ -239,6 +248,7 @@ export const INITIAL_CANDIDATE_QUEUE: PlanetXCandidate[] = [
   },
   {
     id: 'CAND-WISE-GHOST-12',
+    dataOrigin: 'SYNTHETIC_DEMO',
     designation: 'C-2026-PX-12G (Optical Ghost Artifact)',
     survey: 'WISE / NEOWISE',
     raDeg: 56.1200,
