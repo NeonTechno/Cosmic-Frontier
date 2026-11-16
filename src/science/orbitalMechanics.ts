@@ -28,7 +28,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     discoveryYear: 2003,
     discoverySurvey: 'Palomar Quest / Brown, Trujillo, Rabinowitz',
     source: 'literature',
-    antiAligned: true,
+    antiAligned: null
     orbitalPeriodYears: 11400,
   },
   {
@@ -45,7 +45,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     discoveryYear: 2012,
     discoverySurvey: 'CTIO Dark Energy Camera / Trujillo & Sheppard',
     source: 'literature',
-    antiAligned: true,
+    antiAligned: null
     orbitalPeriodYears: 4210,
   },
   {
@@ -62,7 +62,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     discoveryYear: 2004,
     discoverySurvey: 'Cerro Tololo / CTIO Deep Survey',
     source: 'literature',
-    antiAligned: true,
+    antiAligned: null
     orbitalPeriodYears: 5630,
   },
   {
@@ -79,7 +79,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     discoveryYear: 2010,
     discoverySurvey: 'Canada-France-Hawaii Telescope (CFHT)',
     source: 'literature',
-    antiAligned: true,
+    antiAligned: null
     orbitalPeriodYears: 7140,
   },
   {
@@ -96,7 +96,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     discoveryYear: 2014,
     discoverySurvey: 'Dark Energy Survey / Trujillo & Sheppard',
     source: 'literature',
-    antiAligned: true,
+    antiAligned: null
     orbitalPeriodYears: 4920,
   },
   {
@@ -113,7 +113,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     discoveryYear: 2015,
     discoverySurvey: 'Subaru Telescope / Tholen, Trujillo, Sheppard',
     source: 'literature',
-    antiAligned: true,
+    antiAligned: null
     orbitalPeriodYears: 36200,
   },
   {
@@ -130,7 +130,7 @@ export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
     discoveryYear: 2013,
     discoverySurvey: 'Cerro Tololo Inter-American Observatory',
     source: 'literature',
-    antiAligned: false, // Inverted anti-cluster stable resonance test
+    antiAligned: null
     orbitalPeriodYears: 5460,
   }
 ];
