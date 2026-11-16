@@ -369,7 +369,7 @@ export interface CatalogItem {
   image?: AstronomicalImageRecord;
 }
 
-export type LiveDataBadgeStatus = 'LIVE DATA' | 'RECENT DATA' | 'PREDICTED' | 'SIMULATION' | 'UNAVAILABLE';
+export type LiveDataBadgeStatus = 'LIVE DATA' | 'RECENT DATA' | 'PREDICTED' | 'CALCULATED MODEL' | 'SIMULATION' | 'UNAVAILABLE';
 
 export interface LiveEphemerisObject {
   id: string;
