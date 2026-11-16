@@ -173,3 +173,6 @@ The initial candidate queue contains synthetic teaching fixtures and is labelled
 SPHEREx residuals promoted into the candidate queue are tagged as archive-derived follow-up leads, not confirmed objects. The candidate explanation prompt receives provenance and unavailable-measurement fields.
 
 The astrometry panel is an illustrative circular-Earth parallax plus linear-proper-motion visualization. It uses supplied observation dates, refuses to invent a missing distance, and does not report a reduced chi-square or physical-orbit verdict without a validated fit model and uncertainties.
+
+
+The next Planet X research milestone is specified in the [survey-selection modelling plan](docs/PLANETX_SELECTION_FUNCTION.md). It defines the survey characterization data required before the orbital-clustering results can be called selection-corrected.
