@@ -154,7 +154,6 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                   Shortcuts [Alt+/]
                 </button>
               )}
-              
             </div>
           </div>
         </header>
