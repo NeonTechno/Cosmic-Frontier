@@ -131,7 +131,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     }
 
     // Candidate Point Source
-    const isColdCandidate = candidate.colorW1W2 > 1.8;
+    const isColdCandidate = (candidate.colorW1W2 ?? 0) > 1.8;
     ctx.fillStyle = lightCanvas ? '#526779' : '#C4D0DA';
     ctx.shadowColor = lightCanvas ? '#8495A3' : '#AAB8C5';
     ctx.shadowBlur = 8;
@@ -390,15 +390,15 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               {/* Candidate Info Pill */}
               <div className="absolute bottom-2 left-2 right-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between text-[11px] font-mono">
                 <span className="text-slate-300">
-                  Δx: {candidate?.observationHistory[activeEpochIdx]?.dxArcsec.toFixed(2)}″ | Δy:{' '}
-                  {candidate?.observationHistory[activeEpochIdx]?.dyArcsec.toFixed(2)}″
+                  Δx: {candidate?.observationHistory[activeEpochIdx]?.dxArcsec == null ? '—' : candidate.observationHistory[activeEpochIdx].dxArcsec.toFixed(2)}″ | Δy:{' '}
+                  {candidate?.observationHistory[activeEpochIdx]?.dyArcsec == null ? '—' : candidate.observationHistory[activeEpochIdx].dyArcsec.toFixed(2)}″
                 </span>
                 <span
                   className={`font-semibold ${
-                    candidate?.colorW1W2 > 1.8 ? 'text-red-400' : 'text-amber-400'
+                    (candidate?.colorW1W2 ?? 0) > 1.8 ? 'text-red-400' : 'text-amber-400'
                   }`}
                 >
-                  W1−W2: {candidate?.colorW1W2.toFixed(1)} mag
+                  W1−W2: {candidate?.colorW1W2 == null ? 'Not measured' : candidate.colorW1W2.toFixed(1) + ' mag'}
                 </span>
               </div>
             </div>
@@ -434,7 +434,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
                 </h4>
               </div>
               <span className="text-xs font-mono text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/40">
-                Distance: {candidate?.heliocentricDistanceAU} AU
+                Distance: {candidate?.heliocentricDistanceAU == null ? 'Not measured' : `${candidate.heliocentricDistanceAU} AU`}
               </span>
             </div>
 
@@ -472,7 +472,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Astrometric SNR</span>
-                <span className="text-amber-400 font-bold text-sm">{candidate?.astrometricSnr} σ</span>
+                <span className="text-amber-400 font-bold text-sm">{candidate?.astrometricSnr == null ? 'Not measured' : `${candidate.astrometricSnr} σ`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
@@ -482,12 +482,12 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Annual Parallax (π)</span>
-                <span className="text-cyan-400 font-bold text-sm">{(candidate?.parallaxArcsec * 1000).toFixed(1)} mas</span>
+                <span className="text-cyan-400 font-bold text-sm">{candidate?.parallaxArcsec == null ? 'Not measured' : `${(candidate.parallaxArcsec * 1000).toFixed(1)} mas`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Predicted Mass</span>
-                <span className="text-purple-300 font-bold text-sm">~{candidate?.estimatedMassEarths} M⊕</span>
+                <span className="text-purple-300 font-bold text-sm">{candidate?.estimatedMassEarths == null ? 'Not estimated' : `~${candidate.estimatedMassEarths} M⊕`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
@@ -505,7 +505,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">MMR Protected eTNOs</span>
                 <span className="text-cyan-400 font-bold text-sm">
-                  {candidate?.heliocentricDistanceAU > 200 ? '6 / 7 Resonances' : '0 (Centaur Orbit)'}
+                  {candidate?.heliocentricDistanceAU == null ? 'Insufficient data' : candidate.heliocentricDistanceAU > 200 ? '6 / 7 Resonances' : '0 (Centaur Orbit)'}
                 </span>
               </div>
             </div>
@@ -514,7 +514,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
             <div className="bg-slate-950/70 p-2.5 rounded border border-slate-800 text-[11px] font-mono text-slate-300 space-y-1">
               <div className="text-amber-300 font-semibold">Photometric Diagnosis:</div>
               <p className="text-slate-400 leading-relaxed">
-                {candidate?.colorW1W2 > 1.8
+                {(candidate?.colorW1W2 ?? 0) > 1.8
                   ? 'Extremely red W1-W2 color (> 2.0) matches methane absorption in 40K giant planet atmospheres. Passes photometric vetting.'
                   : 'Neutral or blue W1-W2 color (< 1.0) is inconsistent with cold outer planets. Strong indicator of rocky asteroid or stellar diffraction.'}
               </p>
