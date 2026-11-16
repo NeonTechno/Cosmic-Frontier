@@ -375,6 +375,8 @@ export interface OrbitalClusteringDiagnostics {
   poleDispersionDeg: number | null;
   pValuePoleClustering: number;
   simulations: number;
+  seed: number;
+  analysisVersion: 'orbital-null-monte-carlo-v1';
   nullModel: string;
   selectionBiasCorrected: false;
   warnings: string[];
@@ -522,6 +524,8 @@ export function calculateClusteringSignificance(
     poleDispersionDeg: poles.dispersion === null ? null : Number(poles.dispersion.toFixed(2)),
     pValuePoleClustering: Number(pPole.toFixed(5)),
     simulations,
+    seed: seed >>> 0,
+    analysisVersion: 'orbital-null-monte-carlo-v1',
     nullModel: 'Uniform varpi angles; isotropic orbital-pole directions',
     selectionBiasCorrected: false,
     warnings,
