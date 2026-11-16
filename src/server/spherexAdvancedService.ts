@@ -366,13 +366,13 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   const pixScaleArcsec = Math.sqrt(4 * Math.PI / (12 * Math.pow(nside * 256, 2))) * (180 / Math.PI) * 3600;
   const pixSr = Math.pow(pixScaleArcsec / 206264.806, 2);
   for (let layer = 0; layer < layers; layer++) {
-    const base = layer * width * height;
+    const layerOffset: number = layer * width * height;
     const ap: number[] = [], ann: number[] = [];
     let flaggedPixels = 0, hitsValues: number[] = [];
     for (let py = Math.max(0, y - annulusOuter); py <= Math.min(height - 1, y + annulusOuter); py++) {
       for (let px = Math.max(0, x - annulusOuter); px <= Math.min(width - 1, x + annulusOuter); px++) {
         const radius = Math.hypot(px - x, py - y);
-        const idx = base + py * width + px;
+        const idx = layerOffset + py * width + px;
         const value = cube[idx];
         if (!Number.isFinite(value)) continue;
         if (radius <= apertureRadius) {
