@@ -25,6 +25,7 @@ const HIPS_DATA_ROOT = process.env.SPHEREX_HIPS_DATA_URL ||
   'https://irsa.ipac.caltech.edu/ibe/data/spherex/dr1/hips5_cube/hips_20261026';
 const MPC_DISTANT_URL = 'https://minorplanetcenter.net/Extended_Files/distant_extended.json.gz';
 const FITS_BLOCK = 2880;
+export const SPHEREX_HIPS_TILE_SIZE = 512;
 const fitsCaches = new Map<string, { expires: number; value: unknown }>();
 
 function cacheGet<T>(key: string): T | null {
@@ -322,10 +323,12 @@ export interface SpherexHipsSpectrum {
   blankDichroicLayers: number[];
   aperture: { radiusPixels: number; annulusInnerPixels: number; annulusOuterPixels: number; backgroundMethod: string };
   spectrum: { layer: number; wavelengthMicrons: number; fluxMilliJansky: number | null; backgroundSurfaceBrightness: number | null; aperturePixels: number; flaggedPixels: number; medianHits: number | null; blank: boolean }[];
+  spectrumUse: 'visualization-only';
+  flagsPolicy: 'reported-not-masked';
   notes: string[];
 }
 export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, apertureRadius = 5, annulusInner = 40, annulusOuter = 60): Promise<SpherexHipsSpectrum> {
-  const cacheKey = 'hips-spectrum-' + [raDeg,decDeg,apertureRadius,annulusInner,annulusOuter].map(n=>n.toFixed(3)).join('-');
+  const cacheKey = 'hips-spectrum-' + [raDeg,decDeg,apertureRadius,annulusInner,annulusOuter].map(n=>n.toFixed(7)).join('-');
   const cached = cacheGet<SpherexHipsSpectrum>(cacheKey);
   if (cached) return cached;
   if (!(apertureRadius > 0 && annulusInner > apertureRadius && annulusOuter > annulusInner && annulusOuter <= 100)) throw new Error('Use aperture radius > 0 and annulus radii with aperture < inner < outer ≤ 100 pixels.');
@@ -335,8 +338,9 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   if (depth !== 102 || waveValues.length !== 102) throw new Error('IRSA HiPS metadata did not report the expected 102 spectral layers.');
   const order = 5, nside = 1 << order;
   const coarse = healpixNestedIndex(nside, raDeg, decDeg);
-  const fine = healpixNestedIndex(nside * 256, raDeg, decDeg);
-  if (coarse.pixel !== Math.floor(fine.pixel / (256 * 256))) throw new Error('Nested HEALPix child pixel does not map to the expected Norder 5 parent tile.');
+  const fineNside = nside * SPHEREX_HIPS_TILE_SIZE;
+  const fine = healpixNestedIndex(fineNside, raDeg, decDeg);
+  if (coarse.pixel !== Math.floor(fine.pixel / (SPHEREX_HIPS_TILE_SIZE * SPHEREX_HIPS_TILE_SIZE))) throw new Error('Nested HEALPix child pixel does not map to the expected Norder 5 parent tile.');
   const dir = Math.floor(coarse.pixel / 10000) * 10000;
   const cubeUrl = HIPS_DATA_ROOT + '/Norder' + order + '/Dir' + dir + '/Npix' + coarse.pixel + '_cube.fits';
   const response = await fetch(cubeUrl, { signal: AbortSignal.timeout(25000) });
@@ -348,7 +352,7 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   const flags = hdus.find(h => h.extname === 'FLAGS');
   if (!image || image.axes.length !== 3 || image.axes[2] !== 102) throw new Error('HiPS IMAGE extension is not a 102-layer 3D cube.');
   const width = image.axes[0], height = image.axes[1], layers = image.axes[2];
-  if (width !== 256 || height !== 256) throw new Error('Unexpected HiPS tile dimensions ' + width + '×' + height + '; expected 256×256.');
+  if (width !== SPHEREX_HIPS_TILE_SIZE || height !== SPHEREX_HIPS_TILE_SIZE) throw new Error('Unexpected HiPS tile dimensions ' + width + '×' + height + '; expected 512×512 per the official IRSA notebook.');
   const hipsWcs = skyToHpxPixel(raDeg, decDeg, image.header);
   const x = Math.round(hipsWcs.px1 - 1), y = Math.round(hipsWcs.py1 - 1);
   if (x < 0 || x >= width || y < 0 || y >= height) throw new Error('The selected sky position maps outside the retrieved HiPS FITS tile according to its HPX WCS.');
@@ -361,9 +365,12 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
     'Layer index is zero-based; wavelength order is ascending from the official HiPS properties.',
     'Layers 50 and 51 are the documented blank dichroic channels (band 3 channel 17 and band 4 channel 1).',
     'Aperture photometry uses a circular source aperture and a local annulus; the annulus background is a 3-sigma clipped mean.',
-    'The tile is selected with nested HEALPix Norder 5; the within-tile pixel is resolved from the FITS HPX celestial WCS, following the official notebook.',
+    'The tile is selected with nested HEALPix Norder 5 and contains 512×512 pixels, matching the official IRSA notebook.',
+    'This simple aperture spectrum is for visualization only; IRSA recommends its Spectrophotometry Tool for science-grade spectra.',
+    'Non-zero FLAGS values are reported for the aperture but are not masked because the flag-bit policy has not been independently validated here.',
+    'Aperture membership uses pixel-center inclusion; fractional pixel overlap and a full photometric uncertainty model are not implemented.',
   ];
-  const pixScaleArcsec = Math.sqrt(4 * Math.PI / (12 * Math.pow(nside * 256, 2))) * (180 / Math.PI) * 3600;
+  const pixScaleArcsec = Math.sqrt(4 * Math.PI / (12 * Math.pow(fineNside, 2))) * (180 / Math.PI) * 3600;
   const pixSr = Math.pow(pixScaleArcsec / 206264.806, 2);
   for (let layer = 0; layer < layers; layer++) {
     const layerOffset: number = layer * width * height;
@@ -410,7 +417,8 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
     hipsUrl:HIPS_ROOT, cubeUrl, hipsOrder:order, healpixPixel:coarse.pixel, tileDirectory:dir,
     pixel:{x,y,width,height}, wavelengthRangeMicrons:[waveValues[0],waveValues[waveValues.length-1]],
     blankDichroicLayers:blankLayers,
-    aperture:{radiusPixels:apertureRadius,annulusInnerPixels:annulusInner,annulusOuterPixels:annulusOuter,backgroundMethod:'Iterative 3σ-clipped annulus mean'},
+    spectrumUse:'visualization-only', flagsPolicy:'reported-not-masked',
+    aperture:{radiusPixels:apertureRadius,annulusInnerPixels:annulusInner,annulusOuterPixels:annulusOuter,backgroundMethod:'Iterative 3σ-clipped annulus mean; pixel-center aperture approximation'},
     spectrum:spec, notes,
   };
   cacheSet(cacheKey,result,60*60*1000);
