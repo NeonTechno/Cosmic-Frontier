@@ -43,7 +43,7 @@ MPC distant-object catalogue:
 python -m science.pipeline collect-mpc
 ```
 
-Collectors write under `data/science/` by default. Raw source payloads and processed JSON are kept separately. Each retrieved payload receives a SHA-256 hash and UTC retrieval timestamp. The SPHEREx collector retrieves SIAv2 metadata only; it does not claim that metadata is an image measurement. Download a product from its official IRSA access URL and inspect the FITS before analysis.
+Collectors write under `data/science/` by default. Raw source payloads and processed JSON are kept separately. Each retrieved payload receives a SHA-256 hash and UTC retrieval timestamp. The SPHEREx collector retrieves SIAv2 metadata only; it does not claim that metadata is an image measurement.\n\nDownload a selected official IRSA product using its `accessUrl` from the SPHEREx JSON result:\n\n```bash\npython -m science.fits_download \\\n  --url 'PASTE_IRSA_ACCESS_URL_HERE' \\\n  --ra 60.8109955 --dec 51.3404038 --size 64 \\\n  --out data/spherex/incoming/dr1/target_cutout.fits\n```\n\nThe downloader only accepts HTTPS IRSA product URLs, adds the coordinate cutout parameters, enforces a 100 MB response limit, checks the FITS signature (including gzip products), and writes a SHA-256 sidecar manifest. It rejects HTML/error pages rather than saving them as FITS.
 
 ## Run analyses
 
