@@ -151,6 +151,9 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
     return cadData.approaches[0];
   }, [cadData]);
 
+  const earthObject = ephemData?.objects.find((object) => object.id === 'earth');
+  const moonObject = ephemData?.objects.find((object) => object.id === 'moon');
+
   // Status Badge Helper
   const renderStatusBadge = (status: LiveDataBadgeStatus) => {
     switch (status) {
@@ -421,17 +424,17 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
             <span className="text-[#A7B4CC] text-[11px]">Heliocentric Earth Distance:</span>
             <div className="text-base font-bold text-[#38BDF8] tabular-nums">
-              {ephemData?.objects.find(o => o.id === 'earth')?.distSunAU != null ? ephemData.objects.find(o => o.id === 'earth')?.distSunAU : '—'} AU
+              {earthObject?.distSunAU != null ? earthObject.distSunAU : '—'} AU
             </div>
-            <div className="text-[10px] text-[#A7B4CC]">{ephemData?.objects.find(o => o.id === 'earth')?.distSunMillionKm != null ? ephemData.objects.find(o => o.id === 'earth')?.distSunMillionKm + ' million km' : 'Calculated when ephemeris loads'}</div>
+            <div className="text-[10px] text-[#A7B4CC]">{earthObject?.distSunMillionKm != null ? earthObject.distSunMillionKm + ' million km' : 'Calculated when ephemeris loads'}</div>
           </div>
 
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
             <span className="text-[#A7B4CC] text-[11px]">Lunar Distance (Moon):</span>
             <div className="text-base font-bold text-[#F8FAFC] tabular-nums">
-              {ephemData?.objects.find(o => o.id === 'moon')?.distEarthLunar != null ? ephemData.objects.find(o => o.id === 'moon')?.distEarthLunar : '—'} LD
+              {moonObject?.distEarthLunar != null ? moonObject.distEarthLunar : '—'} LD
             </div>
-            <div className="text-[10px] text-[#A7B4CC]">{ephemData?.objects.find(o => o.id === 'moon')?.distEarthMillionKm != null ? ephemData.objects.find(o => o.id === 'moon')?.distEarthMillionKm + ' million km from Earth' : 'Calculated when ephemeris loads'}</div>
+            <div className="text-[10px] text-[#A7B4CC]">{moonObject?.distEarthMillionKm != null ? moonObject.distEarthMillionKm + ' million km from Earth' : 'Calculated when ephemeris loads'}</div>
           </div>
 
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
