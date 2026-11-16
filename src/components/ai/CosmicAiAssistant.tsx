@@ -2,7 +2,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  * 
- * COSMIC FRONTIER — Grounded NVIDIA NIM Scientific Intelligence Copilot
+ * COSMIC FRONTIER — Grounded Multi-Provider Science Assistant
  * NASA Space Apps Challenge 2026
  */
 
@@ -58,7 +58,7 @@ const buildDeterministicStaticResponse = (
     const coords = [raVal, decVal].filter(Boolean).join(', ');
     explanation =
       `Verified context summary for ${targetName}${coords ? ` (${coords})` : ''} [${contextType}]:\n\n` +
-      `All photometric, spectral, and astrometric attributes shown in this panel are grounded directly in the loaded dataset metadata and physical units. When hosted on a static site without the live Node/NVIDIA NIM proxy, Black Star Orbit continues to validate coordinate transformations, difference-imaging residuals, and catalog provenance deterministically in the browser.`;
+      `All photometric, spectral, and astrometric attributes shown in this panel are grounded directly in the loaded dataset metadata and physical units. When hosted without the live server-side AI proxy, Black Star Orbit continues to validate coordinate transformations, difference-imaging residuals, and catalog provenance deterministically in the browser.`;
   }
 
   return {
@@ -155,7 +155,7 @@ export const CosmicAiAssistant: React.FC<CosmicAiAssistantProps> = ({
                   COSMIC FRONTIER Scientific Intelligence Copilot
                 </h3>
                 <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/70 px-2 py-0.5 rounded border border-emerald-800/60 flex items-center gap-1">
-                  <Cpu className="h-3 w-3" /> NVIDIA Nemotron 3.5 Bolt
+                  <Cpu className="h-3 w-3" /> Gemini / NVIDIA AI
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-mono">
@@ -222,7 +222,7 @@ export const CosmicAiAssistant: React.FC<CosmicAiAssistantProps> = ({
             <div className="p-8 text-center space-y-3 bg-slate-900/40 rounded-xl border border-slate-800">
               <RefreshCw className="h-8 w-8 text-cyan-400 animate-spin mx-auto" />
               <div className="text-xs font-mono text-slate-300">
-                Synthesizing grounded astrophysical explanation with NVIDIA Nemotron 3.5 Bolt...
+                Preparing a grounded astrophysical explanation...
               </div>
             </div>
           )}
@@ -275,7 +275,7 @@ export const CosmicAiAssistant: React.FC<CosmicAiAssistantProps> = ({
             value={userQuery}
             onChange={(e) => setUserQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleRequestExplanation()}
-            placeholder="Ask NVIDIA Nemotron (nvidia/nemotron-3.5-bolt-e4b) to explain any verified observation..."
+            placeholder="Ask the science assistant to explain this observation or dataset..."
             className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
           />
           <button
