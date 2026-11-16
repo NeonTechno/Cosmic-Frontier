@@ -122,7 +122,7 @@ function tableColumns(header: Record<string, FitsScalar>) {
 function readTableNumber(buffer: Buffer, rowOffset: number, col: ReturnType<typeof tableColumns>[number], index = 0): number {
   const p = rowOffset + col.offset + index * (col.bytes / col.repeat);
   if (col.code === 'J') return buffer.readInt32BE(p);
-  if (col.code === 'I') return buffer.readIntInt16BE ? buffer.readInt16BE(p) : buffer.readInt16BE(p);
+  if (col.code === 'I') return buffer.readInt16BE(p);
   if (col.code === 'E') return buffer.readFloatBE(p);
   if (col.code === 'D') return buffer.readDoubleBE(p);
   if (col.code === 'K') return Number(buffer.readBigInt64BE(p));
