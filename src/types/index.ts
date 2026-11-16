@@ -221,31 +221,34 @@ export interface SpherexObservation {
 export interface PlanetXCandidate {
   id: string;
   designation: string;
-  survey: 'WISE / NEOWISE' | 'Subaru HSC Deep' | 'Pan-STARRS' | 'Rubin LSST Mock Drill';
+  survey: 'SPHEREx' | 'WISE / NEOWISE' | 'Subaru HSC Deep' | 'Pan-STARRS' | 'Rubin LSST Mock Drill';
   raDeg: number;
   decDeg: number;
   eclipticLonDeg: number;
   eclipticLatDeg: number;
-  heliocentricDistanceAU: number;
-  apparentMagW1: number; // 3.4 µm
-  apparentMagW2: number; // 4.6 µm
-  colorW1W2: number;
-  properMotionAlphaArcsecYr: number; // Proper motion in RA
-  properMotionDeltaArcsecYr: number; // Proper motion in Dec
-  parallaxArcsec: number;            // Annual heliocentric parallax
-  estimatedMassEarths: number;
-  astrometricSnr: number;
+  heliocentricDistanceAU: number | null;
+  apparentMagW1: number | null; // 3.4 µm; null when not measured
+  apparentMagW2: number | null; // 4.6 µm; null when not measured
+  colorW1W2: number | null;
+  properMotionAlphaArcsecYr: number | null; // Proper motion in RA
+  properMotionDeltaArcsecYr: number | null; // Proper motion in Dec
+  parallaxArcsec: number | null;            // Annual heliocentric parallax
+  estimatedMassEarths: number | null;
+  astrometricSnr: number | null;
   status: 'unvetted' | 'candidate' | 'known_asteroid' | 'instrumental_artifact' | 'brown_dwarf';
   confidenceScore: number; // 0 - 100
   notes: string;
   observationHistory: {
     epoch: string;
-    dxArcsec: number;
-    dyArcsec: number;
-    w1FluxMjy: number;
-    w2FluxMjy: number;
+    dxArcsec: number | null;
+    dyArcsec: number | null;
+    w1FluxMjy: number | null;
+    w2FluxMjy: number | null;
     surveyTag: string;
   }[];
+  unavailableMeasurements?: string[];
+  sourceObservationIds?: string[];
+  provenanceNote?: string;
   theoreticalConsistency: number; // Alignment with Batygin & Brown 2021 predictions
   vettedBy?: string;
   vettingTimestamp?: string;
