@@ -43,6 +43,7 @@ import {
   lookupLiveGalaxyInNed,
 } from './src/server/liveSpaceDataService.ts';
 import { fetchHorizonsObserverEphemeris, HORIZONS_OBSERVER_TARGETS } from './src/server/horizonsService.ts';
+import { extractSpherexHipsSpectrum, fetchSpherexEpsfAtPosition, ingestMpcDistantEtnoCatalog } from './src/server/spherexAdvancedService.ts';
 const require = createRequire(import.meta.url);
 const exoplanetArchive = require('./src/cosmic-frontier/data/catalogs/confirmed-exoplanets.json');
 const galaxyArchive = require('./src/cosmic-frontier/data/catalogs/deep-sky-galaxies.json');
@@ -824,6 +825,56 @@ app.get('/api/spherex/bands', (_req: Request, res: Response) => {
   });
 });
 
+// SPHEREx: official in-file ePSF calibration workflow (Caltech/IPAC notebook).
+app.get('/api/spherex/psf', async (req: Request, res: Response) => {
+  const ra = finiteNumberOrNull(req.query.ra);
+  const dec = finiteNumberOrNull(req.query.dec);
+  if (ra === null || dec === null || ra < 0 || ra >= 360 || dec < -90 || dec > 90) {
+    res.status(400).json({ error: 'Valid ICRS RA (0–360°) and Dec (−90–90°) are required.' });
+    return;
+  }
+  try {
+    const result = await fetchSpherexEpsfAtPosition(ra, dec);
+    res.json(result);
+  } catch (error) {
+    res.status(502).json({ error: error instanceof Error ? error.message : 'SPHEREx PSF extraction failed.', source: 'NASA/IPAC IRSA' });
+  }
+});
+
+// SPHEREx: official HiPS Norder-5 FITS cube and 102-band aperture spectrum.
+app.get('/api/spherex/hips-cube', async (req: Request, res: Response) => {
+  const ra = finiteNumberOrNull(req.query.ra);
+  const dec = finiteNumberOrNull(req.query.dec);
+  const aperture = finiteNumberOrNull(req.query.apertureRadius) ?? 5;
+  const inner = finiteNumberOrNull(req.query.annulusInner) ?? 40;
+  const outer = finiteNumberOrNull(req.query.annulusOuter) ?? 60;
+  if (ra === null || dec === null || ra < 0 || ra >= 360 || dec < -90 || dec > 90) {
+    res.status(400).json({ error: 'Valid ICRS RA (0–360°) and Dec (−90–90°) are required.' });
+    return;
+  }
+  try {
+    const result = await extractSpherexHipsSpectrum(ra, dec, aperture, inner, outer);
+    res.json(result);
+  } catch (error) {
+    res.status(502).json({ error: error instanceof Error ? error.message : 'SPHEREx HiPS cube extraction failed.', source: 'NASA/IPAC IRSA' });
+  }
+});
+
+// Planet X: live MPC distant_extended.json.gz ingestion, filtered to bound eTNOs.
+app.get('/api/planetx/mpc-etnos', async (req: Request, res: Response) => {
+  try {
+    const result = await ingestMpcDistantEtnoCatalog(req.query.refresh === '1');
+    res.json(result);
+  } catch (error) {
+    res.status(502).json({
+      error: error instanceof Error ? error.message : 'MPC ingestion failed.',
+      source: 'International Astronomical Union Minor Planet Center',
+      feedUrl: 'https://minorplanetcenter.net/Extended_Files/distant_extended.json.gz',
+      liveDataAvailable: false,
+    });
+  }
+});
+
 // Planet X: List candidates
 app.get('/api/planetx/candidates', (_req: Request, res: Response) => {
   res.json({
@@ -905,13 +956,29 @@ app.post('/api/planetx/candidates/from-spherex', (req: Request, res: Response) =
   res.json({ success: true, candidate: newCandidate });
 });
 
-// Planet X: Extreme TNO catalog
-app.get('/api/planetx/etno-catalog', (_req: Request, res: Response) => {
-  res.json({
-    count: VERIFIED_ETNO_CATALOG.length,
-    objects: VERIFIED_ETNO_CATALOG,
-    referenceLiterature: 'Batygin & Brown (2016, 2021) / MPC',
-  });
+// Planet X: prefer live MPC distant catalogue; preserve literature reference data on upstream outage.
+app.get('/api/planetx/etno-catalog', async (_req: Request, res: Response) => {
+  try {
+    const live = await ingestMpcDistantEtnoCatalog(false);
+    res.json({
+      count: live.objects.length,
+      objects: live.objects,
+      source: live.source,
+      liveDataAvailable: true,
+      fetchedAt: live.fetchedAt,
+      filter: live.filter,
+      attribution: live.attribution,
+    });
+  } catch (error) {
+    res.json({
+      count: VERIFIED_ETNO_CATALOG.length,
+      objects: VERIFIED_ETNO_CATALOG,
+      source: 'Bundled literature reference catalogue',
+      liveDataAvailable: false,
+      warning: error instanceof Error ? error.message : 'MPC feed unavailable.',
+      referenceLiterature: 'Batygin & Brown (2016, 2021)',
+    });
+  }
 });
 
 // Planet X: Hypothesis parameters
