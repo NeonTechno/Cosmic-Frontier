@@ -426,6 +426,23 @@ app.get('/api/data/catalog', async (req: Request, res: Response) => {
   });
 });
 
+app.get('/api/horizons/observer', async (req: Request, res: Response) => {
+  const targetId = String(req.query.target || '599').trim();
+  const dateUTC = String(req.query.date || new Date().toISOString().slice(0, 10)).trim();
+  try {
+    const result = await fetchHorizonsObserverEphemeris(targetId, dateUTC);
+    res.set('Cache-Control', 'public, max-age=60');
+    res.json(result);
+  } catch (err: any) {
+    res.status(502).json({
+      success: false,
+      source: 'NASA/JPL Horizons API',
+      error: 'Live Horizons ephemeris could not be retrieved',
+      details: err?.message || 'Unknown upstream error',
+    });
+  }
+});
+
 app.get('/api/data/live-space/ephemeris', (req: Request, res: Response) => {
   const dateStr = req.query.date ? String(req.query.date) : undefined;
   const target = req.query.target ? String(req.query.target) : undefined;
