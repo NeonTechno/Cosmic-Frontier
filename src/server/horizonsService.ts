@@ -44,7 +44,6 @@ export const HORIZONS_OBSERVER_TARGETS = [
   { id: '101955', name: '101955 Bennu' },
 ] as const;
 
-const targetById = new Map(HORIZONS_OBSERVER_TARGETS.map((target) => [target.id, target]));
 const responseCache = new Map<string, { expiresAt: number; value: HorizonsObserverResponse }>();
 
 function finiteValue(value: string | undefined): number | null {
@@ -115,7 +114,7 @@ export async function fetchHorizonsObserverEphemeris(
   targetId: string,
   dateUTC: string
 ): Promise<HorizonsObserverResponse> {
-  const target = targetById.get(targetId);
+  const target = HORIZONS_OBSERVER_TARGETS.find((candidate) => candidate.id === targetId);
   if (!target) throw new Error('Unsupported Horizons target. Choose a body from the approved target list.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateUTC)) throw new Error('Date must use YYYY-MM-DD format.');
   const startDate = new Date(dateUTC + 'T00:00:00.000Z');
