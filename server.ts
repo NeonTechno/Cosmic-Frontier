@@ -94,7 +94,7 @@ let candidateState: PlanetXCandidate[] = JSON.parse(JSON.stringify(INITIAL_CANDI
 
 // NVIDIA NIM AI Configuration (strictly server-side)
 const geminiApiKey = cleanEnv(process.env.GEMINI_API_KEY);
-const geminiModel = cleanEnv(process.env.GEMINI_MODEL) || 'gemini-2.5-flash';
+const geminiModel = cleanEnv(process.env.GEMINI_MODEL) || 'gemini-3.8-flash';
 const nvidiaApiKey = cleanEnv(process.env.NVIDIA_API_KEY);
 const nvidiaModel = cleanEnv(process.env.NVIDIA_MODEL) || 'nvidia/nemotron-3.5-bolt-e4b';
 const nvidiaEndpoint = cleanEnv(process.env.NVIDIA_API_URL) || 'https://integrate.api.nvidia.com/v1/chat/completions';
@@ -170,10 +170,10 @@ async function callGemini(
         parts: [{ text: message.content }],
       }));
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
         body: JSON.stringify({
           ...(systemText ? { systemInstruction: { parts: [{ text: systemText }] } } : {}),
           contents,
@@ -1613,16 +1613,31 @@ SCIENTIFIC INTEGRITY RULES:
           ? [{ role: 'system', content: chatSystemInstruction }, ...formattedHistory]
           : [{ role: 'system', content: chatSystemInstruction }, ...formattedHistory, { role: 'user', content: message }];
 
-      const reply = geminiApiKey
-        ? await callGemini(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 })
-        : await callNvidiaNemotron(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 });
+      let reply: string;
+      let activeAiProvider = 'Google Gemini';
+      let activeAiModel = geminiModel;
+      if (geminiApiKey) {
+        try {
+          reply = await callGemini(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 });
+        } catch (geminiError: any) {
+          if (!nvidiaApiKey) throw geminiError;
+          console.warn('[Server] Gemini chat unavailable; trying NVIDIA NIM:', geminiError?.message);
+          reply = await callNvidiaNemotron(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 });
+          activeAiProvider = 'NVIDIA NIM';
+          activeAiModel = nvidiaModel;
+        }
+      } else {
+        reply = await callNvidiaNemotron(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 });
+        activeAiProvider = 'NVIDIA NIM';
+        activeAiModel = nvidiaModel;
+      }
 
       res.json({
         reply,
         mode: 'live',
         isAiConnected: true,
-        model: geminiApiKey ? geminiModel : nvidiaModel,
-        provider: geminiApiKey ? 'Google Gemini' : 'NVIDIA NIM',
+        model: activeAiModel,
+        provider: activeAiProvider,
         suggestions: defaultSuggestions,
         links: defaultLinks,
         scientificReference: defaultReference,
