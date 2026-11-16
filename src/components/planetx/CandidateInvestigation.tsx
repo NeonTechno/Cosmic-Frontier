@@ -477,7 +477,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Infrared Color W1−W2</span>
-                <span className="text-white font-bold text-sm">{candidate?.colorW1W2} mag</span>
+                <span className="text-white font-bold text-sm">{candidate?.colorW1W2 == null ? 'Not measured' : candidate.colorW1W2 + ' mag'}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
@@ -514,9 +514,11 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
             <div className="bg-slate-950/70 p-2.5 rounded border border-slate-800 text-[11px] font-mono text-slate-300 space-y-1">
               <div className="text-amber-300 font-semibold">Photometric Diagnosis:</div>
               <p className="text-slate-400 leading-relaxed">
-                {(candidate?.colorW1W2 ?? 0) > 1.8
-                  ? 'Extremely red W1-W2 color (> 2.0) matches methane absorption in 40K giant planet atmospheres. Passes photometric vetting.'
-                  : 'Neutral or blue W1-W2 color (< 1.0) is inconsistent with cold outer planets. Strong indicator of rocky asteroid or stellar diffraction.'}
+                {candidate?.colorW1W2 == null
+                  ? 'W1/W2 photometry is unavailable. No infrared-colour classification or photometric vetting can be made for this candidate.'
+                  : candidate.colorW1W2 > 1.8
+                    ? 'Extremely red W1-W2 colour can be consistent with cold infrared sources; confirm with calibrated photometry and independent observations.'
+                    : 'This measured W1-W2 colour is not strongly red. Interpret it with uncertainties and other observations; colour alone does not classify the object.'}
               </p>
             </div>
           </div>
