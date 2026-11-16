@@ -12,13 +12,13 @@ import { NasaDataEndpointStatus } from '../types/index.ts';
 export const OFFICIAL_NASA_DATA_SOURCES: NasaDataEndpointStatus[] = [
   {
     serviceId: 'irsa-spherex-sia',
-    name: 'NASA / Caltech IPAC IRSA SIAv2 (SPHEREx DR1 & QR3)',
+    name: 'NASA / Caltech IPAC IRSA SIAv2 (SPHEREx DR1/QR3 Wide & Deep)',
     organization: 'NASA IRSA / Caltech',
     endpointUrl: 'https://irsa.ipac.caltech.edu/SIA?COLLECTION=spherex_dr1',
     protocol: 'SIAv2',
     status: 'ONLINE_AVAILABLE',
     lastPingMs: 1400,
-    description: 'Live spatial cone-search across SPHEREx Data Release 1 (spherex_dr1) and Quick Release 3 (spherex_qr3), paired with direct IBE Level-2 Multi-Extension FITS cutouts (IMAGE, FLAGS, VARIANCE, ZODI).',
+    description: 'Live spatial cone-search across spherex_dr1, spherex_dr1_deep, spherex_qr3, and spherex_qr3_deep, paired with direct IBE Level-2 Multi-Extension FITS cutouts (IMAGE, FLAGS, VARIANCE, ZODI).',
     documentationRef: 'https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-access',
   },
   {
