@@ -116,7 +116,7 @@ export const OrbitalSimulation: React.FC<OrbitalSimulationProps> = ({
       }
 
       // Ellipse center offset by c from Sun
-      ctx.strokeStyle = obj.antiAligned ? 'rgba(56, 189, 248, 0.7)' : 'rgba(148, 163, 184, 0.4)';
+      ctx.strokeStyle = obj.antiAligned === null ? 'rgba(245, 158, 11, 0.65)' : obj.antiAligned ? 'rgba(56, 189, 248, 0.7)' : 'rgba(148, 163, 184, 0.4)';
       ctx.lineWidth = obj.name.includes('Sedna') ? 2 : 1.2;
 
       ctx.beginPath();
@@ -139,7 +139,7 @@ export const OrbitalSimulation: React.FC<OrbitalSimulationProps> = ({
       const trueX = a * (Math.cos(E) - e);
       const trueY = b * Math.sin(E) * cosInc;
 
-      ctx.fillStyle = obj.antiAligned ? '#38bdf8' : '#94a3b8';
+      ctx.fillStyle = obj.antiAligned === null ? '#f59e0b' : obj.antiAligned ? '#38bdf8' : '#94a3b8';
       ctx.beginPath();
       ctx.arc(trueX * auToPx, trueY * auToPx, 3, 0, 2 * Math.PI);
       ctx.fill();
