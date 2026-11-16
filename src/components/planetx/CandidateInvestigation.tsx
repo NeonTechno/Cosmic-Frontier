@@ -54,6 +54,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     obs.dxArcsec !== null || obs.dyArcsec !== null || obs.w1FluxMjy !== null || obs.w2FluxMjy !== null
   ));
   const isSyntheticDemo = candidate?.dataOrigin === 'SYNTHETIC_DEMO';
+  const hasDistanceForTrack = candidate?.heliocentricDistanceAU != null && candidate.heliocentricDistanceAU > 0;
 
   // Auto-select newly added candidate when candidates list grows or selection is missing
   useEffect(() => {
@@ -457,7 +458,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
             </div>
 
             <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-800 bg-black">
-              {hasMeasuredDistance ? (
+              {hasDistanceForTrack ? (
                 <canvas
                   ref={trajectoryCanvasRef}
                   width={600}
@@ -467,8 +468,8 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
                   <Compass className="h-7 w-7 text-slate-600" />
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300">No orbit fit available</span>
-                  <span className="max-w-md text-[11px] leading-relaxed text-slate-500">A heliocentric distance and time-tagged astrometry are required before this workbench can plot a candidate-specific parallax or orbital trajectory. No default distance is substituted.</span>
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300">No illustrative track available</span>
+                  <span className="max-w-md text-[11px] leading-relaxed text-slate-500">A positive heliocentric distance is required for this illustrative track. It is not a fitted orbit; no default distance is substituted.</span>
                 </div>
               )}
             </div>
@@ -483,7 +484,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               <div className="flex items-center space-x-2">
                 <Flame className="h-4 w-4 text-amber-400" />
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-                  Physical & Astrometric Measurements
+                  Candidate Data & Vetting Diagnostics
                 </h4>
               </div>
               <button
