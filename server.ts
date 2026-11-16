@@ -91,10 +91,12 @@ app.use(express.json({ limit: '1mb' }));
 
 // In-memory state for candidates (allows student vetting actions in the app)
 let candidateState: PlanetXCandidate[] = JSON.parse(JSON.stringify(INITIAL_CANDIDATE_QUEUE));
+const visualRequestLastAt = new Map<string, number>();
 
 // NVIDIA NIM AI Configuration (strictly server-side)
 const geminiApiKey = cleanEnv(process.env.GEMINI_API_KEY);
 const geminiModel = cleanEnv(process.env.GEMINI_MODEL) || 'gemini-3.8-flash';
+const geminiImageModel = cleanEnv(process.env.GEMINI_IMAGE_MODEL) || 'gemini-3.1-flash-image';
 const nvidiaApiKey = cleanEnv(process.env.NVIDIA_API_KEY);
 const nvidiaModel = cleanEnv(process.env.NVIDIA_MODEL) || 'nvidia/nemotron-3.5-bolt-e4b';
 const nvidiaEndpoint = cleanEnv(process.env.NVIDIA_API_URL) || 'https://integrate.api.nvidia.com/v1/chat/completions';
@@ -1569,6 +1571,77 @@ Answer directly and naturally, grounding your explanation in the values above.`;
     });
   }
 };
+
+app.post('/api/gemini/visualize', async (req: Request, res: Response) => {
+  if (!geminiApiKey) {
+    res.status(503).json({ error: 'Gemini image generation is not configured on this server.' });
+    return;
+  }
+
+  const prompt = String(req.body?.prompt || '').trim();
+  if (!prompt) {
+    res.status(400).json({ error: 'Describe the astronomy illustration you want to create.' });
+    return;
+  }
+  if (prompt.length > 500) {
+    res.status(413).json({ error: 'Visual prompts must be 500 characters or fewer.' });
+    return;
+  }
+
+  const requester = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const lastRequest = visualRequestLastAt.get(requester) || 0;
+  if (now - lastRequest < 20000) {
+    res.status(429).json({ error: 'Please wait a few seconds before generating another illustration.' });
+    return;
+  }
+  visualRequestLastAt.set(requester, now);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60000);
+  try {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
+      body: JSON.stringify({
+        model: geminiImageModel,
+        input: `Create an original educational astronomy concept illustration based on this request: ${prompt}
+
+Visual integrity requirements: this is illustrative concept art, not a real telescope photograph, not a SPHEREx observation, not a scientific measurement, and not evidence of a discovery. Do not fabricate scientific charts, numerical measurements, telescope readouts, source labels, or data overlays. Make the visual compelling, clear, and suitable for a public astronomy education website.`,
+        response_format: { type: 'image', aspect_ratio: '16:9', image_size: '1K' },
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const details = await response.text().catch(() => '');
+      throw new Error(`Gemini image API returned HTTP ${response.status}: ${details.slice(0, 250)}`);
+    }
+
+    const data: any = await response.json();
+    const imageBlock = (data?.steps || [])
+      .filter((step: any) => step?.type === 'model_output')
+      .flatMap((step: any) => Array.isArray(step.content) ? step.content : [])
+      .find((item: any) => item?.type === 'image' && typeof item.data === 'string');
+
+    if (!imageBlock) {
+      throw new Error('Gemini completed the request without returning an image.');
+    }
+
+    res.json({
+      success: true,
+      imageData: imageBlock.data,
+      mimeType: imageBlock.mime_type || 'image/png',
+      model: geminiImageModel,
+      label: 'AI-generated illustration — not observational data',
+    });
+  } catch (err: any) {
+    console.warn('[Server] Gemini visual generation failed:', err?.message);
+    res.status(502).json({ error: 'Gemini could not create this illustration. Please try a different prompt.' });
+  } finally {
+    clearTimeout(timer);
+  }
+});
 
 app.post('/api/ai/explain', explainWithNvidiaHandler);
 app.post('/api/gemini/explain', explainWithNvidiaHandler);
