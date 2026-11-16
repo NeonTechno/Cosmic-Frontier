@@ -13,7 +13,7 @@ import { ExtremeTNO, PlanetXCandidate, PlanetXHypothesisParams, AstrometryFitRes
  * Bundled literature-reference examples of Extreme Trans-Neptunian Objects (eTNOs).
  * This small teaching sample is not a complete MPC catalogue or a survey-selection sample.
  */
-export const VERIFIED_ETNO_CATALOG: ExtremeTNO[] = [
+export const LITERATURE_ETNO_REFERENCE_SAMPLE: ExtremeTNO[] = [
   {
     id: 'ETNO-90377',
     name: '90377 Sedna (2003 VB12)',
