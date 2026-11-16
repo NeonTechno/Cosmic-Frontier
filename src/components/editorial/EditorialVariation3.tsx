@@ -1,10 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import confirmedExoplanetsData from '../../cosmic-frontier/data/catalogs/confirmed-exoplanets.json';
-import { ArrowRight, ArrowUpRight, Search, Filter, Database, ShieldCheck, Compass, Eye, RefreshCw, Moon, Sun, LayoutGrid, Table2, Menu } from 'lucide-react';
+import { ArrowUpRight, Search, Sparkles, Filter, Database, ShieldCheck, Compass, Eye, RefreshCw, Moon, Sun, LayoutGrid, Table2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { BlackStarLogo } from '../common/BlackStarLogo';
 import { assetUrl } from '../../utils/assetUrl';
-const cosmicDustHorizonImage = assetUrl('/assets/JWST%20Messier%2016%20processed.jpg');
 
 interface EditorialVariation3Props {
   onNavigate: (tab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite') => void;
@@ -112,19 +111,19 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
             </div>
 
             {/* Editorial Nav Links */}
-            <div className={`editorial-nav-links flex flex-wrap items-center gap-3 sm:gap-6 font-mono text-xs uppercase tracking-widest pr-12 sm:pr-14 ${
+            <div className={`flex flex-wrap items-center gap-3 sm:gap-6 font-mono text-xs uppercase tracking-widest pr-12 sm:pr-14 ${
               isLight ? 'text-[#1a1a1a]' : 'text-slate-300'
             }`}>
               <button
                 onClick={() => onNavigate('spherex')}
-                className={`hover:text-[#d44d5c] transition-colors cursor-pointer py-1 border-b border-transparent hover:border-[#d44d5c] ${!isLight ? 'hover:text-cyan-400 hover:border-cyan-400' : ''}`}
+                className={`portal-nav-discovery hover:text-[#d44d5c] transition-colors cursor-pointer py-1 border-b border-transparent hover:border-[#d44d5c] ${!isLight ? 'hover:text-cyan-400 hover:border-cyan-400' : ''}`}
                 title="SPHEREx Explorer (Alt + S)"
               >
                 SPHEREx
               </button>
               <button
                 onClick={() => onNavigate('planetx')}
-                className={`hover:text-[#d44d5c] transition-colors cursor-pointer py-1 border-b border-transparent hover:border-[#d44d5c] ${!isLight ? 'hover:text-cyan-400 hover:border-cyan-400' : ''}`}
+                className={`portal-nav-discovery hover:text-[#d44d5c] transition-colors cursor-pointer py-1 border-b border-transparent hover:border-[#d44d5c] ${!isLight ? 'hover:text-cyan-400 hover:border-cyan-400' : ''}`}
                 title="Planet X Lab (Alt + P)"
               >
                 Planet X
@@ -156,7 +155,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
               )}
               <button
                 onClick={() => onNavigate('spherex')}
-                className={`editorial-live-telemetry-button px-3 py-1 border font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1 border font-bold transition-all cursor-pointer ${
                   isLight
                     ? 'border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-[#fdfcf8]'
                     : 'border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/20'
@@ -190,7 +189,7 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                   key={item.id}
                   type="button"
                   onClick={() => scrollToSection(item.id)}
-                  className={`editorial-index-link px-2.5 py-1 border transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 border transition-colors cursor-pointer ${
                     isLight
                       ? 'border-[#1a1a1a]/15 text-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-[#fdfcf8]'
                       : 'border-slate-800 text-slate-300 hover:border-cyan-500/50 hover:text-cyan-300'
@@ -220,20 +219,20 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
           </div>
         </div>
 
-        {/* --- CINEMATIC NASA ASTRONAUT / COSMIC DUST EDITORIAL HERO --- */}
+        {/* --- CINEMATIC NASA ASTRONAUT EDITORIAL HERO --- */}
         <section id="editorial-overview" className="editorial-astronaut-hero scroll-mt-20 mb-20 sm:mb-28">
           <img
             className="editorial-astronaut-image editorial-dust-horizon-image"
-            src={cosmicDustHorizonImage}
-            alt="JWST NIRCam infrared observation revealing interstellar dust pillars in the Eagle Nebula (Messier 16)"
+            src={assetUrl('/assets/JWST Messier 16 processed.jpg')}
+            alt="JWST NIRCam infrared image of the Pillars of Creation in the Eagle Nebula (Messier 16)."
             loading="eager"
             fetchPriority="high"
           />
           <div className="editorial-astronaut-shade" aria-hidden="true" />
           <div className="editorial-astronaut-grid" aria-hidden="true" />
           <div className="editorial-astronaut-frame" aria-hidden="true">
-            <span>SPHEREX / INFRARED FIELD 01</span>
-            <span>INTERSTELLAR DUST SURVEY</span>
+            <span>JWST NIRCAM / MESSIER 16</span>
+            <span>PILLARS OF CREATION / EAGLE NEBULA</span>
           </div>
 
           <div className="editorial-astronaut-layout">
@@ -244,13 +243,13 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                 <span>Horizon.</span>
               </h2>
               <p>
-                Explore the infrared universe through calibrated all-sky observations, exoplanet records and orbital research. Every scientific workflow is grounded in traceable mission data and published astronomical sources.
+                Explore the infrared universe through SPHEREx survey tools, archival telescope imagery, exoplanet records and orbital research. This featured JWST view reveals the sculpted pillars of gas and dust inside the Eagle Nebula.
               </p>
               <div className="editorial-astronaut-actions">
-                <button onClick={() => onNavigate('spherex')} className="editorial-astronaut-primary">
+                <button onClick={() => onNavigate('spherex')} className="editorial-astronaut-primary portal-discovery-button portal-discovery-button--spherex">
                   Launch SPHEREx Workbench <span aria-hidden="true">↗</span>
                 </button>
-                <button onClick={() => onNavigate('planetx')} className="editorial-astronaut-secondary">
+                <button onClick={() => onNavigate('planetx')} className="editorial-astronaut-secondary portal-discovery-button portal-discovery-button--planetx">
                   Investigate Planet X
                 </button>
               </div>
@@ -292,9 +291,9 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
           </div>
 
           <footer className="editorial-astronaut-caption">
-            <span>FIG. 01 — INTERSTELLAR DUST PILLARS IN MESSIER 16</span>
-            <a href="https://science.nasa.gov/mission/webb/" target="_blank" rel="noreferrer">
-              IMAGE: NASA / ESA / CSA / STScI · JWST M16 ↗
+            <span>FIG. 01 — PILLARS OF CREATION · MESSIER 16</span>
+            <a href="https://science.nasa.gov/asset/webb/pillars-of-creation-nircam-compass-image/" target="_blank" rel="noreferrer">
+              IMAGE: NASA / ESA / CSA / STScI · JWST NIRCAM ↗
             </a>
           </footer>
         </section>
