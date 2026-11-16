@@ -42,6 +42,8 @@ import {
   fetchLiveSmallBodies,
   lookupLiveGalaxyInNed,
 } from './src/server/liveSpaceDataService.ts';
+import { fetchHorizonsObserverEphemeris, HORIZONS_OBSERVER_TARGETS } from './src/server/horizonsService.ts';
+import { extractSpherexHipsSpectrum, fetchSpherexEpsfAtPosition, ingestMpcDistantEtnoCatalog } from './src/server/spherexAdvancedService.ts';
 const require = createRequire(import.meta.url);
 const exoplanetArchive = require('./src/cosmic-frontier/data/catalogs/confirmed-exoplanets.json');
 const galaxyArchive = require('./src/cosmic-frontier/data/catalogs/deep-sky-galaxies.json');
@@ -57,6 +59,24 @@ dotenv.config();
 const cleanEnv = (value?: string): string =>
   (value || '').trim().replace(/^["']|["']$/g, '').trim();
 
+const finiteNumberOrNull = (value: unknown): number | null => {
+  if (value === undefined || value === null || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+function equatorialToEcliptic(raDeg: number, decDeg: number): { lonDeg: number; latDeg: number } {
+  const radians = Math.PI / 180;
+  const ra = raDeg * radians;
+  const dec = decDeg * radians;
+  const obliquity = 23.4392911 * radians;
+  const sinLat = Math.sin(dec) * Math.cos(obliquity) - Math.cos(dec) * Math.sin(obliquity) * Math.sin(ra);
+  const lat = Math.asin(Math.max(-1, Math.min(1, sinLat)));
+  const y = Math.sin(ra) * Math.cos(obliquity) + Math.tan(dec) * Math.sin(obliquity);
+  const lon = (Math.atan2(y, Math.cos(ra)) / radians + 360) % 360;
+  return { lonDeg: Number(lon.toFixed(6)), latDeg: Number((lat / radians).toFixed(6)) };
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -68,7 +88,7 @@ const port = Number.isFinite(cliPort)
   ? cliPort
   : parseInt((!isProd && process.env.PORT === '8080' ? '3000' : process.env.PORT) || '3000', 10);
 
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 // In-memory state for candidates (allows student vetting actions in the app)
 let candidateState: PlanetXCandidate[] = JSON.parse(JSON.stringify(INITIAL_CANDIDATE_QUEUE));
@@ -137,7 +157,7 @@ async function callNvidiaNemotron(
 // API ROUTES
 // ==========================================
 
-// Live-first data endpoints with verified archive fallbacks for Vercel & online deployments.
+// Live-first data endpoints with verified archive fallbacks for the Render-hosted Express service.
 const archiveMeta = (archive: any) => ({
   source: archive.metadata?.source || 'Verified Local Archive',
   sourceUrl: archive.metadata?.sourceUrl,
@@ -151,11 +171,11 @@ app.get('/api/data/solar-system', (_req: Request, res: Response) => {
   res.json({
     records: planetArchive.records || [],
     liveEphemerisEpoch: ephemeris.epoch,
-    source: 'NASA/JPL Solar System Dynamics & Live J2000 Ephemeris',
+    source: 'NASA/JPL reference catalogue with Black Star Orbit Keplerian propagation',
     sourceUrl: 'https://ssd.jpl.nasa.gov/horizons/',
     retrievalDateUTC: ephemeris.retrievalTimestamp,
-    dataStatus: 'LIVE EPHEMERIS',
-    isLive: true,
+    dataStatus: 'REFERENCE CATALOG + CALCULATED EPHEMERIS',
+    isLive: false,
   });
 });
 
@@ -408,6 +428,32 @@ app.get('/api/data/catalog', async (req: Request, res: Response) => {
   });
 });
 
+app.get('/api/horizons/observer', async (req: Request, res: Response) => {
+  const targetId = String(req.query.target || '599').trim();
+  const dateUTC = String(req.query.date || new Date().toISOString().slice(0, 10)).trim();
+  const parsedDate = new Date(dateUTC + 'T00:00:00.000Z');
+  if (!HORIZONS_OBSERVER_TARGETS.some((target) => target.id === targetId)) {
+    res.status(400).json({ success: false, error: 'Unsupported Horizons target identifier.' });
+    return;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateUTC) || !Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== dateUTC) {
+    res.status(400).json({ success: false, error: 'Date must be a valid UTC calendar date in YYYY-MM-DD format.' });
+    return;
+  }
+  try {
+    const result = await fetchHorizonsObserverEphemeris(targetId, dateUTC);
+    res.set('Cache-Control', 'public, max-age=60');
+    res.json(result);
+  } catch (err: any) {
+    res.status(502).json({
+      success: false,
+      source: 'NASA/JPL Horizons API',
+      error: 'Live Horizons ephemeris could not be retrieved',
+      details: err?.message || 'Unknown upstream error',
+    });
+  }
+});
+
 app.get('/api/data/live-space/ephemeris', (req: Request, res: Response) => {
   const dateStr = req.query.date ? String(req.query.date) : undefined;
   const target = req.query.target ? String(req.query.target) : undefined;
@@ -488,6 +534,45 @@ app.get('/api/status', async (_req: Request, res: Response) => {
       },
     },
   });
+});
+
+// Cached reachability checks for the scientific services that power the research workspaces.
+let cachedResearchStatus: { expiresAt: number; payload: Record<string, unknown> } | null = null;
+
+app.get('/api/research/status', async (_req: Request, res: Response) => {
+  if (cachedResearchStatus && cachedResearchStatus.expiresAt > Date.now()) {
+    res.set('Cache-Control', 'public, max-age=30');
+    res.json({ ...cachedResearchStatus.payload, cached: true });
+    return;
+  }
+
+  const sourceDefinitions = [
+    { id: 'irsa-spherex-sia', name: 'SPHEREx Archive', protocol: 'IRSA SIAv2', role: 'Spectral-image discovery and observation metadata', documentationUrl: 'https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-access/' },
+    { id: 'esa-gaia-dr3', name: 'Gaia DR3', protocol: 'ESA TAP / ADQL', role: 'Astrometry, parallax and proper-motion cross-matching', documentationUrl: 'https://gea.esac.esa.int/archive/' },
+    { id: 'irsa-allwise-ibe', name: 'AllWISE', protocol: 'IRSA IBE', role: 'Historical W1/W2 infrared image cutouts', documentationUrl: 'https://irsa.ipac.caltech.edu/Missions/wise.html' },
+    { id: 'exoplanet-archive-tap', name: 'NASA Exoplanet Archive', protocol: 'IPAC TAP', role: 'Confirmed exoplanet catalogue queries', documentationUrl: 'https://exoplanetarchive.ipac.caltech.edu/' },
+    { id: 'jpl-sbdb', name: 'JPL Small-Body Database', protocol: 'JPL REST API', role: 'Small-body orbital elements and physical parameters', documentationUrl: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html' },
+    { id: 'jpl-cad', name: 'JPL Close-Approach Data', protocol: 'JPL REST API', role: 'Near-Earth object encounter feed', documentationUrl: 'https://ssd-api.jpl.nasa.gov/doc/cad.html' },
+    { id: 'nasa-open-data-api', name: 'NASA Open Data', protocol: 'NASA REST API', role: 'NeoWs and Astronomy Picture of the Day', documentationUrl: 'https://api.nasa.gov/' },
+  ];
+
+  const checkedAt = new Date().toISOString();
+  const sources = await Promise.all(sourceDefinitions.map(async (source) => {
+    const check = await pingExternalEndpoint(source.id);
+    return { ...source, ...check };
+  }));
+  const onlineCount = sources.filter((source) => source.reachable).length;
+  const payload = {
+    checkedAt,
+    onlineCount,
+    totalCount: sources.length,
+    overallStatus: onlineCount === sources.length ? 'ALL SOURCES RESPONDING' : onlineCount > 0 ? 'PARTIAL CONNECTIVITY' : 'SOURCES UNAVAILABLE',
+    note: 'A successful reachability check confirms that an endpoint responded; it does not prove target coverage, scientific validity, or that every query will return data.',
+    sources,
+  };
+  cachedResearchStatus = { expiresAt: Date.now() + 60000, payload };
+  res.set('Cache-Control', 'public, max-age=30');
+  res.json({ ...payload, cached: false });
 });
 
 // SPHEREx: Local dataset inventory. Never returns generated observations.
@@ -637,6 +722,62 @@ app.get('/api/spherex/cutout-image', async (req: Request, res: Response) => {
   }
 });
 
+// Download a bounded, genuine SPHEREx FITS cutout from an IRSA IBE product URL.
+// The URL is strictly allowlisted to the official IRSA host; no arbitrary proxying is permitted.
+app.get('/api/spherex/download-fits', async (req: Request, res: Response) => {
+  const rawAccessUrl = String(req.query.accessUrl || '').trim();
+  const ra = Number(req.query.ra);
+  const dec = Number(req.query.dec);
+  const requestedSize = parseInt(String(req.query.size || '64'), 10);
+  const size = Math.min(256, Math.max(32, Number.isFinite(requestedSize) ? requestedSize : 64));
+  const obsId = String(req.query.obsId || 'observation').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 48);
+
+  let productUrl: URL;
+  try {
+    productUrl = new URL(rawAccessUrl);
+  } catch {
+    res.status(400).json({ error: 'A valid IRSA FITS accessUrl is required.' });
+    return;
+  }
+
+  if (
+    productUrl.protocol !== 'https:' ||
+    productUrl.hostname !== 'irsa.ipac.caltech.edu' ||
+    !productUrl.pathname.includes('/ibe/')
+  ) {
+    res.status(400).json({ error: 'Only official HTTPS NASA/IPAC IRSA IBE product URLs are permitted.' });
+    return;
+  }
+  if (!Number.isFinite(ra) || ra < 0 || ra > 360 || !Number.isFinite(dec) || dec < -90 || dec > 90) {
+    res.status(400).json({ error: 'Valid decimal RA (0–360) and Dec (-90–90) are required.' });
+    return;
+  }
+
+  productUrl.searchParams.set('center', ra.toFixed(6) + ',' + dec.toFixed(6));
+  productUrl.searchParams.set('size', size + 'pix');
+
+  try {
+    const upstream = await fetch(productUrl.toString(), { signal: AbortSignal.timeout(20000) });
+    if (!upstream.ok) {
+      res.status(502).json({ error: 'IRSA FITS download failed', upstreamStatus: upstream.status });
+      return;
+    }
+    const bytes = Buffer.from(await upstream.arrayBuffer());
+    if (bytes.length < 2880 || !bytes.subarray(0, 80).toString('ascii').startsWith('SIMPLE  =')) {
+      res.status(502).json({ error: 'IRSA response was not a readable FITS file; no file was downloaded.' });
+      return;
+    }
+    const filename = 'SPHEREx_' + obsId + '_' + ra.toFixed(4) + '_' + dec.toFixed(4) + '_' + size + 'pix.fits';
+    res.setHeader('Content-Type', 'application/fits');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+    res.setHeader('Content-Length', String(bytes.length));
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(bytes);
+  } catch (err: any) {
+    res.status(502).json({ error: 'Unable to retrieve the IRSA FITS product.', details: err?.message || 'Upstream request failed.' });
+  }
+});
+
 // Target Name & Coordinate Resolver
 app.get('/api/resolve-target', async (req: Request, res: Response) => {
   const q = String(req.query.q || '').trim();
@@ -684,6 +825,56 @@ app.get('/api/spherex/bands', (_req: Request, res: Response) => {
   });
 });
 
+// SPHEREx: official in-file ePSF calibration workflow (Caltech/IPAC notebook).
+app.get('/api/spherex/psf', async (req: Request, res: Response) => {
+  const ra = finiteNumberOrNull(req.query.ra);
+  const dec = finiteNumberOrNull(req.query.dec);
+  if (ra === null || dec === null || ra < 0 || ra >= 360 || dec < -90 || dec > 90) {
+    res.status(400).json({ error: 'Valid ICRS RA (0–360°) and Dec (−90–90°) are required.' });
+    return;
+  }
+  try {
+    const result = await fetchSpherexEpsfAtPosition(ra, dec);
+    res.json(result);
+  } catch (error) {
+    res.status(502).json({ error: error instanceof Error ? error.message : 'SPHEREx PSF extraction failed.', source: 'NASA/IPAC IRSA' });
+  }
+});
+
+// SPHEREx: official HiPS Norder-5 FITS cube and 102-band aperture spectrum.
+app.get('/api/spherex/hips-cube', async (req: Request, res: Response) => {
+  const ra = finiteNumberOrNull(req.query.ra);
+  const dec = finiteNumberOrNull(req.query.dec);
+  const aperture = finiteNumberOrNull(req.query.apertureRadius) ?? 5;
+  const inner = finiteNumberOrNull(req.query.annulusInner) ?? 40;
+  const outer = finiteNumberOrNull(req.query.annulusOuter) ?? 60;
+  if (ra === null || dec === null || ra < 0 || ra >= 360 || dec < -90 || dec > 90) {
+    res.status(400).json({ error: 'Valid ICRS RA (0–360°) and Dec (−90–90°) are required.' });
+    return;
+  }
+  try {
+    const result = await extractSpherexHipsSpectrum(ra, dec, aperture, inner, outer);
+    res.json(result);
+  } catch (error) {
+    res.status(502).json({ error: error instanceof Error ? error.message : 'SPHEREx HiPS cube extraction failed.', source: 'NASA/IPAC IRSA' });
+  }
+});
+
+// Planet X: live MPC distant_extended.json.gz ingestion, filtered to bound eTNOs.
+app.get('/api/planetx/mpc-etnos', async (req: Request, res: Response) => {
+  try {
+    const result = await ingestMpcDistantEtnoCatalog(req.query.refresh === '1');
+    res.json(result);
+  } catch (error) {
+    res.status(502).json({
+      error: error instanceof Error ? error.message : 'MPC ingestion failed.',
+      source: 'International Astronomical Union Minor Planet Center',
+      feedUrl: 'https://minorplanetcenter.net/Extended_Files/distant_extended.json.gz',
+      liveDataAvailable: false,
+    });
+  }
+});
+
 // Planet X: List candidates
 app.get('/api/planetx/candidates', (_req: Request, res: Response) => {
   res.json({
@@ -715,79 +906,79 @@ app.post('/api/planetx/candidates/:id/vet', (req: Request, res: Response) => {
 
 // Promote an observed SPHEREx residual/moving signal to Candidate Vetting Queue (never claims discovery)
 app.post('/api/planetx/candidates/from-spherex', (req: Request, res: Response) => {
-  const {
-    designation,
-    raDeg,
-    decDeg,
-    deltaFluxMJySr,
-    snr,
-    pmAlphaArcsecYr,
-    pmDeltaArcsecYr,
-    notes,
-    epochA,
-    epochB,
-  } = req.body || {};
-
-  if (!Number.isFinite(Number(raDeg)) || !Number.isFinite(Number(decDeg))) {
-    res.status(400).json({ error: 'Valid raDeg and decDeg are required.' });
+  const { designation, raDeg, decDeg, deltaFluxMJySr, snr, pmAlphaArcsecYr, pmDeltaArcsecYr, notes, epochA, epochB, observationIds } = req.body || {};
+  const ra = finiteNumberOrNull(raDeg);
+  const dec = finiteNumberOrNull(decDeg);
+  if (ra === null || dec === null || ra < 0 || ra >= 360 || dec < -90 || dec > 90) {
+    res.status(400).json({ error: 'Valid J2000 coordinates are required (RA 0–360°, Dec −90–90°).' });
     return;
   }
-
+  const deltaFlux = finiteNumberOrNull(deltaFluxMJySr);
+  const signalToNoise = finiteNumberOrNull(snr);
+  const pmRa = finiteNumberOrNull(pmAlphaArcsecYr);
+  const pmDec = finiteNumberOrNull(pmDeltaArcsecYr);
+  const ecliptic = equatorialToEcliptic(ra, dec);
+  const suppliedEpochs = [epochA, epochB].filter((value) => typeof value === 'string' && value.trim().length > 0).map((value: string) => value.split('T')[0]);
+  const epochs = suppliedEpochs.length ? [...new Set(suppliedEpochs)] : ['Epoch not supplied'];
+  const sourceIds = Array.isArray(observationIds) ? observationIds.filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0) : [];
+  const unavailableMeasurements = [
+    'heliocentric distance', 'WISE W1 magnitude', 'WISE W2 magnitude', 'W1−W2 colour',
+    'parallax', 'mass estimate', 'per-epoch W1/W2 photometry', 'confidence score', 'Planet X hypothesis-fit score',
+    ...(pmRa === null || pmDec === null ? ['proper motion'] : []),
+    ...(signalToNoise === null ? ['astrometric signal-to-noise'] : []),
+  ];
   const newCandidate: PlanetXCandidate = {
     id: `CAND-SPX-${Date.now().toString(36).toUpperCase()}`,
-    designation: String(designation || `SPHEREx Residual (${Number(raDeg).toFixed(3)}°, ${Number(decDeg).toFixed(3)}°)`),
-    survey: 'WISE / NEOWISE',
-    raDeg: Number(raDeg),
-    decDeg: Number(decDeg),
-    eclipticLonDeg: Number(raDeg),
-    eclipticLatDeg: Number(decDeg),
-    heliocentricDistanceAU: 0,
-    apparentMagW1: 18.5,
-    apparentMagW2: 17.8,
-    colorW1W2: 0.7,
-    properMotionAlphaArcsecYr: Number(pmAlphaArcsecYr || 0),
-    properMotionDeltaArcsecYr: Number(pmDeltaArcsecYr || 0),
-    parallaxArcsec: 0,
-    estimatedMassEarths: 0,
-    astrometricSnr: Number(snr || 5.0),
-    status: 'unvetted',
-    confidenceScore: 35,
-    notes: String(
-      notes ||
-        `Observed multi-epoch SPHEREx residual signal (ΔFlux=${Number(deltaFluxMJySr || 0).toFixed(2)} MJy/sr, SNR=${Number(snr || 0).toFixed(1)}σ). Unvetted candidate — requires external catalog cross-match and human review.`
-    ),
-    observationHistory: [
-      {
-        epoch: String(epochA || '2025-05-15').split('T')[0],
-        dxArcsec: 0,
-        dyArcsec: 0,
-        w1FluxMjy: 0.2,
-        w2FluxMjy: 0.25,
-        surveyTag: 'SPHEREx Epoch A',
-      },
-      {
-        epoch: String(epochB || '2026-08-15').split('T')[0],
-        dxArcsec: Number(pmAlphaArcsecYr || 0),
-        dyArcsec: Number(pmDeltaArcsecYr || 0),
-        w1FluxMjy: 0.2 + Math.max(0, Number(deltaFluxMJySr || 0)) * 0.02,
-        w2FluxMjy: 0.25 + Math.max(0, Number(deltaFluxMJySr || 0)) * 0.03,
-        surveyTag: 'SPHEREx Epoch B',
-      },
-    ],
-    theoreticalConsistency: 0,
+    designation: String(designation || `SPHEREx Residual (${ra.toFixed(3)}°, ${dec.toFixed(3)}°)`),
+    survey: 'SPHEREx',
+    raDeg: ra, decDeg: dec,
+    eclipticLonDeg: ecliptic.lonDeg, eclipticLatDeg: ecliptic.latDeg,
+    heliocentricDistanceAU: null, apparentMagW1: null, apparentMagW2: null, colorW1W2: null,
+    properMotionAlphaArcsecYr: pmRa, properMotionDeltaArcsecYr: pmDec,
+    parallaxArcsec: null, estimatedMassEarths: null, astrometricSnr: signalToNoise,
+    status: 'unvetted', confidenceScore: null,
+    notes: String(notes || [
+      'SPHEREx residual submitted for follow-up only; this is not a Planet X detection.',
+      deltaFlux === null ? 'Residual flux difference was not supplied.' : `Input residual flux difference: ${deltaFlux.toFixed(4)} MJy/sr.`,
+      signalToNoise === null ? 'Signal-to-noise was not supplied.' : `Input SNR: ${signalToNoise.toFixed(2)}σ.`,
+      'No WISE W1/W2 photometry, heliocentric distance, parallax, mass, or orbit has been inferred from this SPHEREx residual.',
+      'Cross-match with Gaia DR3, WISE/NEOWISE, and small-body catalogues plus human review is required.',
+    ].join(' ')),
+    observationHistory: epochs.map((epoch) => ({
+      epoch, dxArcsec: null, dyArcsec: null, w1FluxMjy: null, w2FluxMjy: null,
+      surveyTag: 'SPHEREx residual input — WISE photometry not supplied',
+    })),
+    unavailableMeasurements, sourceObservationIds: sourceIds,
+    provenanceNote: 'Source survey: SPHEREx. No WISE/NEOWISE measurements are attached. Null values mean not measured, not zero.',
+    theoreticalConsistency: null,
   };
-
   candidateState = [newCandidate, ...candidateState];
   res.json({ success: true, candidate: newCandidate });
 });
 
-// Planet X: Extreme TNO catalog
-app.get('/api/planetx/etno-catalog', (_req: Request, res: Response) => {
-  res.json({
-    count: VERIFIED_ETNO_CATALOG.length,
-    objects: VERIFIED_ETNO_CATALOG,
-    referenceLiterature: 'Batygin & Brown (2016, 2021) / MPC',
-  });
+// Planet X: prefer live MPC distant catalogue; preserve literature reference data on upstream outage.
+app.get('/api/planetx/etno-catalog', async (_req: Request, res: Response) => {
+  try {
+    const live = await ingestMpcDistantEtnoCatalog(false);
+    res.json({
+      count: live.objects.length,
+      objects: live.objects,
+      source: live.source,
+      liveDataAvailable: true,
+      fetchedAt: live.fetchedAt,
+      filter: live.filter,
+      attribution: live.attribution,
+    });
+  } catch (error) {
+    res.json({
+      count: VERIFIED_ETNO_CATALOG.length,
+      objects: VERIFIED_ETNO_CATALOG,
+      source: 'Bundled literature reference catalogue',
+      liveDataAvailable: false,
+      warning: error instanceof Error ? error.message : 'MPC feed unavailable.',
+      referenceLiterature: 'Batygin & Brown (2016, 2021)',
+    });
+  }
 });
 
 // Planet X: Hypothesis parameters
@@ -907,7 +1098,7 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
           : r.status === 403
           ? 'Invalid NASA_API_KEY (HTTP 403).'
           : r.status === 429
-          ? 'NASA DEMO_KEY rate limit exceeded (HTTP 429). Set custom NASA_API_KEY in Vercel.'
+          ? 'NASA DEMO_KEY rate limit exceeded (HTTP 429). Set a custom NASA_API_KEY in the Render environment.'
           : `NASA NeoWs returned HTTP ${r.status}.`;
       } catch (e: any) {
         results.nasa.status = `error: ${e.message}`;
@@ -982,7 +1173,7 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
 
   res.json({
     success: true,
-    environment: process.env.VERCEL ? 'vercel-serverless' : isProd ? 'production' : 'development',
+    environment: process.env.RENDER ? 'render' : isProd ? 'production' : 'development',
     timestamp: new Date().toISOString(),
     apiChecks: results,
   });
@@ -1225,8 +1416,14 @@ SCIENTIFIC ACCURACY & STYLE GUIDELINES:
 2. Never invent or extrapolate unverified coordinates, detections, or physical constants. Ground every number in the context provided.
 3. Clearly distinguish confirmed observations (e.g., Gaia DR3, AllWISE, IRSA SPHEREx DR1/QR3, known eTNO orbits) from theoretical models (such as the Batygin & Brown 2021 Planet X hypothesis).
 4. If the source is 'LOCAL_IRSA_SPHEREX', state that the image came from locally imported NASA/IPAC IRSA FITS files. Never describe a reference or benchmark as an archive observation.
-5. Use plain Unicode units and symbols (like µm, °, σ, ≈, ~) instead of LaTeX dollar signs or backslashes, and keep paragraphs concise and easy to scan.`;
+5. If the source is 'SIMULATED_DEMO', explicitly say the frame, source positions, epochs and spectrum are synthetic interface-demo values, not NASA/IPAC measurements or a FITS observation. Do not report simulated candidates as detections or infer scientific conclusions from them.
+6. Use plain Unicode units and symbols (like µm, °, σ, ≈, ~) instead of LaTeX dollar signs or backslashes, and keep paragraphs concise and easy to scan.`;
 
+  const dataVerificationStatus = String(dataPayload.dataSourceStatus) === 'SIMULATED_DEMO'
+    ? 'SIMULATION_GROUNDED'
+    : ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus))
+      ? 'GROUNDED_VERIFIED'
+      : 'REFERENCE_ONLY';
   const serializedData = JSON.stringify(dataPayload, null, 2);
   const prompt = `Topic: ${contextType}
 Question: ${userPrompt || 'Explain what this observation shows, its physical meaning, and why it matters.'}
@@ -1258,9 +1455,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
           'NASA Infrared Science Archive (IRSA) / IVOA Specifications',
         ],
         dataVerificationStatus:
-          ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus))
-            ? 'GROUNDED_VERIFIED'
-            : 'REFERENCE_ONLY',
+          dataVerificationStatus,
         confidenceRating: 'HIGH_PRECISION',
         modelUsed: nvidiaModel,
         timestamp: new Date().toISOString(),
@@ -1278,7 +1473,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
         'Caltech / JPL SPHEREx Mission Handbook (2025)',
         'Batygin, K. & Brown, M.E. (2016, 2021), Astronomical Journal',
       ],
-      dataVerificationStatus: ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus)) ? 'GROUNDED_VERIFIED' : 'REFERENCE_ONLY',
+      dataVerificationStatus: dataVerificationStatus,
       confidenceRating: 'THEORETICAL_MODEL',
       modelUsed: `deterministic-scientific-rules-fallback (Set NVIDIA_API_KEY for live ${nvidiaModel})`,
       timestamp: new Date().toISOString(),
@@ -1291,7 +1486,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
       explanation: fallbackText,
       groundedAttributes: Object.keys(dataPayload),
       scientificReferences: ['NASA IRSA Astronomical Handbook'],
-      dataVerificationStatus: ['LIVE_IRSA_SPHEREX', 'LOCAL_IRSA_SPHEREX', 'REAL_MISSION_ARCHIVAL'].includes(String(dataPayload.dataSourceStatus)) ? 'GROUNDED_VERIFIED' : 'REFERENCE_ONLY',
+      dataVerificationStatus: dataVerificationStatus,
       confidenceRating: 'THEORETICAL_MODEL',
       modelUsed: `deterministic-fallback-on-error (${nvidiaModel} unavailable)`,
       timestamp: new Date().toISOString(),
@@ -1404,6 +1599,7 @@ function generateDeterministicScientificExplanation(
   userPrompt?: string
 ): string {
   const isLocalArchive = payload.dataSourceStatus === 'LOCAL_IRSA_SPHEREX';
+  const isDemo = payload.dataSourceStatus === 'SIMULATED_DEMO';
 
   if (contextType === 'spherex_fits') {
     const target = (payload.targetName as string) || 'this SPHEREx sky region';
@@ -1412,7 +1608,11 @@ function generateDeterministicScientificExplanation(
     const dec = payload.decDeg !== undefined ? `${Number(payload.decDeg).toFixed(3)}°` : 'target Dec';
     const epochs = Array.isArray(payload.epochs) ? payload.epochs.length : undefined;
 
-    return `Looking at **${target}** (RA ${ra}, Dec ${dec}), this pointing uses SPHEREx's ${filter} to sample the sky across 102 narrow near-infrared bands between 0.75 and 5.00 µm${epochs ? ` across ${epochs} observation epochs` : ''}.
+    const demoNotice = isDemo
+      ? '**SIMULATED DEMONSTRATION — NOT NASA/IPAC DATA.** This visualization uses generated example pixels, sources, epochs and spectral values to demonstrate the interface; it is not an archive observation, FITS product, or scientific detection.\n\n'
+      : '';
+
+    return `${demoNotice}Looking at **${target}** (RA ${ra}, Dec ${dec}), this pointing uses SPHEREx's ${filter} to sample the sky across 102 narrow near-infrared bands between 0.75 and 5.00 µm${epochs ? ` across ${epochs} observation epochs` : ''}.
 
 Because SPHEREx uses Linear Variable Filters mounted directly above six Hawaii-2RG detectors, every sweep across the sky builds a low-resolution spectrum (resolving power R ≈ 40–130) at every pixel rather than just taking broad color snapshots. Comparing epochs lets astronomers spot faint moving brown dwarfs, variable stars, or transient events while also measuring interstellar ice signatures—like water ice at 3.05 µm, carbon dioxide at 4.27 µm, and carbon monoxide at 4.67 µm.
 ${userPrompt ? `\nRegarding your question ("${userPrompt}"): those molecular bands and multi-epoch shifts are directly encoded in the flux variations across bands and timestamps in this frame.` : ''}
@@ -1421,21 +1621,23 @@ ${isLocalArchive ? '\n*The image pixels and observation metadata in this view ca
 
   if (contextType === 'planet_x_candidate') {
     const des = (payload.designation as string) || 'this candidate';
-    const dist = Number(payload.heliocentricDistanceAU || 400);
-    const properMotion = Math.hypot(
-      Number(payload.properMotionAlphaArcsecYr || 0),
-      Number(payload.properMotionDeltaArcsecYr || 0)
-    ).toFixed(4);
-    const snr = payload.astrometricSnr;
-    const parallaxApprox = (1 / dist).toFixed(4);
-    const velKmS = (30 / Math.sqrt(dist)).toFixed(1);
+    const dist = finiteNumberOrNull(payload.heliocentricDistanceAU);
+    const pmRa = finiteNumberOrNull(payload.properMotionAlphaArcsecYr);
+    const pmDec = finiteNumberOrNull(payload.properMotionDeltaArcsecYr);
+    const properMotion = pmRa === null || pmDec === null ? 'not measured' : Math.hypot(pmRa, pmDec).toFixed(4);
+    const snr = finiteNumberOrNull(payload.astrometricSnr);
+    const distLabel = dist === null ? 'not measured' : String(dist) + ' AU';
+    const parallaxLabel = dist === null || dist <= 0 ? 'unavailable until distance is measured' : (1 / dist).toFixed(4) + ' arcseconds';
+    const velocityLabel = dist === null || dist <= 0 ? 'unavailable until distance is measured' : (30 / Math.sqrt(dist)).toFixed(1) + ' km/s';
 
-    return `For **${des}**, the modeled heliocentric distance of roughly **${dist} AU** puts it far out in the outer Solar System, where orbital motion is remarkably slow—around ${velKmS} km/s, corresponding to an apparent proper motion of about ${properMotion} arcsec/year${snr !== undefined ? ` (astrometric SNR: ${snr}σ)` : ''}.
+    return `For **${des}**, heliocentric distance is **${distLabel}**. The circular-orbit speed scale is ${velocityLabel}; proper motion is ${properMotion} arcsec/year${snr === null ? '' : ` (input SNR: ${snr}σ)`}.
 
-How astronomers tell such a distant object apart from closer bodies:
-- **Annual reflex parallax:** As Earth orbits the Sun, a distant body around ${dist} AU shifts back and forth on the sky by roughly ${parallaxApprox} arcseconds over a year—much smaller than the shift of a main-belt or Kuiper Belt object, helping rule out foreground asteroids.
-- **Thermal infrared glow:** At hundreds of AU, reflected sunlight is extremely faint, so mid-infrared surveys like WISE (3.4 µm W1 and 4.6 µm W2) look for residual internal heat that makes cold planets or brown dwarfs stand out at longer wavelengths.
-${userPrompt ? `\nTo answer your question ("${userPrompt}"): combining multi-epoch astrometry with infrared color helps distinguish genuine outer-system candidates from detector artifacts or background stars.` : ''}`;
+How astronomers distinguish a genuine outer-Solar-System candidate:
+- **Annual reflex parallax:** ${parallaxLabel}. A full fit requires time-tagged astrometry and observer geometry.
+- **Multi-epoch astrometry:** Compare independently dated positions and fit a physical orbit; do not treat a residual or an assumed distance as an orbit.
+- **Infrared photometry:** WISE/NEOWISE W1/W2 measurements can provide complementary thermal-colour evidence, but they must be separately cross-matched and must not be inferred from SPHEREx residual flux.
+
+${userPrompt ? `\nTo answer your question ("${userPrompt}"): interpret this candidate only from measurements actually attached to it. Missing values are unknown, not zero or evidence for a distant planet.` : ''}`;
   }
 
   const targetLabel =
@@ -1479,7 +1681,7 @@ async function startServer() {
   });
 }
 
-if (!process.env.VERCEL) {
+if (process.env.NODE_ENV !== 'test') {
   startServer().catch((err) => {
     console.error('Failed to start server:', err);
     process.exit(1);
