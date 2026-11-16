@@ -77,7 +77,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
             <span className="flex items-center gap-1 font-semibold">
               <ShieldCheck className="h-4 w-4" /> Orbital Pole Dispersion
             </span>
-            <span className="text-slate-300">Δθ ≈ {stats.poleDispersionDeg}°</span>
+            <span className="text-slate-300">Δθ ≈ {stats.poleDispersionDeg === null ? 'Unavailable' : `Δθ ≈ ${stats.poleDispersionDeg}°`}</span>
           </div>
           <div className="text-2xl font-bold text-purple-300 font-mono">
             R = {stats.poleRayleighR}
