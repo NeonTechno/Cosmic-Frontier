@@ -391,7 +391,7 @@ export interface MpcIngestionResult {
   objects: ExtremeTNO[];
   attribution: string;
 }
-function normalizeMpcObjects(payload: unknown): ExtremeTNO[] {
+export function normalizeMpcDistantRecords(payload: unknown): ExtremeTNO[] {
   const root = payload as any;
   const rows: any[] = Array.isArray(root) ? root :
     Array.isArray(root?.data) ? root.data :
@@ -441,7 +441,7 @@ export async function ingestMpcDistantEtnoCatalog(force=false): Promise<MpcInges
   const root=payload as any;
   const sourceRows=Array.isArray(root)?root:Array.isArray(root?.data)?root.data:Array.isArray(root?.objects)?root.objects:Array.isArray(root?.results)?root.results:[];
   if (!sourceRows.length) throw new Error('MPC feed returned no parseable object records; live catalogue was not replaced.');
-  const objects=normalizeMpcObjects(payload);
+  const objects=normalizeMpcDistantRecords(payload);
   const result:MpcIngestionResult={
     source:'International Astronomical Union Minor Planet Center',
     feedUrl:MPC_DISTANT_URL, fetchedAt:new Date().toISOString(),
