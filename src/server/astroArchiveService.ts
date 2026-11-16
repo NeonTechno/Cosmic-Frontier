@@ -995,6 +995,8 @@ export async function pingExternalEndpoint(serviceId: string): Promise<{
   latencyMs: number;
   message: string;
 }> {
+  const today = new Date().toISOString().slice(0, 10);
+  const nextWeek = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
   const endpoints: Record<string, { url: string; label: string }> = {
     'irsa-spherex-sia': {
       url: 'https://irsa.ipac.caltech.edu/SIA?POS=circle+269.4521+4.6934+0.02&COLLECTION=spherex_dr1',
@@ -1017,14 +1019,26 @@ export async function pingExternalEndpoint(serviceId: string): Promise<{
       url: `https://api.nasa.gov/neo/rest/v1/neo/3542519?api_key=${process.env.NASA_API_KEY || 'DEMO_KEY'}`,
       label: 'NASA Open Data API (NeoWs)',
     },
+    'exoplanet-archive-tap': {
+      url: 'https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=' + encodeURIComponent('select top 1 pl_name from pscomppars') + '&format=json',
+      label: 'NASA Exoplanet Archive TAP',
+    },
+    'jpl-sbdb': {
+      url: 'https://ssd-api.jpl.nasa.gov/sbdb.api?sstr=99942',
+      label: 'NASA/JPL Small-Body Database API',
+    },
+    'jpl-cad': {
+      url: 'https://ssd-api.jpl.nasa.gov/cad.api?dist-max=0.1&limit=1&date-min=' + today + '&date-max=' + nextWeek,
+      label: 'NASA/JPL Close-Approach Data API',
+    },
   };
 
   const target = endpoints[serviceId];
   if (!target) {
     return {
-      reachable: true,
-      latencyMs: 2,
-      message: 'Local calibrated benchmark / fallback handler active.',
+      reachable: false,
+      latencyMs: 0,
+      message: `No upstream connectivity check is registered for service "${serviceId}".`,
     };
   }
 
