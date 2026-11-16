@@ -27,7 +27,7 @@ async function safeFetch<T>(url: string, fallbackData: T): Promise<{ data: T; so
       return {
         data: (json.records || json.data || json) as T,
         source: json.source || 'NASA Open Data Gateway',
-        isLive: json.isLive ?? true
+        isLive: json.isLive === true
       };
     }
   } catch (err) {
@@ -232,7 +232,7 @@ export async function fetchCatalogItems(
       return {
         items: (json.items || []) as CatalogItem[],
         source: json.source || 'NASA Open Data Gateway',
-        isLive: true
+        isLive: json.isLive === true
       };
     }
   } catch (err) {
