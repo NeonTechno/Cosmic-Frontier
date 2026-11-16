@@ -8,7 +8,7 @@
 import React, { useMemo, useState } from 'react';
 import { ExtremeTNO, PlanetXHypothesisParams } from '../../types/index.ts';
 import { calculateClusteringSignificance } from '../../science/orbitalMechanics.ts';
-import { ShieldCheck, BarChart3, Sliders, AlertTriangle, Sparkles, BookOpen } from 'lucide-react';
+import { ShieldCheck, BarChart3, Sliders, AlertTriangle, Sparkles, BookOpen, Download } from 'lucide-react';
 
 interface EvidencePanelProps {
   etnoCatalog: ExtremeTNO[];
@@ -33,6 +33,53 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
   const [semiMajor, setSemiMajor] = useState<number>(hypothesis.semiMajorAxisAU);
   const [ecc, setEcc] = useState<number>(hypothesis.eccentricity);
   const [inc, setInc] = useState<number>(hypothesis.inclinationDeg);
+
+  const downloadAnalysisManifest = () => {
+    const manifest = {
+      schemaVersion: '1.0',
+      generatedAt: new Date().toISOString(),
+      application: 'Black Star Orbit',
+      analysis: {
+        name: 'Exploratory eTNO angular-clustering diagnostics',
+        version: stats.analysisVersion,
+        method: 'Seeded Monte Carlo null comparisons',
+        nullModels: {
+          longitudeOfPerihelion: 'Uniform circular angles',
+          orbitalPoles: 'Isotropic directions on the sphere',
+        },
+        simulations: stats.simulations,
+        randomSeed: stats.seed,
+        selectionBiasCorrected: false,
+        commonEpochPropagation: false,
+        result: stats,
+        sourceCounts,
+        limitations: stats.warnings,
+      },
+      hypothesisParameters: hypothesis,
+      inputCatalogue: etnoCatalog.map((object) => ({
+        id: object.id,
+        name: object.name,
+        semiMajorAxisAU: object.semiMajorAxisAU,
+        perihelionDistanceAU: object.perihelionDistAU,
+        eccentricity: object.eccentricity,
+        inclinationDeg: object.inclinationDeg,
+        longitudeAscendingNodeDeg: object.longAscNodeDeg,
+        argumentOfPerihelionDeg: object.argPerihelionDeg,
+        longitudeOfPerihelionDeg: object.longPerihelionDeg,
+        orbitEpochJD: object.orbitEpochJD ?? null,
+        discoverySurvey: object.discoverySurvey,
+        source: object.source ?? 'unspecified',
+      })),
+      interpretation: 'This export is an exploratory, unweighted null-model analysis. It is not survey-selection corrected and is not evidence that Planet Nine exists.',
+    };
+    const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'black-star-orbit-etno-analysis-manifest.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleApplyParams = () => {
     const perihelion = semiMajor * (1 - ecc);
@@ -120,6 +167,15 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
         <p className="text-[10px] leading-relaxed text-slate-400">
           Further reading: <a className="text-cyan-300 underline underline-offset-2" href="https://doi.org/10.3847/PSJ/abe53e" target="_blank" rel="noreferrer">Napier et al. (2021), selection effects in ETNO clustering</a> · <a className="text-cyan-300 underline underline-offset-2" href="https://github.com/OSSOS/SurveySimulator" target="_blank" rel="noreferrer">OSSOS Survey Simulator</a>.
         </p>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={downloadAnalysisManifest}
+            className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-950/30 px-3 py-2 text-[11px] font-mono text-cyan-200 transition hover:bg-cyan-900/40"
+          >
+            <Download className="h-3.5 w-3.5" /> Export reproducible analysis manifest
+          </button>
+        </div>
       </div>
 
       {/* Interactive Hypothesis Parameter Explorer */}
