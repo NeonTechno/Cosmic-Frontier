@@ -50,6 +50,9 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
   const trajectoryCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const candidate = candidates.find((c) => c.id === selectedId) || candidates[0];
+  const hasEpochMeasurements = Boolean(candidate?.observationHistory.some((obs) =>
+    obs.dxArcsec !== null || obs.dyArcsec !== null || obs.w1FluxMjy !== null || obs.w2FluxMjy !== null
+  ));
 
   // Auto-select newly added candidate when candidates list grows or selection is missing
   useEffect(() => {
@@ -78,7 +81,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
   // Draw simulated multi-epoch blink comparator canvas
   useEffect(() => {
     const canvas = blinkCanvasRef.current;
-    if (!canvas || !candidate) return;
+    if (!canvas || !candidate || !candidate.observationHistory.some((obs) => obs.dxArcsec !== null || obs.dyArcsec !== null || obs.w1FluxMjy !== null || obs.w2FluxMjy !== null)) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -352,31 +355,40 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               <div className="flex items-center space-x-2">
                 <Eye className="h-4 w-4 text-cyan-400" />
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-                  Infrared Astrometric Blinker (WISE / NEOWISE Coadds)
+                  Multi-epoch Evidence Viewer · {candidate?.survey}
                 </h4>
               </div>
               <div className="flex items-center space-x-2 text-xs font-mono">
                 <button
                   onClick={() => setIsBlinking(!isBlinking)}
-                  className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
+                  disabled={!hasEpochMeasurements}
+                  className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {isBlinking ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                  <span>{isBlinking ? 'Pause Blink' : 'Auto Blink'}</span>
+                  <span>{!hasEpochMeasurements ? 'No epoch data' : isBlinking ? 'Pause Blink' : 'Auto Blink'}</span>
                 </button>
               </div>
             </div>
 
             {/* Blink Canvas */}
             <div className="relative aspect-square max-w-md mx-auto rounded-lg overflow-hidden border border-slate-800 bg-black">
-              <canvas
-                ref={blinkCanvasRef}
-                width={420}
-                height={420}
-                className="w-full h-full object-contain"
-              />
+              {hasEpochMeasurements ? (
+                <canvas
+                  ref={blinkCanvasRef}
+                  width={420}
+                  height={420}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
+                  <Eye className="h-8 w-8 text-slate-600" />
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300">No epoch imagery attached</span>
+                  <span className="max-w-xs text-[11px] leading-relaxed text-slate-500">This SPHEREx residual has no time-tagged pixel frames, measured positional offsets, or WISE photometry yet. The viewer will not synthesize an observation.</span>
+                </div>
+              )}
 
               {/* Epoch Tag on Canvas */}
-              {candidate?.observationHistory[activeEpochIdx] && (
+              {hasEpochMeasurements && candidate?.observationHistory[activeEpochIdx] && (
                 <div className="absolute top-2 left-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded border border-slate-800 text-xs font-mono text-cyan-300">
                   <span className="font-bold text-white">
                     {candidate.observationHistory[activeEpochIdx].surveyTag}
@@ -388,7 +400,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               )}
 
               {/* Candidate Info Pill */}
-              <div className="absolute bottom-2 left-2 right-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between text-[11px] font-mono">
+              {hasEpochMeasurements && <div className="absolute bottom-2 left-2 right-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded border border-slate-800 flex items-center justify-between text-[11px] font-mono">
                 <span className="text-slate-300">
                   Δx: {candidate?.observationHistory[activeEpochIdx]?.dxArcsec == null ? '—' : candidate.observationHistory[activeEpochIdx].dxArcsec.toFixed(2)}″ | Δy:{' '}
                   {candidate?.observationHistory[activeEpochIdx]?.dyArcsec == null ? '—' : candidate.observationHistory[activeEpochIdx].dyArcsec.toFixed(2)}″
@@ -400,7 +412,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
                 >
                   W1−W2: {candidate?.colorW1W2 == null ? 'Not measured' : candidate.colorW1W2.toFixed(1) + ' mag'}
                 </span>
-              </div>
+              </div>}
             </div>
 
             {/* Epoch Selector Buttons */}
@@ -495,11 +507,19 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
                 <span className="text-slate-200 font-semibold truncate block">
                   {candidate?.raDeg.toFixed(2)}°, {candidate?.decDeg.toFixed(2)}°
                 </span>
+                {candidate && <a
+                  href={`https://byw.tools/wiseview#ra=${candidate.raDeg}&dec=${candidate.decDeg}&size=176&band=2&speed=500`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex items-center gap-1 text-[10px] font-mono text-cyan-400 hover:text-cyan-200"
+                >
+                  Compare this position in WiseView <ExternalLink className="h-3 w-3" />
+                </a>}
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Batygin & Brown Fit</span>
-                <span className="text-emerald-400 font-bold text-sm">{candidate?.theoreticalConsistency}%</span>
+                <span className="text-emerald-400 font-bold text-sm">{candidate?.theoreticalConsistency == null ? 'Not evaluated' : `${candidate.theoreticalConsistency}%`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
