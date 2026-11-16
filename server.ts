@@ -17,7 +17,7 @@ import dotenv from 'dotenv';
 import { SPHEREX_BANDS } from './src/science/spherexEngine.ts';
 import { STARTER_QUESTIONS, findVerifiedAnswer } from './src/cosmic-frontier/data/guideKnowledge.ts';
 import { parseCelestialCoordinates } from './src/science/spherexCoordinates.ts';
-import { VERIFIED_ETNO_CATALOG, DEFAULT_PLANET_X_HYPOTHESIS, INITIAL_CANDIDATE_QUEUE } from './src/science/orbitalMechanics.ts';
+import { LITERATURE_ETNO_REFERENCE_SAMPLE, DEFAULT_PLANET_X_HYPOTHESIS, INITIAL_CANDIDATE_QUEUE } from './src/science/orbitalMechanics.ts';
 import { OFFICIAL_NASA_DATA_SOURCES } from './src/science/dataConnector.ts';
 import { PlanetXCandidate } from './src/types/index.ts';
 import {
@@ -980,6 +980,7 @@ app.post('/api/planetx/candidates/from-spherex', (req: Request, res: Response) =
     id: `CAND-SPX-${Date.now().toString(36).toUpperCase()}`,
     designation: String(designation || `SPHEREx Residual (${ra.toFixed(3)}°, ${dec.toFixed(3)}°)`),
     survey: 'SPHEREx',
+    dataOrigin: 'ARCHIVE_DERIVED',
     raDeg: ra, decDeg: dec,
     eclipticLonDeg: ecliptic.lonDeg, eclipticLatDeg: ecliptic.latDeg,
     heliocentricDistanceAU: null, apparentMagW1: null, apparentMagW2: null, colorW1W2: null,
@@ -1020,8 +1021,8 @@ app.get('/api/planetx/etno-catalog', async (_req: Request, res: Response) => {
     });
   } catch (error) {
     res.json({
-      count: VERIFIED_ETNO_CATALOG.length,
-      objects: VERIFIED_ETNO_CATALOG,
+      count: LITERATURE_ETNO_REFERENCE_SAMPLE.length,
+      objects: LITERATURE_ETNO_REFERENCE_SAMPLE,
       source: 'Bundled literature reference catalogue',
       liveDataAvailable: false,
       warning: error instanceof Error ? error.message : 'MPC feed unavailable.',

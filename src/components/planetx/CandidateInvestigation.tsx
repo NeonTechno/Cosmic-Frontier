@@ -53,7 +53,8 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
   const hasEpochMeasurements = Boolean(candidate?.observationHistory.some((obs) =>
     obs.dxArcsec !== null || obs.dyArcsec !== null || obs.w1FluxMjy !== null || obs.w2FluxMjy !== null
   ));
-  const hasMeasuredDistance = candidate?.heliocentricDistanceAU != null && candidate.heliocentricDistanceAU > 0;
+  const isSyntheticDemo = candidate?.dataOrigin === 'SYNTHETIC_DEMO';
+  const hasDistanceForTrack = candidate?.heliocentricDistanceAU != null && candidate.heliocentricDistanceAU > 0;
 
   // Auto-select newly added candidate when candidates list grows or selection is missing
   useEffect(() => {
@@ -192,7 +193,17 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     ctx.fillStyle = lightCanvas ? '#F4F6F8' : '#111820';
     ctx.fillRect(0, 0, w, h);
 
-    const fit = calculateAstrometricTrajectory(candidate);
+    const fit = (() => {
+      try {
+        return calculateAstrometricTrajectory(candidate);
+      } catch {
+        ctx.fillStyle = lightCanvas ? '#596A78' : '#AAB6C2';
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText('Illustrative track unavailable: check distance and observation epochs', 12, 18);
+        return null;
+      }
+    })();
+    if (!fit) return;
 
     // Compute coordinate bounds
     const allRas = fit.modelTrajectory.map((p) => p.ra);
@@ -253,7 +264,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     // Titles
     ctx.fillStyle = lightCanvas ? '#596A78' : '#AAB6C2';
     ctx.font = '10px JetBrains Mono';
-    ctx.fillText(`Reflex Ellipse: π = ${fit.parallaxAmplitudeArcsec}″`, 12, 18);
+    ctx.fillText(`Illustrative parallax: π ≈ ${fit.parallaxAmplitudeArcsec}″`, 12, 18);
     ctx.fillText(`Proper Motion: μ = ${fit.linearProperMotionArcsecYr}″/yr`, 12, 32);
 
   }, [candidate]);
@@ -313,7 +324,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               >
                 {filteredCandidates.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.designation} ({c.survey})
+                    {c.designation} ({c.survey}{c.dataOrigin === 'SYNTHETIC_DEMO' ? ' · demo' : ''})
                   </option>
                 ))}
               </select>
@@ -356,7 +367,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               <div className="flex items-center space-x-2">
                 <Eye className="h-4 w-4 text-cyan-400" />
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-                  Multi-epoch Evidence Viewer · {candidate?.survey}
+                  Multi-epoch Evidence Viewer · {candidate?.survey}{isSyntheticDemo ? ' · SYNTHETIC DEMO' : ''}
                 </h4>
               </div>
               <div className="flex items-center space-x-2 text-xs font-mono">
@@ -444,19 +455,22 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
           {/* Astrometric Parallax Ellipse Fit */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <div className="flex items-center space-x-2">
-                <Sliders className="h-4 w-4 text-purple-400" />
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-                  Earth Reflex Parallax & Proper Motion Loop
-                </h4>
+              <div className="flex items-start space-x-2">
+                <Sliders className="h-4 w-4 text-purple-400 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+                    Illustrative Parallax + Proper-Motion Track
+                  </h4>
+                  <p className="mt-1 text-[10px] text-slate-500">Circular-Earth approximation for visual learning; not a fitted orbit or JPL ephemeris.</p>
+                </div>
               </div>
               <span className="text-xs font-mono text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/40">
-                Distance: {candidate?.heliocentricDistanceAU == null ? 'Not measured' : `${candidate.heliocentricDistanceAU} AU`}
+                {isSyntheticDemo ? 'Illustrative distance:' : 'Distance:'} {candidate?.heliocentricDistanceAU == null ? 'Not measured' : `${candidate.heliocentricDistanceAU} AU`}
               </span>
             </div>
 
             <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden border border-slate-800 bg-black">
-              {hasMeasuredDistance ? (
+              {hasDistanceForTrack ? (
                 <canvas
                   ref={trajectoryCanvasRef}
                   width={600}
@@ -466,8 +480,8 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
                   <Compass className="h-7 w-7 text-slate-600" />
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300">No orbit fit available</span>
-                  <span className="max-w-md text-[11px] leading-relaxed text-slate-500">A heliocentric distance and time-tagged astrometry are required before this workbench can plot a candidate-specific parallax or orbital trajectory. No default distance is substituted.</span>
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300">No illustrative track available</span>
+                  <span className="max-w-md text-[11px] leading-relaxed text-slate-500">A positive heliocentric distance is required for this illustrative track. It is not a fitted orbit; no default distance is substituted.</span>
                 </div>
               )}
             </div>
@@ -482,7 +496,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               <div className="flex items-center space-x-2">
                 <Flame className="h-4 w-4 text-amber-400" />
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-                  Physical & Astrometric Measurements
+                  Candidate Data & Vetting Diagnostics
                 </h4>
               </div>
               <button
@@ -493,25 +507,42 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               </button>
             </div>
 
+            <div className={`rounded-lg border px-3 py-2 text-[11px] leading-relaxed ${
+              isSyntheticDemo
+                ? 'border-amber-500/35 bg-amber-950/25 text-amber-200'
+                : candidate?.dataOrigin === 'ARCHIVE_DERIVED'
+                  ? 'border-cyan-500/30 bg-cyan-950/20 text-cyan-200'
+                  : 'border-slate-700 bg-slate-950 text-slate-300'
+            }`}>
+              <strong>{isSyntheticDemo ? 'SYNTHETIC DEMONSTRATION — NOT A DETECTION' : candidate?.dataOrigin === 'ARCHIVE_DERIVED' ? 'ARCHIVE-DERIVED RESIDUAL — NOT A CONFIRMED OBJECT' : 'PROVENANCE NOT SPECIFIED'}</strong>
+              <span className="block mt-1">
+                {isSyntheticDemo
+                  ? 'All displayed coordinates, photometry, offsets, distances and scores are invented teaching values. They demonstrate the vetting interface only and must not be cited as survey observations.'
+                  : candidate?.dataOrigin === 'ARCHIVE_DERIVED'
+                    ? 'This record was derived from a SPHEREx archive residual. It is a follow-up lead, not a confirmed moving object or Planet X detection.'
+                    : 'The origin of this record has not been verified. Treat its measurements as unconfirmed until provenance is supplied.'}
+              </span>
+            </div>
+
             {/* Metrics grid */}
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-                <span className="text-slate-400 block text-[10px]">Astrometric SNR</span>
+                <span className="text-slate-400 block text-[10px]">{isSyntheticDemo ? 'Demo SNR (not measured)' : 'Astrometric SNR'}</span>
                 <span className="text-amber-400 font-bold text-sm">{candidate?.astrometricSnr == null ? 'Not measured' : `${candidate.astrometricSnr} σ`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-                <span className="text-slate-400 block text-[10px]">Infrared Color W1−W2</span>
+                <span className="text-slate-400 block text-[10px]">{isSyntheticDemo ? 'Demo W1−W2 (illustrative)' : 'Infrared Color W1−W2'}</span>
                 <span className="text-white font-bold text-sm">{candidate?.colorW1W2 == null ? 'Not measured' : candidate.colorW1W2 + ' mag'}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-                <span className="text-slate-400 block text-[10px]">Annual Parallax (π)</span>
+                <span className="text-slate-400 block text-[10px]">{isSyntheticDemo ? 'Demo parallax (illustrative)' : 'Annual Parallax (π)'}</span>
                 <span className="text-cyan-400 font-bold text-sm">{candidate?.parallaxArcsec == null ? 'Not measured' : `${(candidate.parallaxArcsec * 1000).toFixed(1)} mas`}</span>
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-                <span className="text-slate-400 block text-[10px]">Predicted Mass</span>
+                <span className="text-slate-400 block text-[10px]">{isSyntheticDemo ? 'Demo mass (not inferred)' : 'Predicted Mass'}</span>
                 <span className="text-purple-300 font-bold text-sm">{candidate?.estimatedMassEarths == null ? 'Not estimated' : `~${candidate.estimatedMassEarths} M⊕`}</span>
               </div>
 
@@ -520,7 +551,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
                 <span className="text-slate-200 font-semibold truncate block">
                   {candidate?.raDeg.toFixed(2)}°, {candidate?.decDeg.toFixed(2)}°
                 </span>
-                {candidate && <a
+                {candidate && !isSyntheticDemo && <a
                   href={`https://byw.tools/wiseview#ra=${candidate.raDeg}&dec=${candidate.decDeg}&size=176&band=2&speed=500`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -531,7 +562,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               </div>
 
               <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
-                <span className="text-slate-400 block text-[10px]">Batygin & Brown Fit</span>
+                <span className="text-slate-400 block text-[10px]">{isSyntheticDemo ? 'Demo hypothesis score' : 'Batygin & Brown Fit'}</span>
                 <span className="text-emerald-400 font-bold text-sm">{candidate?.theoreticalConsistency == null ? 'Not evaluated' : `${candidate.theoreticalConsistency}%`}</span>
               </div>
 

@@ -222,6 +222,7 @@ export interface PlanetXCandidate {
   id: string;
   designation: string;
   survey: 'SPHEREx' | 'WISE / NEOWISE' | 'Subaru HSC Deep' | 'Pan-STARRS' | 'Rubin LSST Mock Drill';
+  dataOrigin?: 'SYNTHETIC_DEMO' | 'ARCHIVE_DERIVED' | 'UNSPECIFIED';
   raDeg: number;
   decDeg: number;
   eclipticLonDeg: number;
@@ -303,8 +304,9 @@ export interface AstrometryFitResult {
   modelTrajectory: { epochMJD: number; ra: number; dec: number }[];
   parallaxAmplitudeArcsec: number;
   linearProperMotionArcsecYr: number;
-  reducedChi2: number;
-  isPhysicalOrbit: boolean;
+  reducedChi2: number | null;
+  isPhysicalOrbit: boolean | null;
+  modelStatus: 'ILLUSTRATIVE_ONLY';
 }
 
 export interface NasaDataEndpointStatus {

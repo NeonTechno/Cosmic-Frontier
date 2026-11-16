@@ -5,10 +5,10 @@
  * COSMIC FRONTIER — Planet X Evidence & Observational Constraints Panel
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ExtremeTNO, PlanetXHypothesisParams } from '../../types/index.ts';
 import { calculateClusteringSignificance } from '../../science/orbitalMechanics.ts';
-import { ShieldCheck, BarChart3, Sliders, AlertTriangle, Sparkles, BookOpen } from 'lucide-react';
+import { ShieldCheck, BarChart3, Sliders, AlertTriangle, Sparkles, BookOpen, Download } from 'lucide-react';
 
 interface EvidencePanelProps {
   etnoCatalog: ExtremeTNO[];
@@ -23,11 +23,63 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
   onUpdateHypothesis,
   onExplainEvidence,
 }) => {
-  const stats = calculateClusteringSignificance(etnoCatalog);
+  const stats = useMemo(() => calculateClusteringSignificance(etnoCatalog), [etnoCatalog]);
+  const sourceCounts = useMemo(() => ({
+    mpc: etnoCatalog.filter((object) => object.source === 'MPC').length,
+    literature: etnoCatalog.filter((object) => object.source === 'literature').length,
+    unspecified: etnoCatalog.filter((object) => !object.source).length,
+  }), [etnoCatalog]);
   const [mass, setMass] = useState<number>(hypothesis.massEarths);
   const [semiMajor, setSemiMajor] = useState<number>(hypothesis.semiMajorAxisAU);
   const [ecc, setEcc] = useState<number>(hypothesis.eccentricity);
   const [inc, setInc] = useState<number>(hypothesis.inclinationDeg);
+
+  const downloadAnalysisManifest = () => {
+    const manifest = {
+      schemaVersion: '1.0',
+      generatedAt: new Date().toISOString(),
+      application: 'Black Star Orbit',
+      analysis: {
+        name: 'Exploratory eTNO angular-clustering diagnostics',
+        version: stats.analysisVersion,
+        method: 'Seeded Monte Carlo null comparisons',
+        nullModels: {
+          longitudeOfPerihelion: 'Uniform circular angles',
+          orbitalPoles: 'Isotropic directions on the sphere',
+        },
+        simulations: stats.simulations,
+        randomSeed: stats.seed,
+        selectionBiasCorrected: false,
+        commonEpochPropagation: false,
+        result: stats,
+        sourceCounts,
+        limitations: stats.warnings,
+      },
+      hypothesisParameters: hypothesis,
+      inputCatalogue: etnoCatalog.map((object) => ({
+        id: object.id,
+        name: object.name,
+        semiMajorAxisAU: object.semiMajorAxisAU,
+        perihelionDistanceAU: object.perihelionDistAU,
+        eccentricity: object.eccentricity,
+        inclinationDeg: object.inclinationDeg,
+        longitudeAscendingNodeDeg: object.longAscNodeDeg,
+        argumentOfPerihelionDeg: object.argPerihelionDeg,
+        longitudeOfPerihelionDeg: object.longPerihelionDeg,
+        orbitEpochJD: object.orbitEpochJD ?? null,
+        discoverySurvey: object.discoverySurvey,
+        source: object.source ?? 'unspecified',
+      })),
+      interpretation: 'This export is an exploratory, unweighted null-model analysis. It is not survey-selection corrected and is not evidence that Planet Nine exists.',
+    };
+    const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'black-star-orbit-etno-analysis-manifest.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleApplyParams = () => {
     const perihelion = semiMajor * (1 - ecc);
@@ -54,15 +106,15 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
         <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl space-y-2">
           <div className="flex items-center justify-between text-xs font-mono text-cyan-400">
             <span className="flex items-center gap-1 font-semibold">
-              <BarChart3 className="h-4 w-4" /> Rayleigh Test (ϖ)
+              <BarChart3 className="h-4 w-4" /> Monte Carlo null test (ϖ)
             </span>
             <span className="text-emerald-400 font-bold">p = {stats.pValueClustering}</span>
           </div>
           <div className="text-2xl font-bold text-white font-mono">
-            {stats.meanVarpiDeg}°
+            {stats.meanVarpiDeg === null ? 'No preferred direction' : `${stats.meanVarpiDeg}°`}
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-            Mean longitude of perihelion for physical eTNO cluster. Probability of random alignment is &lt; 0.1% (3.4σ).
+            Mean longitude across {stats.sampleSize} catalogue objects. The p-value compares the observed concentration with a uniform-angle null; it is not corrected for survey selection.
           </p>
         </div>
 
@@ -72,13 +124,13 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
             <span className="flex items-center gap-1 font-semibold">
               <ShieldCheck className="h-4 w-4" /> Orbital Pole Dispersion
             </span>
-            <span className="text-slate-300">Δθ ≈ {stats.dispersionDeg}°</span>
+            <span className="text-slate-300">{stats.poleDispersionDeg === null ? 'Dispersion unavailable' : `Δθ ≈ ${stats.poleDispersionDeg}°`}</span>
           </div>
           <div className="text-2xl font-bold text-purple-300 font-mono">
-            R = {stats.rayleighR}
+            R = {stats.poleRayleighR}
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-            Vector resultant length measuring orbital plane mutual inclination confinement.
+            Mean angular separation from the sample's mean orbital pole. Isotropic-null Monte Carlo p = {stats.pValuePoleClustering} (n = {stats.poleSampleSize}).
           </p>
         </div>
 
@@ -88,14 +140,41 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
             <span className="flex items-center gap-1 font-semibold">
               <AlertTriangle className="h-4 w-4" /> Why Not Discovered Yet?
             </span>
-            <span className="text-amber-300 font-bold">Aphelion Blind Spot</span>
+            <span className="text-amber-300 font-bold">Not modelled</span>
           </div>
           <div className="text-xl font-bold text-amber-200 font-mono">
-            d ≈ 400 – 480 AU
+            Survey selection effects
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-            Planet spends ~70% of orbit near aphelion projected against the dense galactic plane in Taurus/Orion.
+            These diagnostics do not model survey pointings, depth, cadence, weather, tracking or follow-up efficiency. A selection-aware analysis is still required.
           </p>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-amber-500/25 bg-amber-950/20 p-4 space-y-2">
+        <div className="flex items-center gap-2 text-xs font-semibold text-amber-300">
+          <AlertTriangle className="h-4 w-4" /> Interpretation and limitations
+        </div>
+        <p className="text-[11px] leading-relaxed text-slate-300">
+          {stats.simulations.toLocaleString()} deterministic Monte Carlo trials · {stats.nullModel}. These are exploratory null-model diagnostics, not a selection-corrected Planet Nine significance test.
+        </p>
+        <p className="text-[10px] leading-relaxed text-slate-400">
+          Sample composition: {sourceCounts.mpc} MPC feed objects · {sourceCounts.literature} bundled literature references · {sourceCounts.unspecified} with unspecified source. Only objects with usable angles enter each statistic.
+        </p>
+        <ul className="list-disc space-y-1 pl-4 text-[10px] leading-relaxed text-slate-400">
+          {stats.warnings.map((warning: string, index: number) => <li key={index}>{warning}</li>)}
+        </ul>
+        <p className="text-[10px] leading-relaxed text-slate-400">
+          Further reading: <a className="text-cyan-300 underline underline-offset-2" href="https://doi.org/10.3847/PSJ/abe53e" target="_blank" rel="noreferrer">Napier et al. (2021), selection effects in ETNO clustering</a> · <a className="text-cyan-300 underline underline-offset-2" href="https://github.com/OSSOS/SurveySimulator" target="_blank" rel="noreferrer">OSSOS Survey Simulator</a>.
+        </p>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={downloadAnalysisManifest}
+            className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-950/30 px-3 py-2 text-[11px] font-mono text-cyan-200 transition hover:bg-cyan-900/40"
+          >
+            <Download className="h-3.5 w-3.5" /> Export reproducible analysis manifest
+          </button>
         </div>
       </div>
 

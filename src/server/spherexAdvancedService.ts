@@ -25,6 +25,17 @@ const HIPS_DATA_ROOT = process.env.SPHEREX_HIPS_DATA_URL ||
   'https://irsa.ipac.caltech.edu/ibe/data/spherex/dr1/hips5_cube/hips_20261026';
 const MPC_DISTANT_URL = 'https://minorplanetcenter.net/Extended_Files/distant_extended.json.gz';
 const FITS_BLOCK = 2880;
+export const SPHEREX_HIPS_TILE_SIZE = 512;
+export const SPHEREX_HIPS_CUBE_DEPTH = 102;
+
+export function validateSpherexHipsCubeDimensions(width: number, height: number, depth: number): void {
+  if (width !== SPHEREX_HIPS_TILE_SIZE || height !== SPHEREX_HIPS_TILE_SIZE || depth !== SPHEREX_HIPS_CUBE_DEPTH) {
+    throw new Error(
+      'Unexpected SPHEREx HiPS cube dimensions ' + width + '×' + height + '×' + depth +
+      '; expected 512×512×102 per the official IRSA notebook.'
+    );
+  }
+}
 const fitsCaches = new Map<string, { expires: number; value: unknown }>();
 
 function cacheGet<T>(key: string): T | null {
@@ -82,24 +93,23 @@ function readHdus(input: Buffer): { buffer: Buffer; hdus: FitsHdu[] } {
   }
   return { buffer, hdus };
 }
-function numericArray(buffer: Buffer, hdu: FitsHdu): Float32Array {
+function numericAccessor(buffer: Buffer, hdu: FitsHdu): (index: number) => number {
   const count = hdu.axes.reduce((a, b) => a * b, 1);
-  const out = new Float32Array(count);
   const dv = new DataView(buffer.buffer, buffer.byteOffset + hdu.dataOffset, hdu.dataBytes);
   const scale = Number(hdu.header.BSCALE ?? 1);
   const zero = Number(hdu.header.BZERO ?? 0);
   const bytes = Math.abs(hdu.bitpix) / 8;
-  for (let i = 0; i < count; i++) {
-    let v = NaN;
-    const p = i * bytes;
-    if (hdu.bitpix === -32) v = dv.getFloat32(p, false);
-    else if (hdu.bitpix === -64) v = dv.getFloat64(p, false);
-    else if (hdu.bitpix === 32) v = dv.getInt32(p, false);
-    else if (hdu.bitpix === 16) v = dv.getInt16(p, false);
-    else if (hdu.bitpix === 8) v = dv.getUint8(p);
-    out[i] = Number.isFinite(v) ? v * scale + zero : NaN;
-  }
-  return out;
+  return (index: number) => {
+    if (!Number.isInteger(index) || index < 0 || index >= count) return NaN;
+    const p = index * bytes;
+    let value = NaN;
+    if (hdu.bitpix === -32) value = dv.getFloat32(p, false);
+    else if (hdu.bitpix === -64) value = dv.getFloat64(p, false);
+    else if (hdu.bitpix === 32) value = dv.getInt32(p, false);
+    else if (hdu.bitpix === 16) value = dv.getInt16(p, false);
+    else if (hdu.bitpix === 8) value = dv.getUint8(p);
+    return Number.isFinite(value) ? value * scale + zero : NaN;
+  };
 }
 function tableColumns(header: Record<string, FitsScalar>) {
   const count = Number(header.TFIELDS || 0);
@@ -322,21 +332,24 @@ export interface SpherexHipsSpectrum {
   blankDichroicLayers: number[];
   aperture: { radiusPixels: number; annulusInnerPixels: number; annulusOuterPixels: number; backgroundMethod: string };
   spectrum: { layer: number; wavelengthMicrons: number; fluxMilliJansky: number | null; backgroundSurfaceBrightness: number | null; aperturePixels: number; flaggedPixels: number; medianHits: number | null; blank: boolean }[];
+  spectrumUse: 'visualization-only';
+  flagsPolicy: 'reported-not-masked';
   notes: string[];
 }
 export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, apertureRadius = 5, annulusInner = 40, annulusOuter = 60): Promise<SpherexHipsSpectrum> {
-  const cacheKey = 'hips-spectrum-' + [raDeg,decDeg,apertureRadius,annulusInner,annulusOuter].map(n=>n.toFixed(3)).join('-');
+  const cacheKey = 'hips-spectrum-' + [raDeg,decDeg,apertureRadius,annulusInner,annulusOuter].map(n=>n.toFixed(7)).join('-');
   const cached = cacheGet<SpherexHipsSpectrum>(cacheKey);
   if (cached) return cached;
   if (!(apertureRadius > 0 && annulusInner > apertureRadius && annulusOuter > annulusInner && annulusOuter <= 100)) throw new Error('Use aperture radius > 0 and annulus radii with aperture < inner < outer ≤ 100 pixels.');
   const props = await getSpherexProperties();
   const waveValues = String(props.data_cube_crval3_arr || '').trim().split(/\s+/).map(Number).filter(Number.isFinite);
   const depth = Number(props.hips_cube_depth || waveValues.length);
-  if (depth !== 102 || waveValues.length !== 102) throw new Error('IRSA HiPS metadata did not report the expected 102 spectral layers.');
+  if (depth !== SPHEREX_HIPS_CUBE_DEPTH || waveValues.length !== SPHEREX_HIPS_CUBE_DEPTH) throw new Error('IRSA HiPS metadata did not report the expected 102 spectral layers.');
   const order = 5, nside = 1 << order;
   const coarse = healpixNestedIndex(nside, raDeg, decDeg);
-  const fine = healpixNestedIndex(nside * 256, raDeg, decDeg);
-  if (coarse.pixel !== Math.floor(fine.pixel / (256 * 256))) throw new Error('Nested HEALPix child pixel does not map to the expected Norder 5 parent tile.');
+  const fineNside = nside * SPHEREX_HIPS_TILE_SIZE;
+  const fine = healpixNestedIndex(fineNside, raDeg, decDeg);
+  if (coarse.pixel !== Math.floor(fine.pixel / (SPHEREX_HIPS_TILE_SIZE * SPHEREX_HIPS_TILE_SIZE))) throw new Error('Nested HEALPix child pixel does not map to the expected Norder 5 parent tile.');
   const dir = Math.floor(coarse.pixel / 10000) * 10000;
   const cubeUrl = HIPS_DATA_ROOT + '/Norder' + order + '/Dir' + dir + '/Npix' + coarse.pixel + '_cube.fits';
   const response = await fetch(cubeUrl, { signal: AbortSignal.timeout(25000) });
@@ -348,37 +361,51 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   const flags = hdus.find(h => h.extname === 'FLAGS');
   if (!image || image.axes.length !== 3 || image.axes[2] !== 102) throw new Error('HiPS IMAGE extension is not a 102-layer 3D cube.');
   const width = image.axes[0], height = image.axes[1], layers = image.axes[2];
-  if (width !== 256 || height !== 256) throw new Error('Unexpected HiPS tile dimensions ' + width + '×' + height + '; expected 256×256.');
+  validateSpherexHipsCubeDimensions(width, height, depth);
   const hipsWcs = skyToHpxPixel(raDeg, decDeg, image.header);
-  const x = Math.round(hipsWcs.px1 - 1), y = Math.round(hipsWcs.py1 - 1);
-  if (x < 0 || x >= width || y < 0 || y >= height) throw new Error('The selected sky position maps outside the retrieved HiPS FITS tile according to its HPX WCS.');
-  const cube = numericArray(buffer, image);
-  const hitArray = hits && hits.axes.length === 3 ? numericArray(buffer, hits) : null;
-  const flagArray = flags && flags.axes.length === 3 ? numericArray(buffer, flags) : null;
+  // Preserve the sub-pixel sky position returned by the HPX WCS, as in the IRSA notebook.
+  const x = hipsWcs.px1 - 1, y = hipsWcs.py1 - 1;
+  if (x < -0.5 || x > width - 0.5 || y < -0.5 || y > height - 0.5) {
+    throw new Error('The selected sky position maps outside the retrieved HiPS FITS tile according to its HPX WCS.');
+  }
+  // Read only aperture/annulus samples from the FITS buffer. A 512×512×102
+  // cube can be >300 MB across IMAGE/NHITS/FLAGS; materializing three more
+  // Float32Arrays would unnecessarily double peak memory on the web service.
+  const readCube = numericAccessor(buffer, image);
+  const readHits = hits && hits.axes.length === 3 ? numericAccessor(buffer, hits) : null;
+  const readFlags = flags && flags.axes.length === 3 ? numericAccessor(buffer, flags) : null;
   const spec = [];
   const blankLayers = [50, 51];
+  const annulusTouchesTileEdge = x - annulusOuter < -0.5 || x + annulusOuter > width - 0.5 || y - annulusOuter < -0.5 || y + annulusOuter > height - 0.5;
   const notes = [
     'Layer index is zero-based; wavelength order is ascending from the official HiPS properties.',
     'Layers 50 and 51 are the documented blank dichroic channels (band 3 channel 17 and band 4 channel 1).',
     'Aperture photometry uses a circular source aperture and a local annulus; the annulus background is a 3-sigma clipped mean.',
-    'The tile is selected with nested HEALPix Norder 5; the within-tile pixel is resolved from the FITS HPX celestial WCS, following the official notebook.',
+    'The tile is selected with nested HEALPix Norder 5 and contains 512×512 pixels, matching the official IRSA notebook.',
+    'This simple aperture spectrum is for visualization only; IRSA recommends its Spectrophotometry Tool for science-grade spectra.',
+    'Non-zero FLAGS values are reported for the aperture but are not masked because the flag-bit policy has not been independently validated here.',
+    'Aperture membership uses pixel-center inclusion around the sub-pixel WCS position; fractional pixel overlap and a full photometric uncertainty model are not implemented.',
+    ...(annulusTouchesTileEdge ? ['The background annulus reaches beyond the FITS tile edge and is clipped; the local background estimate may be biased.'] : []),
   ];
-  const pixScaleArcsec = Math.sqrt(4 * Math.PI / (12 * Math.pow(nside * 256, 2))) * (180 / Math.PI) * 3600;
+  const pixScaleArcsec = Math.sqrt(4 * Math.PI / (12 * Math.pow(fineNside, 2))) * (180 / Math.PI) * 3600;
   const pixSr = Math.pow(pixScaleArcsec / 206264.806, 2);
   for (let layer = 0; layer < layers; layer++) {
     const layerOffset: number = layer * width * height;
     const ap: number[] = [], ann: number[] = [];
     let flaggedPixels = 0, hitsValues: number[] = [];
-    for (let py = Math.max(0, y - annulusOuter); py <= Math.min(height - 1, y + annulusOuter); py++) {
-      for (let px = Math.max(0, x - annulusOuter); px <= Math.min(width - 1, x + annulusOuter); px++) {
+    for (let py = Math.max(0, Math.floor(y - annulusOuter)); py <= Math.min(height - 1, Math.ceil(y + annulusOuter)); py++) {
+      for (let px = Math.max(0, Math.floor(x - annulusOuter)); px <= Math.min(width - 1, Math.ceil(x + annulusOuter)); px++) {
         const radius = Math.hypot(px - x, py - y);
         const idx = layerOffset + py * width + px;
-        const value = cube[idx];
+        const value = readCube(idx);
         if (!Number.isFinite(value)) continue;
         if (radius <= apertureRadius) {
           ap.push(value);
-          if (flagArray && flagArray[idx] !== 0) flaggedPixels++;
-          if (hitArray && Number.isFinite(hitArray[idx])) hitsValues.push(hitArray[idx]);
+          if (readFlags && readFlags(idx) !== 0) flaggedPixels++;
+          if (readHits) {
+            const hitValue = readHits(idx);
+            if (Number.isFinite(hitValue)) hitsValues.push(hitValue);
+          }
         } else if (radius >= annulusInner && radius <= annulusOuter) ann.push(value);
       }
     }
@@ -410,7 +437,8 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
     hipsUrl:HIPS_ROOT, cubeUrl, hipsOrder:order, healpixPixel:coarse.pixel, tileDirectory:dir,
     pixel:{x,y,width,height}, wavelengthRangeMicrons:[waveValues[0],waveValues[waveValues.length-1]],
     blankDichroicLayers:blankLayers,
-    aperture:{radiusPixels:apertureRadius,annulusInnerPixels:annulusInner,annulusOuterPixels:annulusOuter,backgroundMethod:'Iterative 3σ-clipped annulus mean'},
+    spectrumUse:'visualization-only', flagsPolicy:'reported-not-masked',
+    aperture:{radiusPixels:apertureRadius,annulusInnerPixels:annulusInner,annulusOuterPixels:annulusOuter,backgroundMethod:'Iterative 3σ-clipped annulus mean; pixel-center aperture approximation'},
     spectrum:spec, notes,
   };
   cacheSet(cacheKey,result,60*60*1000);

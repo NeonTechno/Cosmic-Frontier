@@ -25,6 +25,27 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 - [x] Add Gemini-powered astronomy concept-art generation in the Editorial Journal; generated artwork is labelled illustrative and never presented as telescope imagery or a measured result.
 - [ ] Evaluate AI answers against a curated astronomy question set, including adversarial prompts that try to elicit invented observations.
 
+## Scientific hardening — phase 1
+
+- [x] Correct the HiPS FITS tile dimensions to the official 512 × 512 × 102 layout and align the nested HEALPix child scale and pixel solid-angle conversion.
+- [x] Add a regression fixture using the official IRSA notebook coordinate example and expected Norder-5 pixel 445.
+- [x] Enforce the official 512 × 512 × 102 cube dimensions with a dedicated regression-tested validator.
+- [x] Label the HiPS aperture spectrum as visualization-only and direct scientific photometry to the IRSA Spectrophotometry Tool.
+- [x] Report non-zero HiPS FLAGS values without silently masking them before the flag-bit policy is validated.
+- [x] Replace the Planet X evidence panel's hardcoded “less than 0.1% / 3.4σ” statement with reproducible Monte Carlo null diagnostics.
+- [x] Include all catalogue objects with valid angles; do not pre-filter on the legacy `antiAligned` label.
+- [x] Add separate uniform-`varpi` and isotropic-orbital-pole null comparisons with deterministic seeds and explicit warnings.
+- [x] Display the MPC/literature/unspecified catalogue composition and link to peer-reviewed selection-bias and survey-simulator methodology.
+- [x] Mark the bundled Planet X candidate queue as synthetic teaching fixtures rather than implying they are WISE/Subaru detections.
+- [x] Mark the bundled ETNO examples as literature references and distinguish archive-derived SPHEREx residual leads from confirmed objects.
+- [x] Remove the default 400 AU substitution and fabricated reduced-χ² / physical-orbit flags from the astrometry illustration.
+- [x] Use supplied observation dates for plotted astrometry epochs and label the simplified circular-Earth track as illustrative only.
+- [x] Avoid allocating full IMAGE, NHITS, and FLAGS Float32 copies when extracting a small HiPS aperture; read only sampled FITS values to reduce peak memory.
+- [ ] Do not call the Planet X analysis selection-corrected until survey-specific pointing, depth, cadence, weather, tracking, and follow-up selection functions are implemented and validated.
+  - Research design and data contract: [Planet X survey-selection modelling plan](PLANETX_SELECTION_FUNCTION.md).
+- [ ] Propagate MPC osculating elements to a common epoch before comparing angular orbital elements.
+- [ ] Validate HiPS aperture photometry against the official notebook on a real downloaded cube; validate FITS FLAGS interpretation and science-grade uncertainties.
+
 ## Scientific research integrity
 
 - [ ] Verify each SPHEREx query against the official IRSA archive response and retain query parameters, retrieval time, product identifiers, and source URLs.
@@ -43,7 +64,8 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 ## Analytical and reproducibility quality
 
 - [ ] Every analysis view should show: input data, source, method, assumptions, units, uncertainty, output, and limitations.
-- [ ] Add exportable analysis manifests (JSON plus a human-readable report) containing exact inputs and software/version metadata.
+- [x] Add JSON analysis-manifest export with the full input catalogue, source labels, Monte Carlo seed, method/version, null assumptions, hypothesis parameters, and caveats.
+- [ ] Add a human-readable report and bind the exact application Git commit, archive retrieval timestamp, and source-payload hashes.
 - [ ] Add deterministic tests for coordinate transforms, orbital propagation, spectral calculations, FITS parsing, and uncertainty handling.
 - [ ] Add integration tests for live archive failures, empty query results, malformed FITS products, and rate limits.
 - [ ] Add a clean “reproduce this analysis” workflow from a saved target/query.
@@ -79,6 +101,18 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 - [ ] Test deployed API routes for JSON content types and expected schemas; an HTTP 200 SPA fallback is not proof that an API route works.
 - [ ] Verify Render deploys the intended branch and smoke-test the public service after deployment.
 - [ ] Keep a known-issues list and never describe incomplete or simulated functionality as a verified scientific result.
+
+## Scientific hardening — phase 2: survey selection
+
+- [x] Review the current OSSOS Survey Simulator architecture, including its Python/Fortran and f90wrap build path.
+- [x] Record the separate-worker integration decision, API contract, licensing review gate, and staged acceptance criteria in [OSSOS adapter design](OSSOS_ADAPTER_DESIGN.md).
+- [ ] Pin an immutable upstream OSSOS commit and reproduce its build/tests in a clean container.
+- [ ] Review the exact EUPL obligations and characterization-data terms before packaging or redistribution.
+- [ ] Select one characterized survey and its matching observed sample; pin and hash all characterization files.
+- [ ] Implement the worker adapter with strict schemas, raw-output preservation, and deterministic contract tests.
+- [ ] Validate a null and an explicitly parameterized alternative population against the same characterized survey.
+- [ ] Add worker image, simulator commit, characterization hashes, model priors, epoch, seed, and output hashes to the reproducibility manifest.
+- [ ] Keep the user-facing status as “selection effects not modelled” until the real survey run passes independent validation.
 
 ## Release status
 

@@ -223,6 +223,12 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
               astrometricSnr: cand.astrometricSnr,
               status: cand.status,
               theoreticalConsistency: cand.theoreticalConsistency,
+              dataOrigin: cand.dataOrigin ?? 'UNSPECIFIED',
+              provenanceNote: cand.provenanceNote ?? 'No provenance note supplied.',
+              unavailableMeasurements: cand.unavailableMeasurements ?? [],
+              interpretationRule: cand.dataOrigin === 'SYNTHETIC_DEMO'
+                ? 'All numeric values are synthetic teaching fixtures, not observations or candidate evidence.'
+                : 'Treat missing values as unavailable; archive-derived residuals are not confirmed objects.',
             })
           }
         />
@@ -256,7 +262,18 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
           onExplainEvidence={() =>
             onExplainWithAi('etno_clustering', {
               etnoCatalogCount: etnoCatalog.length,
-              clusteredObjects: etnoCatalog.filter((o) => o.antiAligned).map((o) => o.name),
+              orbitalElements: etnoCatalog.map((object) => ({
+                name: object.name,
+                semiMajorAxisAU: object.semiMajorAxisAU,
+                eccentricity: object.eccentricity,
+                inclinationDeg: object.inclinationDeg,
+                longitudeAscendingNodeDeg: object.longAscNodeDeg,
+                longitudePerihelionDeg: object.longPerihelionDeg,
+                orbitEpochJD: object.orbitEpochJD ?? null,
+                source: object.source ?? 'bundled reference catalogue',
+                clusteringStatus: object.clusteringStatus ?? 'not assessed',
+              })),
+              note: 'Legacy antiAligned labels are not supplied to the AI. These diagnostics use idealized null models only; survey selection and common-epoch propagation are not yet modelled.',
               hypothesisParams: hypothesis,
             })
           }

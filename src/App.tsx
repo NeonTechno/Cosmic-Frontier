@@ -34,7 +34,7 @@ import {
   PlanetXHypothesisParams,
 } from './types/index.ts';
 import {
-  VERIFIED_ETNO_CATALOG,
+  LITERATURE_ETNO_REFERENCE_SAMPLE,
   DEFAULT_PLANET_X_HYPOTHESIS,
   INITIAL_CANDIDATE_QUEUE,
 } from './science/orbitalMechanics.ts';
@@ -103,16 +103,16 @@ export default function App() {
       const etnoRes = await fetch('/api/planetx/etno-catalog');
       if (isJsonOk(etnoRes)) {
         const etnoData = await etnoRes.json();
-        setEtnoCatalog(etnoData.objects || VERIFIED_ETNO_CATALOG);
+        setEtnoCatalog(etnoData.objects || LITERATURE_ETNO_REFERENCE_SAMPLE);
       } else {
-        setEtnoCatalog(VERIFIED_ETNO_CATALOG);
+        setEtnoCatalog(LITERATURE_ETNO_REFERENCE_SAMPLE);
       }
     } catch (err: unknown) {
       console.warn('Backend fetch failed; SPHEREx observations remain empty rather than being simulated:', err);
       setSpherexObservations([]);
       setSpherexError(err instanceof Error ? err.message : 'SPHEREx backend unavailable. No synthetic observations are loaded.');
       setCandidates(INITIAL_CANDIDATE_QUEUE);
-      setEtnoCatalog(VERIFIED_ETNO_CATALOG);
+      setEtnoCatalog(LITERATURE_ETNO_REFERENCE_SAMPLE);
     } finally {
       setIsSpherexLoading(false);
     }

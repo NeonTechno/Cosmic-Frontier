@@ -93,8 +93,8 @@ export const SpherexAdvancedWorkflows: React.FC<Props> = ({ mode }) => {
   const selected = mode === 'hips' ? result?.spectrum?.[selectedLayer] : null;
   const downloadCsv = () => {
     if (!result?.spectrum) return;
-    const lines = ['layer,wavelength_um,flux_mJy,background_MJy_sr,aperture_pixels,flagged_pixels,median_hits,blank'];
-    for (const p of result.spectrum) lines.push([p.layer,p.wavelengthMicrons,p.fluxMilliJansky ?? '',p.backgroundSurfaceBrightness ?? '',p.aperturePixels,p.flaggedPixels,p.medianHits ?? '',p.blank].join(','));
+    const lines = ['layer,wavelength_um,flux_mJy,background_MJy_sr,aperture_pixels,flagged_pixels,median_hits,blank,spectrum_use,flags_policy'];
+    for (const p of result.spectrum) lines.push([p.layer,p.wavelengthMicrons,p.fluxMilliJansky ?? '',p.backgroundSurfaceBrightness ?? '',p.aperturePixels,p.flaggedPixels,p.medianHits ?? '',p.blank,result.spectrumUse ?? 'unspecified',result.flagsPolicy ?? 'unspecified'].join(','));
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a'); link.href=url; link.download='spherex-hips-spectrum.csv'; link.click(); URL.revokeObjectURL(url);
@@ -181,6 +181,11 @@ export const SpherexAdvancedWorkflows: React.FC<Props> = ({ mode }) => {
             <div className="rounded-lg border border-slate-800 p-3 text-xs"><div className="text-slate-500">Cube FITS</div><a className="mt-1 block break-all text-cyan-300 underline" href={result.cubeUrl} target="_blank" rel="noreferrer">Open source tile</a></div>
             <div className="rounded-lg border border-slate-800 p-3 text-xs"><div className="text-slate-500">Wavelength range</div><div className="mt-1 text-white">{result.wavelengthRangeMicrons[0]}–{result.wavelengthRangeMicrons[1]} µm</div></div>
           </div>
+          {mode === 'hips' && (
+            <div role="note" className="rounded-lg border border-amber-500/30 bg-amber-950/25 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
+              <strong>Quick-look spectrum — visualization only.</strong> This aperture extraction is not a science-grade SPHEREx spectrum. Use the IRSA Spectrophotometry Tool for scientific photometry. Non-zero flags are reported but not masked in this preview.
+            </div>
+          )}
           <ul className="space-y-1 text-[10px] leading-relaxed text-slate-500">{result.notes.map((note:string,i:number)=><li key={i}>• {note}</li>)}</ul>
         </div>
       )}
