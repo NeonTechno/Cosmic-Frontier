@@ -29,17 +29,20 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 
 - [x] Correct the HiPS FITS tile dimensions to the official 512 × 512 × 102 layout and align the nested HEALPix child scale and pixel solid-angle conversion.
 - [x] Add a regression fixture using the official IRSA notebook coordinate example and expected Norder-5 pixel 445.
+- [x] Enforce the official 512 × 512 × 102 cube dimensions with a dedicated regression-tested validator.
 - [x] Label the HiPS aperture spectrum as visualization-only and direct scientific photometry to the IRSA Spectrophotometry Tool.
 - [x] Report non-zero HiPS FLAGS values without silently masking them before the flag-bit policy is validated.
 - [x] Replace the Planet X evidence panel's hardcoded “less than 0.1% / 3.4σ” statement with reproducible Monte Carlo null diagnostics.
 - [x] Include all catalogue objects with valid angles; do not pre-filter on the legacy `antiAligned` label.
 - [x] Add separate uniform-`varpi` and isotropic-orbital-pole null comparisons with deterministic seeds and explicit warnings.
+- [x] Display the MPC/literature/unspecified catalogue composition and link to peer-reviewed selection-bias and survey-simulator methodology.
 - [x] Mark the bundled Planet X candidate queue as synthetic teaching fixtures rather than implying they are WISE/Subaru detections.
 - [x] Mark the bundled ETNO examples as literature references and distinguish archive-derived SPHEREx residual leads from confirmed objects.
 - [x] Remove the default 400 AU substitution and fabricated reduced-χ² / physical-orbit flags from the astrometry illustration.
 - [x] Use supplied observation dates for plotted astrometry epochs and label the simplified circular-Earth track as illustrative only.
 - [x] Avoid allocating full IMAGE, NHITS, and FLAGS Float32 copies when extracting a small HiPS aperture; read only sampled FITS values to reduce peak memory.
 - [ ] Do not call the Planet X analysis selection-corrected until survey-specific pointing, depth, cadence, weather, tracking, and follow-up selection functions are implemented and validated.
+  - Research design and data contract: [Planet X survey-selection modelling plan](PLANETX_SELECTION_FUNCTION.md).
 - [ ] Propagate MPC osculating elements to a common epoch before comparing angular orbital elements.
 - [ ] Validate HiPS aperture photometry against the official notebook on a real downloaded cube; validate FITS FLAGS interpretation and science-grade uncertainties.
 
