@@ -370,6 +370,7 @@ export interface RenderObservationOptions {
   fieldOfViewArcmin?: number;
   subtractZodi?: boolean;
   showSnrMap?: boolean;
+  isSimulatedDemo?: boolean;
 }
 
 /**
@@ -418,6 +419,7 @@ export function renderObservationToCanvas(
   const fieldOfViewArcmin = options.fieldOfViewArcmin ?? 6.5;
   const subtractZodi = options.subtractZodi ?? true;
   const showSnrMap = options.showSnrMap ?? false;
+  const isSimulatedDemo = options.isSimulatedDemo ?? false;
 
   const w = canvas.width;
   const h = canvas.height;
@@ -474,6 +476,8 @@ export function renderObservationToCanvas(
         const idx = (y * w + x) * 4;
 
         let flux = bg * 0.2 + 0.1 * Math.sin(nx * Math.PI) * Math.cos(ny * Math.PI);
+        const simulatedZodi = 0.12 + 0.06 * Math.cos(nx * Math.PI * 2) * Math.sin(ny * Math.PI * 2);
+        if (!subtractZodi) flux += simulatedZodi;
         if (nebula > 0) {
           const filament = Math.sin(nx * 8 + ny * 6) * Math.cos(ny * 12 - nx * 4);
           flux += nebula * Math.max(0, filament * 0.8 + 0.2);
@@ -496,7 +500,10 @@ export function renderObservationToCanvas(
         const z0 = Math.sqrt(-2.0 * Math.log(r1 || 0.0001)) * Math.cos(2.0 * Math.PI * r2);
         flux += z0 * noise;
 
-        const normalized = Math.max(0, flux / 30);
+        const displayValue = showSnrMap
+          ? Math.max(0, Math.min(1, ((flux - bg * 0.2) / Math.max(noise, 0.01) + 2) / 18))
+          : Math.max(0, flux / 30);
+        const normalized = displayValue;
         const stretched = applyFluxStretch(normalized, stretch);
         const [r, g, b] = getColorFromMap(stretched, cmap);
 
@@ -535,6 +542,11 @@ export function renderObservationToCanvas(
 
   // Gaia DR3 Astrometric Overlay & Proper Motion Vectors
   if (showGaiaOverlay) {
+    if (isSimulatedDemo) {
+      ctx.fillStyle = 'rgba(167, 243, 208, 0.95)';
+      ctx.font = '10px monospace';
+      ctx.fillText('SIMULATED ASTROMETRY OVERLAY', 12, 18);
+    }
     for (const star of frame.stars) {
       const sx = star.x * w;
       const sy = star.y * h;
@@ -588,6 +600,11 @@ export function renderObservationToCanvas(
 
   // AllWISE Mid-Infrared Overlay (W1 3.4µm / W2 4.6µm)
   if (showWiseOverlay) {
+    if (isSimulatedDemo) {
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.95)';
+      ctx.font = '10px monospace';
+      ctx.fillText('SIMULATED WISE-STYLE OVERLAY', 12, 32);
+    }
     for (const star of frame.stars) {
       const sx = star.x * w;
       const sy = star.y * h;
@@ -603,12 +620,17 @@ export function renderObservationToCanvas(
 
       ctx.fillStyle = '#fbbf24';
       ctx.font = '8px monospace';
-      ctx.fillText('W1/W2', sx - 12, sy + 18);
+      ctx.fillText(isSimulatedDemo ? 'SIM W1/W2' : 'W1/W2', sx - 12, sy + 18);
     }
   }
 
   // Motion Vector Tracking Rings for Moving / Shifting Objects
   if (showMotionVectors) {
+    if (isSimulatedDemo) {
+      ctx.fillStyle = 'rgba(125, 211, 252, 0.95)';
+      ctx.font = '10px monospace';
+      ctx.fillText('SIMULATED MOTION VECTORS', 12, 46);
+    }
     for (const star of frame.stars) {
       if (star.isTargetObject || (star.pmRaMasYr && Math.abs(star.pmRaMasYr) > 1000)) {
         const sx = star.x * w;
