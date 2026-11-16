@@ -1464,7 +1464,9 @@ export const AsteroidMotionViewer: FC<AsteroidMotionViewerProps> = ({
                   <div className="flex justify-between">
                     <span>Estimated Diameter:</span>
                     <span className="font-bold text-[#F8FAFC]">
-                      {motionData.asteroid.diameterMeters.avg} m ({motionData.asteroid.diameterMeters.min}–{motionData.asteroid.diameterMeters.max} m)
+                      {motionData.asteroid.diameterMeters.avg !== null
+                        ? motionData.asteroid.diameterMeters.avg + ' m (' + motionData.asteroid.diameterMeters.min + '–' + motionData.asteroid.diameterMeters.max + ' m)'
+                        : 'Not reported'}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -1476,7 +1478,7 @@ export const AsteroidMotionViewer: FC<AsteroidMotionViewerProps> = ({
                   <div className="pt-1 border-t border-[#1E293B]/60 text-[11px]">
                     <span className="text-[#64748B] block text-[10px]">SCALE BENCHMARK</span>
                     <span className="text-[#F5C451]">
-                      {getSizeBenchmark(motionData.asteroid.diameterMeters.avg)}
+                      {motionData.asteroid.diameterMeters.avg !== null ? getSizeBenchmark(motionData.asteroid.diameterMeters.avg) : 'No size estimate is available from the supplied physical parameters.'}
                     </span>
                   </div>
                 </div>
