@@ -41,7 +41,7 @@ import {
 import { ShieldCheck, Compass, ExternalLink, ArrowUpRight, Orbit, Telescope, Activity, FlaskConical, ImageIcon, Globe, Moon, Sun } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite'>('cosmic-suite');
+  const [activeTab, setActiveTab] = useState<'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite'>('overview');
   const [serverOk, setServerOk] = useState<boolean>(true);
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
   const [showIntroModal, setShowIntroModal] = useState<boolean>(false);
@@ -211,7 +211,7 @@ export default function App() {
 
       if (tourCompleted || hasVisitedBefore) {
         window.localStorage.setItem('black-star-orbit-project-tour-completed', 'true');
-        setActiveTab('cosmic-suite');
+        setActiveTab('overview');
         setShowProjectTour(false);
       } else {
         setShowProjectTour(true);
@@ -288,15 +288,6 @@ export default function App() {
           <Navbar
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            onOpenAiAssistant={() => {
-              setAiContextType('general_science');
-              setAiPayload({
-                mission: 'NASA Space Apps Challenge 2026',
-                spherexStatus: 'Level-2/3 Specification Calibrated',
-                planetXModel: 'Batygin & Brown (2021) Eccentric Perturber',
-              });
-              setIsAiModalOpen(true);
-            }}
             onOpenDataModal={() => setIsDataModalOpen(true)}
             onOpenIntroModal={() => setShowIntroModal(true)}
             onOpenProjectTour={() => setShowProjectTour(true)}
