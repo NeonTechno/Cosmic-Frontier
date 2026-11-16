@@ -4,6 +4,9 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 
 ## Current upgrade — product experience
 
+- [x] Remove the standalone Live Telemetry navigation button from the Editorial Journal header without removing telemetry features from their dedicated observatory views.
+- [x] Place Gemini Visual Studio in the Cosmic Lab homepage as a dedicated creative astronomy workspace.
+
 - [x] Make the Editorial Journal the default page after the launch screen.
 - [x] Keep returning visitors on the Editorial Journal rather than silently bypassing it for the Cosmic Lab.
 - [x] Add the Editorial Journal as a dedicated step in the project tour.
@@ -22,7 +25,7 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 - [ ] Add an in-app provider health indicator that reports availability without exposing secrets.
 - [ ] Add rate limiting, request-size limits, and abuse controls for public AI endpoints.
 - [ ] Add structured response validation and a user-visible “AI-generated explanation” label.
-- [x] Add Gemini-powered astronomy concept-art generation in the Editorial Journal; generated artwork is labelled illustrative and never presented as telescope imagery or a measured result.
+- [x] Add Gemini-powered astronomy concept-art generation to the Cosmic Lab homepage; generated artwork is labelled illustrative and never presented as telescope imagery or a measured result.
 - [ ] Evaluate AI answers against a curated astronomy question set, including adversarial prompts that try to elicit invented observations.
 
 ## Scientific hardening — phase 1
