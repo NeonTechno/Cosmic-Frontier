@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { SpacecraftFlightHud } from './mission-control/SpacecraftFlightHud';
 import { PlanetaryIntelligenceConsole } from '../../components/planetary/PlanetaryIntelligenceConsole';
+import { JplObserverEphemeris } from './JplObserverEphemeris';
 
 interface MissionControlDashboardProps {
   onNavigate: (page: AppPage) => void;
@@ -697,6 +698,8 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
           </div>
         </div>
       </div>
+
+      <JplObserverEphemeris />
 
       {/* 4. SECTION C: EARTH APPROACH MONITOR SUMMARY */}
       <div className="p-6 sm:p-8 rounded-2xl bg-[#0B1630] border border-[#1E293B] shadow-2xl space-y-6">
