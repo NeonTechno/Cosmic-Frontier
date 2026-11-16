@@ -131,6 +131,12 @@ export const AsteroidWatch: FC<AsteroidWatchProps> = ({ onNavigate }) => {
             RECENT DATA (VERIFIED ARCHIVE)
           </span>
         );
+      case 'CALCULATED MODEL':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-sky-500/10 text-sky-300 border border-sky-500/30">
+            CALCULATED MODEL
+          </span>
+        );
       default:
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
