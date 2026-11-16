@@ -411,7 +411,7 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
         {/* Real-Time Space Telemetry Metric Strip */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-[#1E293B]/70 text-xs font-mono">
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
-            <span className="text-[#A7B4CC] text-[11px]">Earth Orbital Velocity:</span>
+            <span className="text-[#A7B4CC] text-[11px]">Mean Earth Orbital Velocity:</span>
             <div className="text-base font-bold text-[#F5C451] tabular-nums">
               {ephemData?.earthReference.orbitalVelocityKmS != null ? ephemData.earthReference.orbitalVelocityKmS : '—'} km/s
             </div>
