@@ -154,3 +154,13 @@ The server-side Gemini integration powers grounded astronomy explanations, the c
 ## Competition readiness
 
 Track scientific validation, analytical reproducibility, educational quality, accessibility, and release gates in the [Competition Readiness Tracker](docs/COMPETITION_READINESS.md).
+
+
+## Scientific hardening — phase 1
+
+- The SPHEREx DR1 HiPS FITS cube workflow now uses the official 512 × 512 × 102 tile shape and the corresponding Norder-5 nested HEALPix child scale when deriving equal-area pixel solid angle. The regression fixture uses the IRSA notebook's coordinate example (RA 60.8109955°, Dec 51.3404038° → Norder-5 pixel 445).
+- HiPS aperture spectra are explicitly labelled **visualization-only**. The official IRSA notebook warns that this simple aperture extraction is not for science use and directs users to the IRSA Spectrophotometry Tool for science-grade spectra. The application reports non-zero FLAGS but does not mask them until the flag-bit policy is independently validated.
+- Planetary orbital-angle diagnostics now include every object with usable angular elements, ignore legacy hand-labelled `antiAligned` flags, and use seeded Monte Carlo comparisons against uniform perihelion-longitude and isotropic orbital-pole null models.
+- These orbital tests are explicitly **not survey-selection corrected** and do not propagate objects to a common epoch. A small p-value must not be interpreted as the probability that Planet Nine exists.
+
+Reference methods: [IRSA HiPS notebook](https://caltech-ipac.github.io/irsa-tutorials/spherex-hipscube/) · [IRSA HiPS FITS product description](https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-products/) · [Napier et al. (2021), selection effects in ETNO clustering](https://doi.org/10.3847/PSJ/abe53e).
