@@ -5,7 +5,7 @@
  * COSMIC FRONTIER — Planet X Evidence & Observational Constraints Panel
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ExtremeTNO, PlanetXHypothesisParams } from '../../types/index.ts';
 import { calculateClusteringSignificance } from '../../science/orbitalMechanics.ts';
 import { ShieldCheck, BarChart3, Sliders, AlertTriangle, Sparkles, BookOpen } from 'lucide-react';
@@ -23,7 +23,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
   onUpdateHypothesis,
   onExplainEvidence,
 }) => {
-  const stats = calculateClusteringSignificance(etnoCatalog);
+  const stats = useMemo(() => calculateClusteringSignificance(etnoCatalog), [etnoCatalog]);
   const [mass, setMass] = useState<number>(hypothesis.massEarths);
   const [semiMajor, setSemiMajor] = useState<number>(hypothesis.semiMajorAxisAU);
   const [ecc, setEcc] = useState<number>(hypothesis.eccentricity);
