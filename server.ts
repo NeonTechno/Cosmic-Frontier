@@ -86,7 +86,7 @@ const port = Number.isFinite(cliPort)
   ? cliPort
   : parseInt((!isProd && process.env.PORT === '8080' ? '3000' : process.env.PORT) || '3000', 10);
 
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 // In-memory state for candidates (allows student vetting actions in the app)
 let candidateState: PlanetXCandidate[] = JSON.parse(JSON.stringify(INITIAL_CANDIDATE_QUEUE));
@@ -169,11 +169,11 @@ app.get('/api/data/solar-system', (_req: Request, res: Response) => {
   res.json({
     records: planetArchive.records || [],
     liveEphemerisEpoch: ephemeris.epoch,
-    source: 'NASA/JPL Solar System Dynamics & Live J2000 Ephemeris',
+    source: 'NASA/JPL reference catalogue with Black Star Orbit Keplerian propagation',
     sourceUrl: 'https://ssd.jpl.nasa.gov/horizons/',
     retrievalDateUTC: ephemeris.retrievalTimestamp,
-    dataStatus: 'LIVE EPHEMERIS',
-    isLive: true,
+    dataStatus: 'REFERENCE CATALOG + CALCULATED EPHEMERIS',
+    isLive: false,
   });
 });
 
@@ -506,6 +506,45 @@ app.get('/api/status', async (_req: Request, res: Response) => {
       },
     },
   });
+});
+
+// Cached reachability checks for the scientific services that power the research workspaces.
+let cachedResearchStatus: { expiresAt: number; payload: Record<string, unknown> } | null = null;
+
+app.get('/api/research/status', async (_req: Request, res: Response) => {
+  if (cachedResearchStatus && cachedResearchStatus.expiresAt > Date.now()) {
+    res.set('Cache-Control', 'public, max-age=30');
+    res.json({ ...cachedResearchStatus.payload, cached: true });
+    return;
+  }
+
+  const sourceDefinitions = [
+    { id: 'irsa-spherex-sia', name: 'SPHEREx Archive', protocol: 'IRSA SIAv2', role: 'Spectral-image discovery and observation metadata', documentationUrl: 'https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-access/' },
+    { id: 'esa-gaia-dr3', name: 'Gaia DR3', protocol: 'ESA TAP / ADQL', role: 'Astrometry, parallax and proper-motion cross-matching', documentationUrl: 'https://gea.esac.esa.int/archive/' },
+    { id: 'irsa-allwise-ibe', name: 'AllWISE', protocol: 'IRSA IBE', role: 'Historical W1/W2 infrared image cutouts', documentationUrl: 'https://irsa.ipac.caltech.edu/Missions/wise.html' },
+    { id: 'exoplanet-archive-tap', name: 'NASA Exoplanet Archive', protocol: 'IPAC TAP', role: 'Confirmed exoplanet catalogue queries', documentationUrl: 'https://exoplanetarchive.ipac.caltech.edu/' },
+    { id: 'jpl-sbdb', name: 'JPL Small-Body Database', protocol: 'JPL REST API', role: 'Small-body orbital elements and physical parameters', documentationUrl: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html' },
+    { id: 'jpl-cad', name: 'JPL Close-Approach Data', protocol: 'JPL REST API', role: 'Near-Earth object encounter feed', documentationUrl: 'https://ssd-api.jpl.nasa.gov/doc/cad.html' },
+    { id: 'nasa-open-data-api', name: 'NASA Open Data', protocol: 'NASA REST API', role: 'NeoWs and Astronomy Picture of the Day', documentationUrl: 'https://api.nasa.gov/' },
+  ];
+
+  const checkedAt = new Date().toISOString();
+  const sources = await Promise.all(sourceDefinitions.map(async (source) => {
+    const check = await pingExternalEndpoint(source.id);
+    return { ...source, ...check };
+  }));
+  const onlineCount = sources.filter((source) => source.reachable).length;
+  const payload = {
+    checkedAt,
+    onlineCount,
+    totalCount: sources.length,
+    overallStatus: onlineCount === sources.length ? 'ALL SOURCES RESPONDING' : onlineCount > 0 ? 'PARTIAL CONNECTIVITY' : 'SOURCES UNAVAILABLE',
+    note: 'A successful reachability check confirms that an endpoint responded; it does not prove target coverage, scientific validity, or that every query will return data.',
+    sources,
+  };
+  cachedResearchStatus = { expiresAt: Date.now() + 60000, payload };
+  res.set('Cache-Control', 'public, max-age=30');
+  res.json({ ...payload, cached: false });
 });
 
 // SPHEREx: Local dataset inventory. Never returns generated observations.
@@ -965,7 +1004,7 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
           : r.status === 403
           ? 'Invalid NASA_API_KEY (HTTP 403).'
           : r.status === 429
-          ? 'NASA DEMO_KEY rate limit exceeded (HTTP 429). Set custom NASA_API_KEY in Vercel.'
+          ? 'NASA DEMO_KEY rate limit exceeded (HTTP 429). Set a custom NASA_API_KEY in the Render environment.'
           : `NASA NeoWs returned HTTP ${r.status}.`;
       } catch (e: any) {
         results.nasa.status = `error: ${e.message}`;
@@ -1040,7 +1079,7 @@ app.get('/api/system/api-status', async (_req: Request, res: Response) => {
 
   res.json({
     success: true,
-    environment: process.env.VERCEL ? 'vercel-serverless' : isProd ? 'production' : 'development',
+    environment: process.env.RENDER ? 'render' : isProd ? 'production' : 'development',
     timestamp: new Date().toISOString(),
     apiChecks: results,
   });
