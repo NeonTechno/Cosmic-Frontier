@@ -1006,6 +1006,14 @@ export async function pingExternalEndpoint(serviceId: string): Promise<{
       url: 'https://irsa.ipac.caltech.edu/TAP/tables',
       label: 'NASA/IPAC IRSA TAP Schema Service',
     },
+    'irsa-spherex-hips-cube': {
+      url: 'https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube/properties',
+      label: 'NASA/IPAC IRSA SPHEREx HiPS All-Sky Cube',
+    },
+    'mpc-outer-ss': {
+      url: 'https://data.minorplanetcenter.net/data',
+      label: 'IAU Minor Planet Center Data Index',
+    },
     'esa-gaia-dr3': {
       url: 'https://gea.esac.esa.int/tap-server/tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=json&QUERY=' +
         encodeURIComponent('SELECT TOP 1 source_id FROM gaiadr3.gaia_source'),
