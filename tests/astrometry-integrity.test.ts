@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   calculateAstrometricTrajectory,
   INITIAL_CANDIDATE_QUEUE,
-  VERIFIED_ETNO_CATALOG,
+  LITERATURE_ETNO_REFERENCE_SAMPLE,
 } from '../src/science/orbitalMechanics.ts';
 import type { PlanetXCandidate } from '../src/types/index.ts';
 
@@ -64,6 +64,6 @@ test('bundled Planet X candidate fixtures are explicitly synthetic', () => {
 });
 
 test('bundled ETNO examples are identified as literature references', () => {
-  assert.ok(VERIFIED_ETNO_CATALOG.length > 0);
-  assert.ok(VERIFIED_ETNO_CATALOG.every((object) => object.source === 'literature'));
+  assert.ok(LITERATURE_ETNO_REFERENCE_SAMPLE.length > 0);
+  assert.ok(LITERATURE_ETNO_REFERENCE_SAMPLE.every((object) => object.source === 'literature'));
 });
