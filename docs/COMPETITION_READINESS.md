@@ -64,7 +64,8 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 ## Analytical and reproducibility quality
 
 - [ ] Every analysis view should show: input data, source, method, assumptions, units, uncertainty, output, and limitations.
-- [ ] Add exportable analysis manifests (JSON plus a human-readable report) containing exact inputs and software/version metadata.
+- [x] Add JSON analysis-manifest export with the full input catalogue, source labels, Monte Carlo seed, method/version, null assumptions, hypothesis parameters, and caveats.
+- [ ] Add a human-readable report and bind the exact application Git commit, archive retrieval timestamp, and source-payload hashes.
 - [ ] Add deterministic tests for coordinate transforms, orbital propagation, spectral calculations, FITS parsing, and uncertainty handling.
 - [ ] Add integration tests for live archive failures, empty query results, malformed FITS products, and rate limits.
 - [ ] Add a clean “reproduce this analysis” workflow from a saved target/query.
