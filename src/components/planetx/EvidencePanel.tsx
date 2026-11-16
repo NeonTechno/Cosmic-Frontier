@@ -24,6 +24,11 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
   onExplainEvidence,
 }) => {
   const stats = useMemo(() => calculateClusteringSignificance(etnoCatalog), [etnoCatalog]);
+  const sourceCounts = useMemo(() => ({
+    mpc: etnoCatalog.filter((object) => object.source === 'MPC').length,
+    literature: etnoCatalog.filter((object) => object.source === 'literature').length,
+    unspecified: etnoCatalog.filter((object) => !object.source).length,
+  }), [etnoCatalog]);
   const [mass, setMass] = useState<number>(hypothesis.massEarths);
   const [semiMajor, setSemiMajor] = useState<number>(hypothesis.semiMajorAxisAU);
   const [ecc, setEcc] = useState<number>(hypothesis.eccentricity);
@@ -106,9 +111,15 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
         <p className="text-[11px] leading-relaxed text-slate-300">
           {stats.simulations.toLocaleString()} deterministic Monte Carlo trials · {stats.nullModel}. These are exploratory null-model diagnostics, not a selection-corrected Planet Nine significance test.
         </p>
+        <p className="text-[10px] leading-relaxed text-slate-400">
+          Sample composition: {sourceCounts.mpc} MPC feed objects · {sourceCounts.literature} bundled literature references · {sourceCounts.unspecified} with unspecified source. Only objects with usable angles enter each statistic.
+        </p>
         <ul className="list-disc space-y-1 pl-4 text-[10px] leading-relaxed text-slate-400">
           {stats.warnings.map((warning: string, index: number) => <li key={index}>{warning}</li>)}
         </ul>
+        <p className="text-[10px] leading-relaxed text-slate-400">
+          Further reading: <a className="text-cyan-300 underline underline-offset-2" href="https://doi.org/10.3847/PSJ/abe53e" target="_blank" rel="noreferrer">Napier et al. (2021), selection effects in ETNO clustering</a> · <a className="text-cyan-300 underline underline-offset-2" href="https://github.com/OSSOS/SurveySimulator" target="_blank" rel="noreferrer">OSSOS Survey Simulator</a>.
+        </p>
       </div>
 
       {/* Interactive Hypothesis Parameter Explorer */}
