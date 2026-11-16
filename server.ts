@@ -57,6 +57,24 @@ dotenv.config();
 const cleanEnv = (value?: string): string =>
   (value || '').trim().replace(/^["']|["']$/g, '').trim();
 
+const finiteNumberOrNull = (value: unknown): number | null => {
+  if (value === undefined || value === null || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+function equatorialToEcliptic(raDeg: number, decDeg: number): { lonDeg: number; latDeg: number } {
+  const radians = Math.PI / 180;
+  const ra = raDeg * radians;
+  const dec = decDeg * radians;
+  const obliquity = 23.4392911 * radians;
+  const sinLat = Math.sin(dec) * Math.cos(obliquity) - Math.cos(dec) * Math.sin(obliquity) * Math.sin(ra);
+  const lat = Math.asin(Math.max(-1, Math.min(1, sinLat)));
+  const y = Math.sin(ra) * Math.cos(obliquity) + Math.tan(dec) * Math.sin(obliquity);
+  const lon = (Math.atan2(y, Math.cos(ra)) / radians + 360) % 360;
+  return { lonDeg: Number(lon.toFixed(6)), latDeg: Number((lat / radians).toFixed(6)) };
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -771,68 +789,52 @@ app.post('/api/planetx/candidates/:id/vet', (req: Request, res: Response) => {
 
 // Promote an observed SPHEREx residual/moving signal to Candidate Vetting Queue (never claims discovery)
 app.post('/api/planetx/candidates/from-spherex', (req: Request, res: Response) => {
-  const {
-    designation,
-    raDeg,
-    decDeg,
-    deltaFluxMJySr,
-    snr,
-    pmAlphaArcsecYr,
-    pmDeltaArcsecYr,
-    notes,
-    epochA,
-    epochB,
-  } = req.body || {};
-
-  if (!Number.isFinite(Number(raDeg)) || !Number.isFinite(Number(decDeg))) {
-    res.status(400).json({ error: 'Valid raDeg and decDeg are required.' });
+  const { designation, raDeg, decDeg, deltaFluxMJySr, snr, pmAlphaArcsecYr, pmDeltaArcsecYr, notes, epochA, epochB, observationIds } = req.body || {};
+  const ra = finiteNumberOrNull(raDeg);
+  const dec = finiteNumberOrNull(decDeg);
+  if (ra === null || dec === null || ra < 0 || ra >= 360 || dec < -90 || dec > 90) {
+    res.status(400).json({ error: 'Valid J2000 coordinates are required (RA 0–360°, Dec −90–90°).' });
     return;
   }
-
+  const deltaFlux = finiteNumberOrNull(deltaFluxMJySr);
+  const signalToNoise = finiteNumberOrNull(snr);
+  const pmRa = finiteNumberOrNull(pmAlphaArcsecYr);
+  const pmDec = finiteNumberOrNull(pmDeltaArcsecYr);
+  const ecliptic = equatorialToEcliptic(ra, dec);
+  const suppliedEpochs = [epochA, epochB].filter((value) => typeof value === 'string' && value.trim().length > 0).map((value: string) => value.split('T')[0]);
+  const epochs = suppliedEpochs.length ? [...new Set(suppliedEpochs)] : ['Epoch not supplied'];
+  const sourceIds = Array.isArray(observationIds) ? observationIds.filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0) : [];
+  const unavailableMeasurements = [
+    'heliocentric distance', 'WISE W1 magnitude', 'WISE W2 magnitude', 'W1−W2 colour',
+    'parallax', 'mass estimate', 'per-epoch W1/W2 photometry',
+    ...(pmRa === null || pmDec === null ? ['proper motion'] : []),
+    ...(signalToNoise === null ? ['astrometric signal-to-noise'] : []),
+  ];
   const newCandidate: PlanetXCandidate = {
     id: `CAND-SPX-${Date.now().toString(36).toUpperCase()}`,
-    designation: String(designation || `SPHEREx Residual (${Number(raDeg).toFixed(3)}°, ${Number(decDeg).toFixed(3)}°)`),
-    survey: 'WISE / NEOWISE',
-    raDeg: Number(raDeg),
-    decDeg: Number(decDeg),
-    eclipticLonDeg: Number(raDeg),
-    eclipticLatDeg: Number(decDeg),
-    heliocentricDistanceAU: 0,
-    apparentMagW1: 18.5,
-    apparentMagW2: 17.8,
-    colorW1W2: 0.7,
-    properMotionAlphaArcsecYr: Number(pmAlphaArcsecYr || 0),
-    properMotionDeltaArcsecYr: Number(pmDeltaArcsecYr || 0),
-    parallaxArcsec: 0,
-    estimatedMassEarths: 0,
-    astrometricSnr: Number(snr || 5.0),
-    status: 'unvetted',
-    confidenceScore: 35,
-    notes: String(
-      notes ||
-        `Observed multi-epoch SPHEREx residual signal (ΔFlux=${Number(deltaFluxMJySr || 0).toFixed(2)} MJy/sr, SNR=${Number(snr || 0).toFixed(1)}σ). Unvetted candidate — requires external catalog cross-match and human review.`
-    ),
-    observationHistory: [
-      {
-        epoch: String(epochA || '2025-05-15').split('T')[0],
-        dxArcsec: 0,
-        dyArcsec: 0,
-        w1FluxMjy: 0.2,
-        w2FluxMjy: 0.25,
-        surveyTag: 'SPHEREx Epoch A',
-      },
-      {
-        epoch: String(epochB || '2026-08-15').split('T')[0],
-        dxArcsec: Number(pmAlphaArcsecYr || 0),
-        dyArcsec: Number(pmDeltaArcsecYr || 0),
-        w1FluxMjy: 0.2 + Math.max(0, Number(deltaFluxMJySr || 0)) * 0.02,
-        w2FluxMjy: 0.25 + Math.max(0, Number(deltaFluxMJySr || 0)) * 0.03,
-        surveyTag: 'SPHEREx Epoch B',
-      },
-    ],
+    designation: String(designation || `SPHEREx Residual (${ra.toFixed(3)}°, ${dec.toFixed(3)}°)`),
+    survey: 'SPHEREx',
+    raDeg: ra, decDeg: dec,
+    eclipticLonDeg: ecliptic.lonDeg, eclipticLatDeg: ecliptic.latDeg,
+    heliocentricDistanceAU: null, apparentMagW1: null, apparentMagW2: null, colorW1W2: null,
+    properMotionAlphaArcsecYr: pmRa, properMotionDeltaArcsecYr: pmDec,
+    parallaxArcsec: null, estimatedMassEarths: null, astrometricSnr: signalToNoise,
+    status: 'unvetted', confidenceScore: 0,
+    notes: String(notes || [
+      'SPHEREx residual submitted for follow-up only; this is not a Planet X detection.',
+      deltaFlux === null ? 'Residual flux difference was not supplied.' : `Input residual flux difference: ${deltaFlux.toFixed(4)} MJy/sr.`,
+      signalToNoise === null ? 'Signal-to-noise was not supplied.' : `Input SNR: ${signalToNoise.toFixed(2)}σ.`,
+      'No WISE W1/W2 photometry, heliocentric distance, parallax, mass, or orbit has been inferred from this SPHEREx residual.',
+      'Cross-match with Gaia DR3, WISE/NEOWISE, and small-body catalogues plus human review is required.',
+    ].join(' ')),
+    observationHistory: epochs.map((epoch) => ({
+      epoch, dxArcsec: null, dyArcsec: null, w1FluxMjy: null, w2FluxMjy: null,
+      surveyTag: 'SPHEREx residual input — WISE photometry not supplied',
+    })),
+    unavailableMeasurements, sourceObservationIds: sourceIds,
+    provenanceNote: 'Source survey: SPHEREx. No WISE/NEOWISE measurements are attached. Null values mean not measured, not zero.',
     theoreticalConsistency: 0,
   };
-
   candidateState = [newCandidate, ...candidateState];
   res.json({ success: true, candidate: newCandidate });
 });
