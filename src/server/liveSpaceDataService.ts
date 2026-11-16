@@ -984,11 +984,11 @@ export function buildLiveEphemeris(dateIso?: string, target?: string): LiveEphem
         trueAnomalyDeg: prop.trueAnomalyDeg,
         orbitalPeriodYears: body.elements.periodYears || Math.pow(body.elements.a, 1.5),
       },
-      dataStatus: 'LIVE DATA',
+      dataStatus: 'CALCULATED MODEL',
       coordinateFrame: 'ICRF / J2000 Ecliptic',
       calculationEpoch: epochDate.toISOString(),
       retrievalTimestamp: new Date().toISOString(),
-      source: 'NASA/JPL Horizons Osculating Ephemeris',
+      source: 'Black Star Orbit Keplerian propagation from bundled JPL-referenced orbital elements',
       sourceUrl: 'https://ssd.jpl.nasa.gov/horizons/',
       educationalSummary: body.summary,
     };
@@ -998,7 +998,7 @@ export function buildLiveEphemeris(dateIso?: string, target?: string): LiveEphem
     epoch: epochDate.toISOString(),
     julianDate: Number(jd.toFixed(5)),
     coordinateFrame: 'ICRF / J2000 Ecliptic',
-    statusLabel: 'LIVE DATA',
+    statusLabel: 'CALCULATED MODEL',
     retrievalTimestamp: new Date().toISOString(),
     totalObjects: objects.length,
     earthReference: {
