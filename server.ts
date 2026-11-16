@@ -42,7 +42,7 @@ import {
   fetchLiveSmallBodies,
   lookupLiveGalaxyInNed,
 } from './src/server/liveSpaceDataService.ts';
-import { fetchHorizonsObserverEphemeris } from './src/server/horizonsService.ts';
+import { fetchHorizonsObserverEphemeris, HORIZONS_OBSERVER_TARGETS } from './src/server/horizonsService.ts';
 const require = createRequire(import.meta.url);
 const exoplanetArchive = require('./src/cosmic-frontier/data/catalogs/confirmed-exoplanets.json');
 const galaxyArchive = require('./src/cosmic-frontier/data/catalogs/deep-sky-galaxies.json');
@@ -430,6 +430,15 @@ app.get('/api/data/catalog', async (req: Request, res: Response) => {
 app.get('/api/horizons/observer', async (req: Request, res: Response) => {
   const targetId = String(req.query.target || '599').trim();
   const dateUTC = String(req.query.date || new Date().toISOString().slice(0, 10)).trim();
+  const parsedDate = new Date(dateUTC + 'T00:00:00.000Z');
+  if (!HORIZONS_OBSERVER_TARGETS.some((target) => target.id === targetId)) {
+    res.status(400).json({ success: false, error: 'Unsupported Horizons target identifier.' });
+    return;
+  }
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateUTC) || !Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== dateUTC) {
+    res.status(400).json({ success: false, error: 'Date must be a valid UTC calendar date in YYYY-MM-DD format.' });
+    return;
+  }
   try {
     const result = await fetchHorizonsObserverEphemeris(targetId, dateUTC);
     res.set('Cache-Control', 'public, max-age=60');
