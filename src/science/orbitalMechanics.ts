@@ -365,9 +365,9 @@ export function calculateAstrometricTrajectory(
 export interface OrbitalClusteringDiagnostics {
   sampleSize: number;
   poleSampleSize: number;
-  meanVarpiDeg: number;
+  meanVarpiDeg: number | null;
   rayleighR: number;
-  dispersionDeg: number;
+  dispersionDeg: number | null;
   pValueClustering: number;
   meanPoleLongitudeDeg: number | null;
   meanPoleLatitudeDeg: number | null;
@@ -396,10 +396,11 @@ function circularSummary(anglesDeg: number[]) {
   const sumCos = anglesDeg.reduce((sum, angle) => sum + Math.cos(angle * Math.PI / 180), 0);
   const n = anglesDeg.length;
   const r = n ? Math.hypot(sumSin, sumCos) / n : 0;
-  const mean = n && (sumSin !== 0 || sumCos !== 0)
+  const hasDirection = n > 0 && r > 1e-10;
+  const mean = hasDirection
     ? (Math.atan2(sumSin, sumCos) * 180 / Math.PI + 360) % 360
-    : 0;
-  const dispersion = r > 0 ? Math.sqrt(Math.max(0, -2 * Math.log(r))) * 180 / Math.PI : 180;
+    : null;
+  const dispersion = hasDirection ? Math.sqrt(Math.max(0, -2 * Math.log(r))) * 180 / Math.PI : null;
   return { mean, r, dispersion };
 }
 
@@ -511,9 +512,9 @@ export function calculateClusteringSignificance(
   return {
     sampleSize: varpiObjects.length,
     poleSampleSize: poleObjects.length,
-    meanVarpiDeg: Number(varpi.mean.toFixed(2)),
+    meanVarpiDeg: varpi.mean === null ? null : Number(varpi.mean.toFixed(2)),
     rayleighR: Number(varpi.r.toFixed(4)),
-    dispersionDeg: Number(varpi.dispersion.toFixed(2)),
+    dispersionDeg: varpi.dispersion === null ? null : Number(varpi.dispersion.toFixed(2)),
     pValueClustering: Number(pVarpi.toFixed(5)),
     meanPoleLongitudeDeg: poles.longitude === null ? null : Number(poles.longitude.toFixed(2)),
     meanPoleLatitudeDeg: poles.latitude === null ? null : Number(poles.latitude.toFixed(2)),
