@@ -80,6 +80,25 @@ The five challenge targets are query presets, not claims of archive coverage. Fo
 
 ---
 
+## Production Deployment
+
+Black Star Orbit is a full-stack application. The supported production host is the Render Web Service running the Express API and serving the Vite build from the same origin. Static-only hosting (including GitHub Pages) cannot run the API routes and is not a supported production deployment.
+
+Current service configuration:
+- Service: `cosmic-frontier-spherex-demo`
+- Branch: `feat/spherex-judges-demo-mode`
+- Build: `npm ci --include=dev && npm run build`
+- Start: `npm start`
+- Health check: `/api/health`
+
+Configure optional server-side credentials in Render Dashboard → Service → Environment. See `.env.example`; never commit real API keys. Render's free filesystem is ephemeral, so user-downloaded FITS files remain local unless persistent storage or an object-storage adapter is configured.
+
+Vercel Git deployments are disabled in `vercel.json`. The Vercel project-to-GitHub connection itself is external account configuration; to fully disconnect it, open the Vercel project → Settings → Git → Disconnect. No Vercel serverless API adapter remains in this repository.
+
+GitHub Actions runs typechecking, scientific integrity tests, and the production build. It validates code but does not deploy the application; Render is the deployment target.
+
+---
+
 ## Running Locally
 
 ```bash
