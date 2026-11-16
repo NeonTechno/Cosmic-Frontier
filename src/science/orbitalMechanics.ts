@@ -281,54 +281,77 @@ export const INITIAL_CANDIDATE_QUEUE: PlanetXCandidate[] = [
  */
 export function calculateAstrometricTrajectory(
   candidate: PlanetXCandidate,
-  startMJD: number = 60000,
+  startMJD?: number,
   durationDays: number = 365.25 * 3,
   stepDays: number = 15
 ): AstrometryFitResult {
-  const dAU = candidate.heliocentricDistanceAU !== null && candidate.heliocentricDistanceAU > 0 ? candidate.heliocentricDistanceAU : 400;
-  const parallaxAmplitude = 1.0 / dAU; // in arcseconds
-  const muAlpha = (candidate.properMotionAlphaArcsecYr ?? 0) / 365.25; // arcsec / day
-  const muDelta = (candidate.properMotionDeltaArcsecYr ?? 0) / 365.25;
+  const dAU = candidate.heliocentricDistanceAU;
+  if (dAU === null || !Number.isFinite(dAU) || dAU <= 0) {
+    throw new Error('A positive, explicitly supplied heliocentric distance is required for this illustrative track.');
+  }
+  if (!Number.isFinite(durationDays) || durationDays <= 0 || !Number.isFinite(stepDays) || stepDays <= 0) {
+    throw new Error('Trajectory duration and step size must be positive finite values.');
+  }
 
+  const parsedEpochs = candidate.observationHistory
+    .map((observation) => {
+      const time = Date.parse(observation.epoch);
+      return Number.isFinite(time) ? time / 86400000 + 40587 : null;
+    })
+    .filter((epoch): epoch is number => epoch !== null)
+    .sort((a, b) => a - b);
+  const trajectoryStartMJD = startMJD ?? parsedEpochs[0];
+  if (trajectoryStartMJD === undefined || !Number.isFinite(trajectoryStartMJD)) {
+    throw new Error('A valid observation epoch or explicit model start epoch is required.');
+  }
+
+  const muAlpha = (candidate.properMotionAlphaArcsecYr ?? 0) / 365.25;
+  const muDelta = (candidate.properMotionDeltaArcsecYr ?? 0) / 365.25;
   const modelTrajectory: { epochMJD: number; ra: number; dec: number }[] = [];
   const baseRA = candidate.raDeg;
   const baseDec = candidate.decDeg;
+  if (!Number.isFinite(baseRA) || baseRA < 0 || baseRA >= 360 || !Number.isFinite(baseDec) || baseDec < -90 || baseDec > 90) {
+    throw new Error('Candidate coordinates must be valid ICRS RA/Dec.');
+  }
 
   for (let t = 0; t <= durationDays; t += stepDays) {
-    const currentMJD = startMJD + t;
+    const currentMJD = trajectoryStartMJD + t;
     const yearFraction = (t / 365.25) * 2 * Math.PI;
 
-    // Earth orbital reflex motion projection
-    const parallaxAlpha = (parallaxAmplitude / Math.cos((baseDec * Math.PI) / 180)) * Math.sin(yearFraction);
-    const parallaxDelta = parallaxAmplitude * Math.cos(yearFraction) * Math.sin((23.44 * Math.PI) / 180);
-
-    const properMotionAlpha = muAlpha * t;
-    const properMotionDelta = muDelta * t;
-
-    // Total displacement in degrees
-    const totalDeltaRaDeg = (parallaxAlpha + properMotionAlpha) / 3600;
-    const totalDeltaDecDeg = (parallaxDelta + properMotionDelta) / 3600;
+    // Simplified circular-Earth parallax illustration; not a JPL ephemeris or orbit fit.
+    const parallaxAmplitude = 1.0 / dAU;
+    const cosDec = Math.cos(baseDec * Math.PI / 180);
+    const parallaxAlpha = Math.abs(cosDec) > 1e-8 ? (parallaxAmplitude / cosDec) * Math.sin(yearFraction) : 0;
+    const parallaxDelta = parallaxAmplitude * Math.cos(yearFraction) * Math.sin(23.44 * Math.PI / 180);
+    const totalDeltaRaDeg = (parallaxAlpha + muAlpha * t) / 3600;
+    const totalDeltaDecDeg = (parallaxDelta + muDelta * t) / 3600;
 
     modelTrajectory.push({
       epochMJD: currentMJD,
-      ra: Number((baseRA + totalDeltaRaDeg).toFixed(6)),
-      dec: Number((baseDec + totalDeltaDecDeg).toFixed(6)),
+      ra: Number((((baseRA + totalDeltaRaDeg) % 360 + 360) % 360).toFixed(7)),
+      dec: Number(Math.max(-90, Math.min(90, baseDec + totalDeltaDecDeg)).toFixed(7)),
     });
   }
 
-  const observedPositions = candidate.observationHistory.map((obs, idx) => ({
-    epochMJD: startMJD + idx * 365,
-    ra: Number((baseRA + (obs.dxArcsec ?? 0) / 3600).toFixed(6)),
-    dec: Number((baseDec + (obs.dyArcsec ?? 0) / 3600).toFixed(6)),
-  }));
+  const observedPositions = candidate.observationHistory.flatMap((observation) => {
+    const time = Date.parse(observation.epoch);
+    if (!Number.isFinite(time) || (observation.dxArcsec === null && observation.dyArcsec === null)) return [];
+    const epochMJD = time / 86400000 + 40587;
+    return [{
+      epochMJD,
+      ra: Number((baseRA + (observation.dxArcsec ?? 0) / (3600 * Math.max(1e-8, Math.cos(baseDec * Math.PI / 180)))).toFixed(7)),
+      dec: Number((baseDec + (observation.dyArcsec ?? 0) / 3600).toFixed(7)),
+    }];
+  });
 
   return {
     observedPositions,
     modelTrajectory,
-    parallaxAmplitudeArcsec: Number(parallaxAmplitude.toFixed(4)),
-    linearProperMotionArcsecYr: Number(Math.hypot(candidate.properMotionAlphaArcsecYr ?? 0, candidate.properMotionDeltaArcsecYr ?? 0).toFixed(4)),
-    reducedChi2: candidate.status === 'candidate' ? 1.08 : (candidate.status === 'known_asteroid' ? 4.9 : 0.85),
-    isPhysicalOrbit: candidate.status === 'candidate' || candidate.status === 'unvetted',
+    parallaxAmplitudeArcsec: Number((1 / dAU).toFixed(6)),
+    linearProperMotionArcsecYr: Number(Math.hypot(candidate.properMotionAlphaArcsecYr ?? 0, candidate.properMotionDeltaArcsecYr ?? 0).toFixed(6)),
+    reducedChi2: null,
+    isPhysicalOrbit: null,
+    modelStatus: 'ILLUSTRATIVE_ONLY',
   };
 }
 
