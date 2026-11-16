@@ -166,6 +166,12 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
             RECENT DATA (CACHED)
           </span>
         );
+      case 'CALCULATED MODEL':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-sky-500/10 text-sky-300 border border-sky-500/30">
+            CALCULATED MODEL
+          </span>
+        );
       case 'PREDICTED':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#8B5CF6]/10 text-[#C084FC] border border-[#8B5CF6]/30">
