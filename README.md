@@ -32,6 +32,9 @@ Black Star Orbit is a public-facing astronomical discovery and time-domain analy
 ---
 
 ## Research Operations
+- **JPL Horizons Observer Planner:** Mission Control can query NASA/JPL Horizons for geocentric RA/Dec, apparent magnitude, range, range rate, solar elongation and constellation for a selected solar-system body or supported asteroid. Results are explicitly labelled computed ephemerides, not telescope observations.
+
+
 
 - **Research Source Monitor:** the NASA Data Centre runs cached reachability checks against SPHEREx IRSA, Gaia DR3, AllWISE, the NASA Exoplanet Archive, JPL SBDB, JPL CAD, and NASA Open Data. A responding endpoint is not treated as proof that a target has archive coverage or that a measurement is scientifically valid.
 - **Reproducibility export:** the SPHEREx metadata panel exports a human-readable Markdown report and structured JSON record containing target coordinates, source provenance, archive query summary, observation identifiers, FITS/WCS/statistics metadata, SED values, and explicit limitations.
