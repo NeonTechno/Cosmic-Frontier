@@ -155,7 +155,7 @@ async function callNvidiaNemotron(
 // API ROUTES
 // ==========================================
 
-// Live-first data endpoints with verified archive fallbacks for Vercel & online deployments.
+// Live-first data endpoints with verified archive fallbacks for the Render-hosted Express service.
 const archiveMeta = (archive: any) => ({
   source: archive.metadata?.source || 'Verified Local Archive',
   sourceUrl: archive.metadata?.sourceUrl,
@@ -1587,7 +1587,7 @@ async function startServer() {
   });
 }
 
-if (!process.env.VERCEL) {
+if (process.env.NODE_ENV !== 'test') {
   startServer().catch((err) => {
     console.error('Failed to start server:', err);
     process.exit(1);
