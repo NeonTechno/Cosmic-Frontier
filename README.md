@@ -121,14 +121,15 @@ Black Star Orbit is a full-stack application. The supported production host is t
 
 Current service configuration:
 - Service: `cosmic-frontier-spherex-demo`
-- Branch: `feat/spherex-judges-demo-mode`
+- Intended production branch: `main`
+- Deployment note: the existing Render service is still configured to deploy `feat/spherex-judges-demo-mode`; change its branch to `main` in the Render service settings before expecting this merge to reach the live site.
 - Build: `npm ci --include=dev && npm run build`
 - Start: `npm start`
 - Health check: `/api/health`
 
 Configure optional server-side credentials in Render Dashboard → Service → Environment. See `.env.example`; never commit real API keys. Render's free filesystem is ephemeral, so user-downloaded FITS files remain local unless persistent storage or an object-storage adapter is configured.
 
-Vercel Git deployments are disabled in `vercel.json`. The Vercel project-to-GitHub connection itself is external account configuration; to fully disconnect it, open the Vercel project → Settings → Git → Disconnect. No Vercel serverless API adapter remains in this repository.
+Vercel deployment configuration (`vercel.json`), the Vercel serverless API adapter, and the legacy static Pages deployment workflow have been removed from this repository. The external Vercel project-to-GitHub connection is account-level configuration and must still be disconnected in Vercel → Project Settings → Git → Disconnect if you want the project fully detached.
 
 GitHub Actions runs typechecking, scientific integrity tests, and the production build. It validates code but does not deploy the application; Render is the deployment target.
 
