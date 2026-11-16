@@ -147,9 +147,6 @@ Open `http://localhost:3000`. Production build: `npm run build && npm start`.
 ---
 
 
-## Gemini-powered AI
-
-The server-side Gemini integration powers grounded astronomy explanations, the conversational guide, and the Editorial Journal's optional concept-art studio. Set `GEMINI_API_KEY` in the Render service environment; optionally override `GEMINI_MODEL` and `GEMINI_IMAGE_MODEL`. Generated images are labelled as illustrative concept art and are not observations or scientific evidence. The API key is never exposed to the browser.
 
 ## Competition readiness
 
