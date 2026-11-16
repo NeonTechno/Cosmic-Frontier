@@ -31,7 +31,7 @@ export const NasaDataCentre: FC<NasaDataCentreProps> = ({ onNavigate }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModalItem, setActiveModalItem] = useState<CatalogItem | null>(null);
   const [dataSource, setDataSource] = useState<string>('Connecting to Gateways...');
-  const [isLiveGateway, setIsLiveGateway] = useState<boolean>(true);
+  const [isLiveGateway, setIsLiveGateway] = useState<boolean>(false);
 
   // Load items whenever category or search changes
   const loadData = async (cat: CatalogCategory, query: string) => {
