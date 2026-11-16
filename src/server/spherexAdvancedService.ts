@@ -353,8 +353,11 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   const width = image.axes[0], height = image.axes[1], layers = image.axes[2];
   if (width !== SPHEREX_HIPS_TILE_SIZE || height !== SPHEREX_HIPS_TILE_SIZE) throw new Error('Unexpected HiPS tile dimensions ' + width + '×' + height + '; expected 512×512 per the official IRSA notebook.');
   const hipsWcs = skyToHpxPixel(raDeg, decDeg, image.header);
-  const x = Math.round(hipsWcs.px1 - 1), y = Math.round(hipsWcs.py1 - 1);
-  if (x < 0 || x >= width || y < 0 || y >= height) throw new Error('The selected sky position maps outside the retrieved HiPS FITS tile according to its HPX WCS.');
+  // Preserve the sub-pixel sky position returned by the HPX WCS, as in the IRSA notebook.
+  const x = hipsWcs.px1 - 1, y = hipsWcs.py1 - 1;
+  if (x < -0.5 || x > width - 0.5 || y < -0.5 || y > height - 0.5) {
+    throw new Error('The selected sky position maps outside the retrieved HiPS FITS tile according to its HPX WCS.');
+  }
   // Read only aperture/annulus samples from the FITS buffer. A 512×512×102
   // cube can be >300 MB across IMAGE/NHITS/FLAGS; materializing three more
   // Float32Arrays would unnecessarily double peak memory on the web service.
@@ -363,6 +366,7 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   const readFlags = flags && flags.axes.length === 3 ? numericAccessor(buffer, flags) : null;
   const spec = [];
   const blankLayers = [50, 51];
+  const annulusTouchesTileEdge = x - annulusOuter < -0.5 || x + annulusOuter > width - 0.5 || y - annulusOuter < -0.5 || y + annulusOuter > height - 0.5;
   const notes = [
     'Layer index is zero-based; wavelength order is ascending from the official HiPS properties.',
     'Layers 50 and 51 are the documented blank dichroic channels (band 3 channel 17 and band 4 channel 1).',
@@ -370,7 +374,8 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
     'The tile is selected with nested HEALPix Norder 5 and contains 512×512 pixels, matching the official IRSA notebook.',
     'This simple aperture spectrum is for visualization only; IRSA recommends its Spectrophotometry Tool for science-grade spectra.',
     'Non-zero FLAGS values are reported for the aperture but are not masked because the flag-bit policy has not been independently validated here.',
-    'Aperture membership uses pixel-center inclusion; fractional pixel overlap and a full photometric uncertainty model are not implemented.',
+    'Aperture membership uses pixel-center inclusion around the sub-pixel WCS position; fractional pixel overlap and a full photometric uncertainty model are not implemented.',
+    ...(annulusTouchesTileEdge ? ['The background annulus reaches beyond the FITS tile edge and is clipped; the local background estimate may be biased.'] : []),
   ];
   const pixScaleArcsec = Math.sqrt(4 * Math.PI / (12 * Math.pow(fineNside, 2))) * (180 / Math.PI) * 3600;
   const pixSr = Math.pow(pixScaleArcsec / 206264.806, 2);
@@ -378,8 +383,8 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
     const layerOffset: number = layer * width * height;
     const ap: number[] = [], ann: number[] = [];
     let flaggedPixels = 0, hitsValues: number[] = [];
-    for (let py = Math.max(0, y - annulusOuter); py <= Math.min(height - 1, y + annulusOuter); py++) {
-      for (let px = Math.max(0, x - annulusOuter); px <= Math.min(width - 1, x + annulusOuter); px++) {
+    for (let py = Math.max(0, Math.floor(y - annulusOuter)); py <= Math.min(height - 1, Math.ceil(y + annulusOuter)); py++) {
+      for (let px = Math.max(0, Math.floor(x - annulusOuter)); px <= Math.min(width - 1, Math.ceil(x + annulusOuter)); px++) {
         const radius = Math.hypot(px - x, py - y);
         const idx = layerOffset + py * width + px;
         const value = readCube(idx);
