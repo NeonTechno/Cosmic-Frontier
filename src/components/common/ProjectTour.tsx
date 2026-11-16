@@ -19,9 +19,9 @@ const steps = [
     description: 'Black Star Orbit brings together infrared sky observations, outer Solar System research and the tools used to investigate worlds beyond our own.',
     detail: 'This short tour introduces the main workspaces and how to move between them.',
     icon: Rocket,
-    tab: 'cosmic-suite' as TourTab,
-    action: 'Enter Cosmic Lab',
-    highlights: ['Mission overview', 'Workspace map', 'Research shortcuts'],
+    tab: 'overview' as TourTab,
+    action: 'Open Editorial Journal',
+    highlights: ['Editorial journal', 'Evidence-led research', 'Learning pathways'],
   },
   {
     eyebrow: '01 / THE JOURNAL',
