@@ -84,6 +84,111 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
     );
   };
 
+  const exportResearchReport = () => {
+    const generatedAtUTC = new Date().toISOString();
+    const epochRecords = observation.epochs.map((frame) => ({
+      frameId: frame.frameId,
+      timestampUTC: frame.timestamp,
+      observationId: frame.obsId || null,
+      collection: frame.obsCollection || null,
+      mjd: frame.mjdObs ?? null,
+      detectorBand: frame.detectorBand || null,
+      wavelengthMinMicrons: frame.emMinMicrons ?? null,
+      wavelengthMaxMicrons: frame.emMaxMicrons ?? null,
+      exposureTimeSeconds: frame.exposureTimeSec ?? null,
+      fitsPixelsAvailable: Boolean(frame.fitsData),
+      fitsStatistics: frame.fitsData?.stats ?? null,
+      wcs: frame.fitsData?.wcs ?? null,
+      fitsHeaderSummary: frame.fitsData?.headerSummary ?? null,
+      archiveProductUrl: frame.accessUrl || null,
+    }));
+    const measuredSedPoints = observation.fullSedCurve.filter((point) => point.isMeasured === true).length;
+    const limitations = [
+      ...(observation.archiveSummary?.limitations || []),
+      ...(isDemo ? ['SIMULATED_BENCHMARK: all generated pixels, epochs, source positions and spectral values are illustrative, not NASA/IPAC measurements.'] : []),
+      'This report records the selected observation and values already available in the application. It is not an independent scientific validation or orbital fit.',
+    ];
+    const report = {
+      schemaVersion: '1.0',
+      application: 'Black Star Orbit',
+      reportType: 'SPHEREx research session',
+      generatedAtUTC,
+      target: {
+        name: observation.targetName,
+        description: observation.shortDesc,
+        rightAscensionDeg: observation.raDeg,
+        declinationDeg: observation.decDeg,
+        galacticLongitudeDeg: observation.glonDeg,
+        galacticLatitudeDeg: observation.glatDeg,
+        fieldOfViewArcmin: observation.fieldOfViewArcmin,
+        category: observation.category,
+      },
+      provenance: {
+        status: observation.dataSourceStatus,
+        label: observation.dataSourceLabel,
+        isSimulated: isDemo,
+        documentationUrl: observation.documentationUrl,
+      },
+      archiveSummary: observation.archiveSummary ?? null,
+      epochs: epochRecords,
+      spectralEnergyDistribution: observation.fullSedCurve,
+      sedSummary: {
+        totalPoints: observation.fullSedCurve.length,
+        explicitlyMeasuredPoints: measuredSedPoints,
+        illustrativeOrModelledPoints: observation.fullSedCurve.length - measuredSedPoints,
+      },
+      limitations,
+    };
+    const markdownLines = [
+      '# SPHEREx Research Session',
+      '',
+      'Generated (UTC): ' + generatedAtUTC,
+      '',
+      '## Target',
+      '- Name: ' + observation.targetName,
+      '- RA / Dec (ICRS): ' + observation.raDeg + '°, ' + observation.decDeg + '°',
+      '- Field of view: ' + observation.fieldOfViewArcmin + ' arcmin',
+      '- Category: ' + observation.category,
+      '',
+      '## Provenance',
+      '- Status: ' + observation.dataSourceStatus,
+      '- Source: ' + observation.dataSourceLabel,
+      '- Explicitly simulated: ' + (isDemo ? 'Yes' : 'No'),
+      '- Archive documentation: ' + observation.documentationUrl,
+      '',
+      '## Archive summary',
+      observation.archiveSummary
+        ? '- DR1 rows: ' + observation.archiveSummary.dr1ObservationCount + '; QR3 rows: ' + observation.archiveSummary.qr3ObservationCount + '; distinct MJDs: ' + observation.archiveSummary.distinctMjdCount
+        : 'No archive summary is attached to this observation.',
+      '',
+      '## Epochs',
+      '| Epoch | Observation ID | Collection | Detector | FITS pixels |',
+      '|---|---|---|---|---|',
+      ...epochRecords.map((epoch) => '| ' + epoch.timestampUTC + ' | ' + (epoch.observationId || 'Not supplied') + ' | ' + (epoch.collection || 'Not supplied') + ' | ' + (epoch.detectorBand || 'Not supplied') + ' | ' + (epoch.fitsPixelsAvailable ? 'Available' : 'Not available') + ' |'),
+      '',
+      '## Spectral energy distribution',
+      '- Points: ' + observation.fullSedCurve.length,
+      '- Explicitly measured points: ' + measuredSedPoints,
+      '- Illustrative or modelled points: ' + (observation.fullSedCurve.length - measuredSedPoints),
+      '',
+      '## Limitations and caveats',
+      ...limitations.map((item) => '- ' + item),
+      '',
+      'The accompanying JSON file contains the structured epoch metadata, FITS statistics, WCS summaries, archive links and SED values.',
+    ].join('\n');
+
+    downloadTextFile(
+      'SPHEREx_' + observation.id + '_research-report.json',
+      JSON.stringify(report, null, 2),
+      'application/json;charset=utf-8'
+    );
+    downloadTextFile(
+      'SPHEREx_' + observation.id + '_research-report.md',
+      markdownLines,
+      'text/markdown;charset=utf-8'
+    );
+  };
+
   const fitsDownloadUrl = (frame: SpherexObservation['epochs'][number]) => {
     if (!frame.accessUrl) return '';
     const params = new URLSearchParams({
@@ -229,6 +334,13 @@ export const MetadataPanel: React.FC<MetadataPanelProps> = ({
             className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-700/60 bg-cyan-950/50 px-2.5 py-1.5 text-[11px] text-cyan-200 hover:bg-cyan-900/60"
           >
             <Download className="h-3.5 w-3.5" /> Export SED CSV
+          </button>
+          <button
+            type="button"
+            onClick={exportResearchReport}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-sky-700/60 bg-sky-950/50 px-2.5 py-1.5 text-[11px] text-sky-200 hover:bg-sky-900/60"
+          >
+            <FileText className="h-3.5 w-3.5" /> Export research report
           </button>
         </div>
 
