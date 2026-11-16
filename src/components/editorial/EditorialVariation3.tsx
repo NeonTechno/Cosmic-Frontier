@@ -4,6 +4,7 @@ import { ArrowUpRight, Search, Sparkles, Filter, Database, ShieldCheck, Compass,
 import { useTheme } from '../../context/ThemeContext';
 import { BlackStarLogo } from '../common/BlackStarLogo';
 import { assetUrl } from '../../utils/assetUrl';
+import { AiVisualStudio } from './AiVisualStudio';
 
 interface EditorialVariation3Props {
   onNavigate: (tab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite') => void;
@@ -297,6 +298,8 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
             </a>
           </footer>
         </section>
+
+        <AiVisualStudio isLight={isLight} />
 
         {/* --- CATALOG SECTION --- */}
         <section id="editorial-catalog" className={`scroll-mt-20 catalog-section border-t pt-12 mb-20 sm:mb-28 ${
