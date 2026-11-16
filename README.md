@@ -145,3 +145,8 @@ npm run dev
 Open `http://localhost:3000`. Production build: `npm run build && npm start`.
 
 ---
+
+
+## Competition readiness
+
+Track scientific validation, analytical reproducibility, educational quality, accessibility, and release gates in the [Competition Readiness Tracker](docs/COMPETITION_READINESS.md).
