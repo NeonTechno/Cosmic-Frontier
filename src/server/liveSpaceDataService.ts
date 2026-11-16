@@ -4,7 +4,7 @@
  *
  * BLACK STAR ORBIT — Live Astronomical Data Aggregator (Server-Side)
  * Connects directly to official NASA/IPAC/JPL/ESA endpoints so deployments
- * on Vercel stream live astronomical catalogs, ephemerides, asteroid orbits,
+ * through the Render-hosted Express API serve live astronomical catalogs, ephemerides, asteroid orbits,
  * extragalactic lookups, and NASA imagery with fast TTL caching and honest
  * fallback to bundled verified archives when upstream services time out.
  */
@@ -707,14 +707,14 @@ export async function fetchLiveAsteroidOrbitData(
 ): Promise<AsteroidMotionResponse> {
   const cleanDes = des.trim() || '99942';
   const targetDate = targetDateIso && !isNaN(Date.parse(targetDateIso)) ? new Date(targetDateIso) : new Date();
-  const cacheKey = `sbdb_orbit:${cleanDes.toLowerCase()}`;
+  const cacheKey = 'sbdb_orbit:' + cleanDes.toLowerCase();
 
   let sbdbJson = readCache<any>(cacheKey);
   let isLive = Boolean(sbdbJson);
 
   if (!sbdbJson) {
     try {
-      const url = `https://ssd-api.jpl.nasa.gov/sbdb.api?sstr=${encodeURIComponent(cleanDes)}&ca-data=true&phys-par=true`;
+      const url = 'https://ssd-api.jpl.nasa.gov/sbdb.api?sstr=' + encodeURIComponent(cleanDes) + '&ca-data=true&phys-par=true';
       const res = await fetch(url, { signal: AbortSignal.timeout(6500) });
       if (res.ok) {
         sbdbJson = await res.json();
@@ -724,36 +724,47 @@ export async function fetchLiveAsteroidOrbitData(
         }
       }
     } catch (err: any) {
-      console.warn('[LiveData] JPL SBDB orbit query failed, using curated JPL elements:', err?.message);
+      console.warn('[LiveData] JPL SBDB orbit query failed:', err?.message);
     }
   }
 
   let elements: KeplerianElements;
   let asteroidName = cleanDes;
   let shortName = cleanDes;
-  let orbitClass = 'Apollo';
+  let orbitClass = 'Unclassified small body';
   let isPha = false;
-  let diameterKm: number | null = 0.35;
-  let hMag: number | null = 20.0;
+  let diameterKm: number | null = null;
+  let hMag: number | null = null;
   let closeApproach: AsteroidMotionResponse['asteroid']['closeApproach'] = null;
 
   if (sbdbJson?.orbit?.elements) {
     const elMap = new Map<string, number>();
     for (const el of sbdbJson.orbit.elements) {
-      const val = parseFloat(el.value);
-      if (Number.isFinite(val)) elMap.set(el.name, val);
+      const value = Number.parseFloat(el.value);
+      if (Number.isFinite(value)) elMap.set(el.name, value);
     }
-    const epochJd = parseFloat(sbdbJson.orbit.epoch) || 2460400.5;
+
+    const requiredElements = ['a', 'e', 'i', 'om', 'w', 'ma'];
+    const missingElements = requiredElements.filter((name) => !Number.isFinite(elMap.get(name)));
+    const epochJd = Number.parseFloat(sbdbJson.orbit.epoch);
+    if (missingElements.length > 0 || !Number.isFinite(epochJd)) {
+      throw new Error('JPL SBDB returned an incomplete osculating orbit for ' + cleanDes + '; missing: ' + (missingElements.join(', ') || 'valid epoch'));
+    }
+
+    const a = elMap.get('a') as number;
+    const eccentricity = elMap.get('e') as number;
+    if (a <= 0 || eccentricity < 0 || eccentricity >= 1) {
+      throw new Error('JPL SBDB returned orbital elements outside the supported bound-orbit range for ' + cleanDes + '.');
+    }
     const perDays = elMap.get('per');
-    const a = elMap.get('a') || 1.1;
-    const periodYears = perDays ? perDays / 365.25 : Math.pow(a, 1.5);
+    const periodYears = perDays && perDays > 0 ? perDays / 365.25 : Math.pow(a, 1.5);
     elements = {
       a,
-      e: elMap.get('e') ?? 0.2,
-      i: elMap.get('i') ?? 5.0,
-      node: elMap.get('om') ?? 0,
-      peri: elMap.get('w') ?? 0,
-      M0: elMap.get('ma') ?? 0,
+      e: eccentricity,
+      i: elMap.get('i') as number,
+      node: elMap.get('om') as number,
+      peri: elMap.get('w') as number,
+      M0: elMap.get('ma') as number,
       epochJd,
       periodYears,
       meanMotionDegDay: elMap.get('n') || 360 / (periodYears * 365.25),
@@ -761,44 +772,80 @@ export async function fetchLiveAsteroidOrbitData(
 
     asteroidName = String(sbdbJson.object?.fullname || cleanDes);
     shortName = String(sbdbJson.object?.shortname || asteroidName);
-    orbitClass = String(sbdbJson.object?.orbit_class?.name || 'Near-Earth Asteroid');
+    orbitClass = String(sbdbJson.object?.orbit_class?.name || 'Small Body');
     isPha = Boolean(sbdbJson.object?.pha);
 
-    const diamPar = (sbdbJson.phys_par || []).find((p: any) => p.name === 'diameter');
-    const hPar = (sbdbJson.phys_par || []).find((p: any) => p.name === 'H');
-    diameterKm = diamPar ? parseFloat(diamPar.value) : null;
-    hMag = hPar ? parseFloat(hPar.value) : null;
+    const diamPar = (sbdbJson.phys_par || []).find((parameter: any) => parameter.name === 'diameter');
+    const hPar = (sbdbJson.phys_par || []).find((parameter: any) => parameter.name === 'H');
+    const parsedDiameter = diamPar ? Number.parseFloat(diamPar.value) : NaN;
+    const parsedH = hPar ? Number.parseFloat(hPar.value) : NaN;
+    diameterKm = Number.isFinite(parsedDiameter) && parsedDiameter > 0 ? parsedDiameter : null;
+    hMag = Number.isFinite(parsedH) ? parsedH : null;
 
     if (Array.isArray(sbdbJson.ca_data) && sbdbJson.ca_data.length > 0) {
       const nowMs = Date.now();
       const upcoming = sbdbJson.ca_data.find((ca: any) => ca.body === 'Earth' && Date.parse(ca.cd) >= nowMs - 86400000 * 365) || sbdbJson.ca_data[0];
       if (upcoming) {
-        const distAu = parseFloat(upcoming.dist || '0.02');
-        closeApproach = {
-          date: String(upcoming.cd || ''),
-          iso: new Date(((parseFloat(upcoming.jd) || 2462240) - 2440587.5) * 86400000).toISOString(),
-          nominalDistanceLD: Number((distAu * 389.17).toFixed(3)),
-          nominalDistanceKm: Math.round(distAu * AU_KM),
-          relativeVelocityKmS: Number(parseFloat(upcoming.v_rel || '10').toFixed(2)),
-          sentryImpactProbability: '0 (No Impact Threat)',
-        };
+        const distAu = Number.parseFloat(upcoming.dist);
+        const julianDate = Number.parseFloat(upcoming.jd);
+        const velocity = Number.parseFloat(upcoming.v_rel);
+        const date = String(upcoming.cd || '');
+        const dateMatch = date.match(/^(\\d{4})-([A-Za-z]{3})-(\\d{2})\\s+(\\d{2}):(\\d{2})/);
+        const monthIndex = dateMatch ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(dateMatch[2]) : -1;
+        const calendarDateMs = dateMatch && monthIndex >= 0
+          ? Date.UTC(Number(dateMatch[1]), monthIndex, Number(dateMatch[3]), Number(dateMatch[4]), Number(dateMatch[5]))
+          : NaN;
+        const julianDateMs = (julianDate - 2440587.5) * 86400000;
+        const dateAndJulianDayAgree = Number.isFinite(calendarDateMs)
+          && Number.isFinite(julianDateMs)
+          && Math.abs(calendarDateMs - julianDateMs) <= 86400000;
+
+        if (date && Number.isFinite(distAu) && distAu >= 0 && Number.isFinite(julianDate) && Number.isFinite(velocity) && velocity >= 0 && dateAndJulianDayAgree) {
+          closeApproach = {
+            date,
+            iso: new Date(julianDateMs).toISOString(),
+            nominalDistanceLD: Number((distAu * 389.17).toFixed(3)),
+            nominalDistanceKm: Math.round(distAu * AU_KM),
+            relativeVelocityKmS: Number(velocity.toFixed(2)),
+            sentryImpactProbability: 'Not assessed by this endpoint; consult JPL Sentry',
+          };
+        } else if (date && Number.isFinite(julianDate) && !dateAndJulianDayAgree) {
+          console.warn('[LiveData] JPL SBDB close-approach calendar date and Julian date disagree; suppressing inconsistent encounter for', cleanDes);
+        }
       }
     }
   } else {
-    const fb = FALLBACK_ASTEROID_ELEMENTS[cleanDes] || FALLBACK_ASTEROID_ELEMENTS['99942'];
-    elements = fb.elements;
-    asteroidName = fb.name;
-    shortName = fb.shortName;
-    orbitClass = fb.orbitClass;
-    isPha = fb.isPha;
-    diameterKm = fb.diameterKm;
-    hMag = fb.hMag;
-    if (fb.closeApproach) {
-      closeApproach = { ...fb.closeApproach, sentryImpactProbability: '0 (No Impact Threat)' };
+    const fallback = FALLBACK_ASTEROID_ELEMENTS[cleanDes];
+    if (!fallback) {
+      throw new Error('No live JPL SBDB orbit was returned for "' + cleanDes + '" and no curated local orbit exists for that designation. No substitute object was used.');
+    }
+    elements = fallback.elements;
+    asteroidName = fallback.name;
+    shortName = fallback.shortName;
+    orbitClass = fallback.orbitClass;
+    isPha = fallback.isPha;
+    diameterKm = fallback.diameterKm;
+    hMag = fallback.hMag;
+    if (fallback.closeApproach) {
+      closeApproach = {
+        ...fallback.closeApproach,
+        sentryImpactProbability: 'Not assessed by this application; consult JPL Sentry',
+      };
     }
   }
 
-  const avgMeters = diameterKm ? Math.round(diameterKm * 1000) : Math.round((1329 / Math.sqrt(0.14)) * Math.pow(10, -0.2 * (hMag || 20)) * 1000);
+  const estimatedDiameterMeters = diameterKm !== null
+    ? Math.round(diameterKm * 1000)
+    : hMag !== null
+      ? Math.round((1329 / Math.sqrt(0.14)) * Math.pow(10, -0.2 * hMag) * 1000)
+      : null;
+  const diameterMeters = estimatedDiameterMeters === null
+    ? { min: null, max: null, avg: null }
+    : {
+        min: Math.round(estimatedDiameterMeters * 0.75),
+        max: Math.round(estimatedDiameterMeters * 1.25),
+        avg: estimatedDiameterMeters,
+      };
   const prop = propagateElementsClient(elements, targetDate);
 
   const earthElements: KeplerianElements = {
@@ -821,11 +868,7 @@ export async function fetchLiveAsteroidOrbitData(
       orbitClass,
       isPotentiallyHazardous: isPha,
       diameterKm,
-      diameterMeters: {
-        min: Math.round(avgMeters * 0.75),
-        max: Math.round(avgMeters * 1.25),
-        avg: avgMeters,
-      },
+      diameterMeters,
       absoluteMagnitudeH: hMag,
       orbitalElements: {
         semiMajorAxisAU: Number(elements.a.toFixed(5)),
@@ -839,7 +882,7 @@ export async function fetchLiveAsteroidOrbitData(
         meanMotionDegDay: elements.meanMotionDegDay,
       },
       closeApproach,
-      educationalSummary: `${asteroidName} follows a heliocentric ${orbitClass} orbit with semi-major axis ${elements.a.toFixed(3)} AU and eccentricity ${elements.e.toFixed(3)}.`,
+      educationalSummary: asteroidName + ' follows a heliocentric ' + orbitClass + ' orbit with semi-major axis ' + elements.a.toFixed(3) + ' AU and eccentricity ' + elements.e.toFixed(3) + '.',
     },
     stateVector: {
       epochIso: prop.epochIso,
@@ -875,7 +918,7 @@ export async function fetchLiveAsteroidOrbitData(
       calculationMethod: 'Two-Body Keplerian Osculating Propagation (J2000 Ecliptic)',
       coordinateFrame: 'ICRF / J2000 Ecliptic',
       retrievalTimestamp: new Date().toISOString(),
-      sourceUrl: `https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=${encodeURIComponent(cleanDes)}`,
+      sourceUrl: 'https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/?sstr=' + encodeURIComponent(cleanDes),
       sentryUrl: 'https://cneos.jpl.nasa.gov/sentry/',
     },
   };
@@ -984,11 +1027,11 @@ export function buildLiveEphemeris(dateIso?: string, target?: string): LiveEphem
         trueAnomalyDeg: prop.trueAnomalyDeg,
         orbitalPeriodYears: body.elements.periodYears || Math.pow(body.elements.a, 1.5),
       },
-      dataStatus: 'LIVE DATA',
+      dataStatus: 'CALCULATED MODEL',
       coordinateFrame: 'ICRF / J2000 Ecliptic',
       calculationEpoch: epochDate.toISOString(),
       retrievalTimestamp: new Date().toISOString(),
-      source: 'NASA/JPL Horizons Osculating Ephemeris',
+      source: 'Black Star Orbit Keplerian propagation from bundled JPL-referenced orbital elements',
       sourceUrl: 'https://ssd.jpl.nasa.gov/horizons/',
       educationalSummary: body.summary,
     };
@@ -998,7 +1041,7 @@ export function buildLiveEphemeris(dateIso?: string, target?: string): LiveEphem
     epoch: epochDate.toISOString(),
     julianDate: Number(jd.toFixed(5)),
     coordinateFrame: 'ICRF / J2000 Ecliptic',
-    statusLabel: 'LIVE DATA',
+    statusLabel: 'CALCULATED MODEL',
     retrievalTimestamp: new Date().toISOString(),
     totalObjects: objects.length,
     earthReference: {
