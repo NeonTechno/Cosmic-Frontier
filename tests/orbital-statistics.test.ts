@@ -70,6 +70,7 @@ test('empty or invalid angular samples return neutral p-values and explicit limi
   assert.equal(result.pValueClustering, 1);
   assert.equal(result.pValuePoleClustering, 1);
   assert.equal(result.meanPoleLongitudeDeg, null);
+  assert.equal(result.poleDispersionDeg, null);
   assert.equal(result.selectionBiasCorrected, false);
   assert.ok(result.warnings.some((warning) => warning.includes('Not corrected for survey pointing')));
 });
