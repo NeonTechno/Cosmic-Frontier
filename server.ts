@@ -6,8 +6,7 @@
  * NASA Space Apps Challenge 2026
  * 
  * Handles secure server-side API integrations, SPHEREx observation telemetry,
- * Planet X candidate astrometry, and strictly grounded NVIDIA NIM scientific intelligence
- * powered by nvidia/nemotron-3.5-bolt-e4b.
+ * Planet X candidate astrometry, and grounded AI science explanations using Google Gemini or NVIDIA NIM.
  */
 
 import express, { Request, Response } from 'express';
@@ -92,8 +91,12 @@ app.use(express.json({ limit: '1mb' }));
 
 // In-memory state for candidates (allows student vetting actions in the app)
 let candidateState: PlanetXCandidate[] = JSON.parse(JSON.stringify(INITIAL_CANDIDATE_QUEUE));
+const visualRequestLastAt = new Map<string, number>();
 
 // NVIDIA NIM AI Configuration (strictly server-side)
+const geminiApiKey = cleanEnv(process.env.GEMINI_API_KEY);
+const geminiModel = cleanEnv(process.env.GEMINI_MODEL) || 'gemini-3.8-flash';
+const geminiImageModel = cleanEnv(process.env.GEMINI_IMAGE_MODEL) || 'gemini-3.1-flash-image';
 const nvidiaApiKey = cleanEnv(process.env.NVIDIA_API_KEY);
 const nvidiaModel = cleanEnv(process.env.NVIDIA_MODEL) || 'nvidia/nemotron-3.5-bolt-e4b';
 const nvidiaEndpoint = cleanEnv(process.env.NVIDIA_API_URL) || 'https://integrate.api.nvidia.com/v1/chat/completions';
@@ -148,6 +151,52 @@ async function callNvidiaNemotron(
     }
 
     return cleanedContent;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function callGemini(
+  messages: NvidiaChatMessage[],
+  options: { temperature?: number; maxTokens?: number; timeoutMs?: number } = {}
+): Promise<string> {
+  if (!geminiApiKey) throw new Error('GEMINI_API_KEY is not configured');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 20000);
+  try {
+    const systemText = messages.filter((message) => message.role === 'system').map((message) => message.content).join('\n\n');
+    const contents = messages
+      .filter((message) => message.role !== 'system')
+      .map((message) => ({
+        role: message.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: message.content }],
+      }));
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
+        body: JSON.stringify({
+          ...(systemText ? { systemInstruction: { parts: [{ text: systemText }] } } : {}),
+          contents,
+          generationConfig: {
+            temperature: options.temperature ?? 0.2,
+            maxOutputTokens: options.maxTokens ?? 1024,
+          },
+        }),
+        signal: controller.signal,
+      }
+    );
+    if (!response.ok) {
+      const details = await response.text().catch(() => '');
+      throw new Error(`Gemini API returned HTTP ${response.status}: ${details.slice(0, 300)}`);
+    }
+    const data: any = await response.json();
+    const result = (data?.candidates?.[0]?.content?.parts || [])
+      .map((part: any) => typeof part.text === 'string' ? part.text : '')
+      .join('\n').trim();
+    if (!result) throw new Error('Gemini returned no text candidate');
+    return result;
   } finally {
     clearTimeout(timer);
   }
@@ -1436,6 +1485,35 @@ ${serializedData}
 Answer directly and naturally, grounding your explanation in the values above.`;
 
   try {
+    if (geminiApiKey) {
+      try {
+        const explanationText = await callGemini(
+          [
+            { role: 'system', content: systemInstruction.replace('powered by NVIDIA Nemotron', 'powered by Google Gemini') },
+            { role: 'user', content: prompt },
+          ],
+          { temperature: 0.2, maxTokens: 1024, timeoutMs: 20000 }
+        );
+        res.json({
+          success: true,
+          explanation: explanationText,
+          groundedAttributes: Object.keys(dataPayload),
+          scientificReferences: [
+            'NASA/IPAC IRSA SPHEREx Archive documentation',
+            'Batygin & Brown (2021), The Orbit of Planet Nine, ApJL, 921, L14',
+            'NASA/JPL Solar System Dynamics',
+          ],
+          dataVerificationStatus,
+          confidenceRating: 'HIGH_PRECISION',
+          modelUsed: `Google Gemini (${geminiModel})`,
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      } catch (geminiError: any) {
+        if (!nvidiaApiKey) throw geminiError;
+        console.warn('[Server] Gemini explanation unavailable; trying NVIDIA NIM:', geminiError?.message);
+      }
+    }
     if (nvidiaApiKey) {
       const explanationText = await callNvidiaNemotron(
         [
@@ -1475,7 +1553,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
       ],
       dataVerificationStatus: dataVerificationStatus,
       confidenceRating: 'THEORETICAL_MODEL',
-      modelUsed: `deterministic-scientific-rules-fallback (Set NVIDIA_API_KEY for live ${nvidiaModel})`,
+      modelUsed: `deterministic-scientific-rules-fallback (Set GEMINI_API_KEY or NVIDIA_API_KEY for live AI)`,
       timestamp: new Date().toISOString(),
     });
   } catch (err: unknown) {
@@ -1488,11 +1566,82 @@ Answer directly and naturally, grounding your explanation in the values above.`;
       scientificReferences: ['NASA IRSA Astronomical Handbook'],
       dataVerificationStatus: dataVerificationStatus,
       confidenceRating: 'THEORETICAL_MODEL',
-      modelUsed: `deterministic-fallback-on-error (${nvidiaModel} unavailable)`,
+      modelUsed: 'deterministic-fallback-on-error (configured AI provider unavailable)',
       timestamp: new Date().toISOString(),
     });
   }
 };
+
+app.post('/api/gemini/visualize', async (req: Request, res: Response) => {
+  if (!geminiApiKey) {
+    res.status(503).json({ error: 'Gemini image generation is not configured on this server.' });
+    return;
+  }
+
+  const prompt = String(req.body?.prompt || '').trim();
+  if (!prompt) {
+    res.status(400).json({ error: 'Describe the astronomy illustration you want to create.' });
+    return;
+  }
+  if (prompt.length > 500) {
+    res.status(413).json({ error: 'Visual prompts must be 500 characters or fewer.' });
+    return;
+  }
+
+  const requester = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const lastRequest = visualRequestLastAt.get(requester) || 0;
+  if (now - lastRequest < 20000) {
+    res.status(429).json({ error: 'Please wait a few seconds before generating another illustration.' });
+    return;
+  }
+  visualRequestLastAt.set(requester, now);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60000);
+  try {
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiApiKey },
+      body: JSON.stringify({
+        model: geminiImageModel,
+        input: `Create an original educational astronomy concept illustration based on this request: ${prompt}
+
+Visual integrity requirements: this is illustrative concept art, not a real telescope photograph, not a SPHEREx observation, not a scientific measurement, and not evidence of a discovery. Do not fabricate scientific charts, numerical measurements, telescope readouts, source labels, or data overlays. Make the visual compelling, clear, and suitable for a public astronomy education website.`,
+        response_format: { type: 'image', aspect_ratio: '16:9', image_size: '1K' },
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const details = await response.text().catch(() => '');
+      throw new Error(`Gemini image API returned HTTP ${response.status}: ${details.slice(0, 250)}`);
+    }
+
+    const data: any = await response.json();
+    const imageBlock = (data?.steps || [])
+      .filter((step: any) => step?.type === 'model_output')
+      .flatMap((step: any) => Array.isArray(step.content) ? step.content : [])
+      .find((item: any) => item?.type === 'image' && typeof item.data === 'string');
+
+    if (!imageBlock) {
+      throw new Error('Gemini completed the request without returning an image.');
+    }
+
+    res.json({
+      success: true,
+      imageData: imageBlock.data,
+      mimeType: imageBlock.mime_type || 'image/png',
+      model: geminiImageModel,
+      label: 'AI-generated illustration — not observational data',
+    });
+  } catch (err: any) {
+    console.warn('[Server] Gemini visual generation failed:', err?.message);
+    res.status(502).json({ error: 'Gemini could not create this illustration. Please try a different prompt.' });
+  } finally {
+    clearTimeout(timer);
+  }
+});
 
 app.post('/api/ai/explain', explainWithNvidiaHandler);
 app.post('/api/gemini/explain', explainWithNvidiaHandler);
@@ -1516,7 +1665,7 @@ app.post('/api/chat', async (req: Request, res: Response) => {
   const defaultReference =
     verifiedMatch?.scientificReference || 'NASA Astrophysics, Caltech/IPAC IRSA & Minor Planet Center Educational Archive';
 
-  const chatSystemInstruction = `You are a friendly, knowledgeable astronomy guide for Black Star Orbit (NASA Space Apps Challenge 2026), powered by NVIDIA Nemotron (${nvidiaModel}).
+  const chatSystemInstruction = `You are a friendly, knowledgeable astronomy guide for Black Star Orbit (NASA Space Apps Challenge 2026), powered by the configured server-side AI model.
 Speak naturally and clearly, like a planetarium astronomer chatting with a curious visitor—warm, direct, and free of robotic filler.
 
 SCIENTIFIC INTEGRITY RULES:
@@ -1525,7 +1674,7 @@ SCIENTIFIC INTEGRITY RULES:
 3. Describe SPHEREx accurately: it maps the sky every 6 months across 102 infrared bands from 0.75 to 5.00 µm using Linear Variable Filters.
 4. Use plain Unicode symbols (µm, °, ≈) instead of raw LaTeX syntax, and keep explanations concise and conversational.`;
 
-  if (nvidiaApiKey) {
+  if (geminiApiKey || nvidiaApiKey) {
     try {
       const formattedHistory: NvidiaChatMessage[] = historyRaw
         .slice(-6)
@@ -1542,25 +1691,38 @@ SCIENTIFIC INTEGRITY RULES:
           ? [{ role: 'system', content: chatSystemInstruction }, ...formattedHistory]
           : [{ role: 'system', content: chatSystemInstruction }, ...formattedHistory, { role: 'user', content: message }];
 
-      const reply = await callNvidiaNemotron(conversationMessages, {
-        temperature: 0.3,
-        maxTokens: 900,
-        timeoutMs: 20000,
-      });
+      let reply: string;
+      let activeAiProvider = 'Google Gemini';
+      let activeAiModel = geminiModel;
+      if (geminiApiKey) {
+        try {
+          reply = await callGemini(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 });
+        } catch (geminiError: any) {
+          if (!nvidiaApiKey) throw geminiError;
+          console.warn('[Server] Gemini chat unavailable; trying NVIDIA NIM:', geminiError?.message);
+          reply = await callNvidiaNemotron(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 });
+          activeAiProvider = 'NVIDIA NIM';
+          activeAiModel = nvidiaModel;
+        }
+      } else {
+        reply = await callNvidiaNemotron(conversationMessages, { temperature: 0.3, maxTokens: 900, timeoutMs: 20000 });
+        activeAiProvider = 'NVIDIA NIM';
+        activeAiModel = nvidiaModel;
+      }
 
       res.json({
         reply,
         mode: 'live',
         isAiConnected: true,
-        model: nvidiaModel,
-        provider: 'NVIDIA NIM',
+        model: activeAiModel,
+        provider: activeAiProvider,
         suggestions: defaultSuggestions,
         links: defaultLinks,
         scientificReference: defaultReference,
       });
       return;
     } catch (err: any) {
-      console.warn('[Server] /api/chat NVIDIA NIM call failed, using verified educational fallback:', err?.message);
+      console.warn('[Server] /api/chat AI provider call failed, using verified educational fallback:', err?.message);
     }
   }
 
@@ -1579,19 +1741,19 @@ Try asking about infrared light, how SPHEREx maps 102 spectral bands, or how ast
     reply: fallbackReply,
     mode: 'demonstration',
     isAiConnected: false,
-    model: nvidiaModel,
+    model: 'deterministic-educational-fallback',
     suggestions: defaultSuggestions,
     links: defaultLinks,
     scientificReference: defaultReference,
-    notice: nvidiaApiKey
-      ? `NVIDIA NIM (${nvidiaModel}) encountered a transient issue; verified local knowledge base responded.`
-      : `Demonstration Mode: Operating with verified educational knowledge base (Add NVIDIA_API_KEY for live ${nvidiaModel}).`,
+    notice: geminiApiKey || nvidiaApiKey
+      ? 'The configured AI provider was temporarily unavailable; the verified local knowledge base responded.'
+      : 'Demonstration mode: add GEMINI_API_KEY or NVIDIA_API_KEY for live AI explanations.',
   });
 });
 
 /**
  * Deterministic scientific explanation generator
- * Used as an ultra-reliable fallback when NVIDIA_API_KEY is not configured.
+ * Used as an ultra-reliable fallback when no AI provider is configured or reachable.
  */
 function generateDeterministicScientificExplanation(
   contextType: string,
@@ -1677,7 +1839,8 @@ async function startServer() {
 
   app.listen(port, '0.0.0.0', () => {
     console.log(`🌌 COSMIC FRONTIER server running at http://0.0.0.0:${port}`);
-    console.log(`📡 NVIDIA NIM API Key present: ${!!nvidiaApiKey} (model: ${nvidiaModel})`);
+    console.log(`✨ Gemini API key present: ${!!geminiApiKey} (model: ${geminiModel})`);
+    console.log(`📡 NVIDIA NIM API key present: ${!!nvidiaApiKey} (model: ${nvidiaModel})`);
   });
 }
 

@@ -243,7 +243,7 @@ export const CelestialCoordinateSearch: React.FC<CelestialCoordinateSearchProps>
                   className={`text-left p-3 min-h-[88px] rounded-lg border transition-all cursor-pointer flex flex-col justify-between disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600 ${
                     isSelected
                       ? isLight
-                        ? 'bg-[#172536] border-[#172536] text-white shadow-md shadow-slate-900/15'
+                        ? 'bg-[#e5f7fc] border-[#0891b2] text-[#12394a] shadow-md shadow-cyan-900/10 ring-1 ring-cyan-500/20'
                         : 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(56,189,248,0.25)]'
                       : isLight
                         ? 'bg-white hover:bg-[#f0f6fa] border-[#cbd5e1] hover:border-[#7893a8] text-[#172536] shadow-sm'
@@ -252,10 +252,10 @@ export const CelestialCoordinateSearch: React.FC<CelestialCoordinateSearchProps>
                 >
                   <div className="min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className={`text-xs font-bold leading-snug truncate ${isLight ? (isSelected ? 'text-white' : 'text-[#172536]') : 'text-inherit'}`}>{target.name}</span>
+                      <span className={`text-xs font-bold leading-snug truncate ${isLight ? (isSelected ? 'text-[#12394a]' : 'text-[#172536]') : 'text-inherit'}`}>{target.name}</span>
                       {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 animate-ping" />}
                     </div>
-                    <div className={`mt-1 text-[10px] leading-snug truncate font-mono ${isLight ? (isSelected ? 'text-slate-200' : 'text-[#526174]') : 'text-inherit opacity-80'}`}>
+                    <div className={`mt-1 text-[10px] leading-snug truncate font-mono ${isLight ? (isSelected ? 'text-[#155e75]' : 'text-[#526174]') : 'text-inherit opacity-80'}`}>
                       {target.category === 'High Proper Motion Stars' && 'μ = 10.3″/yr'}
                       {target.category === 'Brown Dwarfs' &&
                         (target.id === 'WISE-0855' ? 'Cold Y-Dwarf (250K)' : 'T1+T6 Binary Pair')}
@@ -264,7 +264,7 @@ export const CelestialCoordinateSearch: React.FC<CelestialCoordinateSearchProps>
                     </div>
                   </div>
 
-                  <div className={`pt-2 mt-2 border-t flex items-center justify-between text-[10px] font-mono font-medium ${isLight ? (isSelected ? 'border-white/20 text-slate-200' : 'border-[#d8e0e8] text-[#526174]') : 'border-white/10 text-inherit opacity-80'}`}>
+                  <div className={`pt-2 mt-2 border-t flex items-center justify-between text-[10px] font-mono font-medium ${isLight ? (isSelected ? 'border-cyan-300 text-[#155e75]' : 'border-[#d8e0e8] text-[#526174]') : 'border-white/10 text-inherit opacity-80'}`}>
                     <span>{target.sexagesimalRa.split(' ')[0]}</span>
                     <span>{target.sexagesimalDec.split(' ')[0]}</span>
                   </div>

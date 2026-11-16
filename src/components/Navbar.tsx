@@ -12,7 +12,6 @@ import { useTheme } from '../context/ThemeContext.tsx';
 interface NavbarProps {
   activeTab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite';
   setActiveTab: (tab: 'overview' | 'spherex' | 'planetx' | 'astrobiology' | 'architecture' | 'cosmic-suite') => void;
-  onOpenAiAssistant: () => void;
   onOpenDataModal: () => void;
   onOpenIntroModal?: () => void;
   onOpenProjectTour?: () => void;
@@ -23,7 +22,6 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
-  onOpenAiAssistant,
   onOpenDataModal,
   onOpenIntroModal,
   onOpenProjectTour,
@@ -218,18 +216,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden lg:inline">Data Sources</span>
           </button>
 
-          {/* AI Assistant button */}
-          <button
-            onClick={onOpenAiAssistant}
-            className={`flex items-center justify-center space-x-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition border cursor-pointer whitespace-nowrap ${
-              isLight
-                ? 'bg-[#d44d5c] text-white hover:bg-[#b83e4c] border-[#d44d5c] font-mono tracking-wider uppercase'
-                : 'bg-gradient-to-r from-cyan-500 to-indigo-500 text-white hover:from-cyan-400 hover:to-indigo-400 shadow-md shadow-indigo-900/30 border-cyan-300/25'
-            }`}
-          >
-            <Telescope className="h-3.5 w-3.5" />
-            <span>Scientific Intel</span>
-          </button>
         </div>
       </div>
     </header>
