@@ -266,10 +266,17 @@ export interface ExtremeTNO {
   longAscNodeDeg: number;
   argPerihelionDeg: number;
   longPerihelionDeg: number; // varpi = Omega + omega
-  discoveryYear: number;
+  discoveryYear: number | null;
   discoverySurvey: string;
-  antiAligned: boolean; // Part of the clustered population argument
+  antiAligned: boolean | null; // null means no clustering assessment has been applied
   orbitalPeriodYears: number;
+  source?: 'MPC' | 'literature';
+  mpcDesignation?: string;
+  lastObserved?: string | null;
+  observationCount?: number | null;
+  oppositionCount?: number | null;
+  orbitEpochJD?: number | null;
+  clusteringStatus?: 'not-assessed' | 'anti-aligned' | 'aligned' | 'other';
 }
 
 export interface PlanetXHypothesisParams {
