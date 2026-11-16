@@ -61,6 +61,8 @@ test('Monte Carlo orbital diagnostics are deterministic for a fixed sample and s
   const second = calculateClusteringSignificance(sample, 3000, 2026);
   assert.deepEqual(first, second);
   assert.equal(first.simulations, 3000);
+  assert.equal(first.seed, 2026);
+  assert.equal(first.analysisVersion, 'orbital-null-monte-carlo-v1');
 });
 
 test('empty or invalid angular samples return neutral p-values and explicit limitations', () => {
