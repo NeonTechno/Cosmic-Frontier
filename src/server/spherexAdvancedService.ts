@@ -236,6 +236,41 @@ async function getSpherexProperties(): Promise<Record<string,string>> {
   cacheSet('hips-properties', props, 6 * 60 * 60 * 1000);
   return props;
 }
+function projectHpx(longitudeDeg: number, latitudeDeg: number): { xDeg: number; yDeg: number } {
+  const lon = ((longitudeDeg % 360) + 360) % 360 * Math.PI / 180;
+  const lat = latitudeDeg * Math.PI / 180;
+  const z = Math.sin(lat);
+  const za = Math.abs(z);
+  let x: number, y: number;
+  if (za <= 2 / 3) {
+    x = lon;
+    y = (3 * Math.PI / 8) * z;
+  } else {
+    const quadrant = Math.min(3, Math.floor(lon / (Math.PI / 2)));
+    const facetCenter = (quadrant + 0.5) * (Math.PI / 2);
+    const sigma = Math.sqrt(3 * (1 - za));
+    x = facetCenter + (lon - facetCenter) * sigma;
+    y = Math.sign(z) * (Math.PI / 4) * (2 - sigma);
+  }
+  return { xDeg: x * 180 / Math.PI, yDeg: y * 180 / Math.PI };
+}
+
+/** HPX projection WCS forward transform, followed by the FITS CD/PC matrix. */
+function skyToHpxPixel(raDeg: number, decDeg: number, header: Record<string, FitsScalar>): { px1: number; py1: number } {
+  const wcs = extractWcsFromHeader(header as Record<string, string | number | boolean>);
+  if (!wcs) throw new Error('HiPS IMAGE extension has no usable celestial WCS.');
+  const deltaLon = ((raDeg - wcs.crval1 + 540) % 360) - 180;
+  const point = projectHpx(deltaLon, decDeg);
+  const reference = projectHpx(0, wcs.crval2);
+  const dxWorld = point.xDeg - reference.xDeg;
+  const dyWorld = point.yDeg - reference.yDeg;
+  const determinant = wcs.cd1_1 * wcs.cd2_2 - wcs.cd1_2 * wcs.cd2_1;
+  if (Math.abs(determinant) < 1e-18) throw new Error('HiPS celestial WCS has a singular CD matrix.');
+  const dx = (wcs.cd2_2 * dxWorld - wcs.cd1_2 * dyWorld) / determinant;
+  const dy = (-wcs.cd2_1 * dxWorld + wcs.cd1_1 * dyWorld) / determinant;
+  return { px1: wcs.crpix1 + dx, py1: wcs.crpix2 + dy };
+}
+
 function spreadBits(value: number): number {
   let out = 0;
   for (let bit = 0; bit < 16; bit++) out |= ((value >>> bit) & 1) << (bit * 2);
@@ -314,7 +349,9 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
   if (!image || image.axes.length !== 3 || image.axes[2] !== 102) throw new Error('HiPS IMAGE extension is not a 102-layer 3D cube.');
   const width = image.axes[0], height = image.axes[1], layers = image.axes[2];
   if (width !== 256 || height !== 256) throw new Error('Unexpected HiPS tile dimensions ' + width + '×' + height + '; expected 256×256.');
-  const x = fine.ix % 256, y = fine.iy % 256;
+  const hipsWcs = skyToHpxPixel(raDeg, decDeg, image.header);
+  const x = Math.round(hipsWcs.px1 - 1), y = Math.round(hipsWcs.py1 - 1);
+  if (x < 0 || x >= width || y < 0 || y >= height) throw new Error('The selected sky position maps outside the retrieved HiPS FITS tile according to its HPX WCS.');
   const cube = numericArray(buffer, image);
   const hitArray = hits && hits.axes.length === 3 ? numericArray(buffer, hits) : null;
   const flagArray = flags && flags.axes.length === 3 ? numericArray(buffer, flags) : null;
@@ -324,7 +361,7 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
     'Layer index is zero-based; wavelength order is ascending from the official HiPS properties.',
     'Layers 50 and 51 are the documented blank dichroic channels (band 3 channel 17 and band 4 channel 1).',
     'Aperture photometry uses a circular source aperture and a local annulus; the annulus background is a 3-sigma clipped mean.',
-    'The selected HEALPix pixel is computed with nested ordering at Norder 5; sub-pixel coordinates are resolved at Norder 13 (256×256).',
+    'The tile is selected with nested HEALPix Norder 5; the within-tile pixel is resolved from the FITS HPX celestial WCS, following the official notebook.',
   ];
   const pixScaleArcsec = Math.sqrt(4 * Math.PI / (12 * Math.pow(nside * 256, 2))) * (180 / Math.PI) * 3600;
   const pixSr = Math.pow(pixScaleArcsec / 206264.806, 2);
