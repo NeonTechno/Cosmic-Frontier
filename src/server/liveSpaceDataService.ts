@@ -4,7 +4,7 @@
  *
  * BLACK STAR ORBIT — Live Astronomical Data Aggregator (Server-Side)
  * Connects directly to official NASA/IPAC/JPL/ESA endpoints so deployments
- * on Vercel stream live astronomical catalogs, ephemerides, asteroid orbits,
+ * through the Render-hosted Express API serve live astronomical catalogs, ephemerides, asteroid orbits,
  * extragalactic lookups, and NASA imagery with fast TTL caching and honest
  * fallback to bundled verified archives when upstream services time out.
  */
