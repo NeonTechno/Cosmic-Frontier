@@ -154,17 +154,6 @@ export const EditorialVariation3: React.FC<EditorialVariation3Props> = ({
                   Shortcuts [Alt+/]
                 </button>
               )}
-              <button
-                onClick={() => onNavigate('spherex')}
-                className={`px-3 py-1 border font-bold transition-all cursor-pointer ${
-                  isLight
-                    ? 'border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-[#fdfcf8]'
-                    : 'border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/20'
-                }`}
-                title="SPHEREx Live Telemetry (Alt + S)"
-              >
-                [ Live Telemetry ]
-              </button>
             </div>
           </div>
         </header>
