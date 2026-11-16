@@ -82,7 +82,7 @@ export const OrbitalResonanceVisualizer: React.FC<OrbitalResonanceVisualizerProp
   // Derived orbital period of candidate (Kepler's 3rd Law: T = a^(3/2))
   const candidatePeriodYears = useMemo(() => {
     if (!activeCandidate) return hypothesis.orbitalPeriodYears;
-    const a = activeCandidate.heliocentricDistanceAU > 0 ? activeCandidate.heliocentricDistanceAU : hypothesis.semiMajorAxisAU;
+    const a = activeCandidate.heliocentricDistanceAU !== null && activeCandidate.heliocentricDistanceAU > 0 ? activeCandidate.heliocentricDistanceAU : hypothesis.semiMajorAxisAU;
     return Math.round(Math.pow(a, 1.5));
   }, [activeCandidate, hypothesis]);
 
