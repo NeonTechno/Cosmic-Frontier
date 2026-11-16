@@ -49,9 +49,9 @@ export const OFFICIAL_NASA_DATA_SOURCES: NasaDataEndpointStatus[] = [
     organization: 'NASA Infrared Processing and Analysis Center (IPAC)',
     endpointUrl: 'https://irsa.ipac.caltech.edu/TAP',
     protocol: 'TAP / IVOA',
-    status: 'ONLINE_AVAILABLE',
-    lastPingMs: 750,
-    description: 'IVOA TAP schema and metadata registry for spherex.obscore, spherex.observation, and spherex.plane (note: SIAv2 is used for fast spatial cutout queries).',
+    status: 'PRE_LAUNCH_SPEC',
+    lastPingMs: 0,
+    description: 'The TAP schema is documented, but this application currently uses SIAv2 for spatial discovery; no live TAP query workflow is wired into the UI yet.',
     documentationRef: 'https://irsa.ipac.caltech.edu/docs/program_interface/TAP.html',
   },
   {
@@ -60,9 +60,9 @@ export const OFFICIAL_NASA_DATA_SOURCES: NasaDataEndpointStatus[] = [
     organization: 'International Astronomical Union / Smithsonian Astrophysical Observatory',
     endpointUrl: 'https://minorplanetcenter.net/iau/lists/Centaurs.html',
     protocol: 'REST / JSON',
-    status: 'ONLINE_AVAILABLE',
-    lastPingMs: 95,
-    description: 'Official orbital elements and observation residuals for extreme Trans-Neptunian Objects and Centaurs.',
+    status: 'PRE_LAUNCH_SPEC',
+    lastPingMs: 0,
+    description: 'Official MPC reference resource. Live MPC ingestion and orbit-residual cross-matching are not yet connected to the Planet X candidate queue.',
     documentationRef: 'https://minorplanetcenter.net/data',
   },
   {
@@ -84,7 +84,7 @@ export const OFFICIAL_NASA_DATA_SOURCES: NasaDataEndpointStatus[] = [
     protocol: 'REST / JSON',
     status: 'PROXY_SIMULATED',
     lastPingMs: 4,
-    description: 'Explicitly labeled offline/fallback benchmark dataset reproducing SPHEREx 6.15″/px PSF and 102 spectral channels only when live IRSA endpoints return 0 rows or fail.',
+    description: 'Explicitly labelled synthetic benchmark for interface walkthroughs only. It is available only through SIMULATED_DEMO and is never substituted for failed or empty IRSA archive queries.',
     documentationRef: 'https://spherex.caltech.edu/Science.html',
   }
 ];
