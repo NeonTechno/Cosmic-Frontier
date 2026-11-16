@@ -275,10 +275,10 @@ export function calculateAstrometricTrajectory(
   durationDays: number = 365.25 * 3,
   stepDays: number = 15
 ): AstrometryFitResult {
-  const dAU = candidate.heliocentricDistanceAU > 0 ? candidate.heliocentricDistanceAU : 400;
+  const dAU = candidate.heliocentricDistanceAU !== null && candidate.heliocentricDistanceAU > 0 ? candidate.heliocentricDistanceAU : 400;
   const parallaxAmplitude = 1.0 / dAU; // in arcseconds
-  const muAlpha = candidate.properMotionAlphaArcsecYr / 365.25; // arcsec / day
-  const muDelta = candidate.properMotionDeltaArcsecYr / 365.25;
+  const muAlpha = (candidate.properMotionAlphaArcsecYr ?? 0) / 365.25; // arcsec / day
+  const muDelta = (candidate.properMotionDeltaArcsecYr ?? 0) / 365.25;
 
   const modelTrajectory: { epochMJD: number; ra: number; dec: number }[] = [];
   const baseRA = candidate.raDeg;
@@ -308,15 +308,15 @@ export function calculateAstrometricTrajectory(
 
   const observedPositions = candidate.observationHistory.map((obs, idx) => ({
     epochMJD: startMJD + idx * 365,
-    ra: Number((baseRA + obs.dxArcsec / 3600).toFixed(6)),
-    dec: Number((baseDec + obs.dyArcsec / 3600).toFixed(6)),
+    ra: Number((baseRA + (obs.dxArcsec ?? 0) / 3600).toFixed(6)),
+    dec: Number((baseDec + (obs.dyArcsec ?? 0) / 3600).toFixed(6)),
   }));
 
   return {
     observedPositions,
     modelTrajectory,
     parallaxAmplitudeArcsec: Number(parallaxAmplitude.toFixed(4)),
-    linearProperMotionArcsecYr: Number(Math.hypot(candidate.properMotionAlphaArcsecYr, candidate.properMotionDeltaArcsecYr).toFixed(4)),
+    linearProperMotionArcsecYr: Number(Math.hypot(candidate.properMotionAlphaArcsecYr ?? 0, candidate.properMotionDeltaArcsecYr ?? 0).toFixed(4)),
     reducedChi2: candidate.status === 'candidate' ? 1.08 : (candidate.status === 'known_asteroid' ? 4.9 : 0.85),
     isPhysicalOrbit: candidate.status === 'candidate' || candidate.status === 'unvetted',
   };
