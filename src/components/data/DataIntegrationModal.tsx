@@ -39,11 +39,119 @@ const SPACE_APPS_RESOURCES = [
   },
   {
     group: 'NASA data and resources',
-    agency: 'Backyard Worlds',
-    title: 'IRSA Image Server & Browsable Directories',
-    description: 'Programmatic image metadata, direct FITS downloads, image cutouts, and browsable archive directories.',
-    url: 'https://irsa.ipac.caltech.edu/ibe/',
-    tag: 'DIRECT FITS ACCESS',
+    agency: 'NASA/IPAC IRSA',
+    title: 'SPHEREx DR1 & QR3 Wide + Deep SIA collections',
+    description: 'Searchable spectral-image collections: spherex_dr1, spherex_dr1_deep, spherex_qr3, and spherex_qr3_deep. Black Star Orbit queries all four collection families for live spatial observations.',
+    url: 'https://irsa.ipac.caltech.edu/SIA?COLLECTION=spherex_dr1',
+    tag: 'LIVE ARCHIVE · 4 COLLECTIONS',
+    coverage: 'INTEGRATED — live SIAv2 search includes DR1/QR3 wide and deep collections; results retain their originating collection.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'NASA/IPAC IRSA',
+    title: 'SPHEREx DR1 All-Sky HiPS Cube (102 spectral layers)',
+    description: 'A separate all-sky cube product with IMAGE, NHITS, FLAGS, SPECTRAL_CHANNELS and WCS-WAVE extensions; its 102 layers map to the SPHEREx wavelength channels.',
+    url: 'https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube',
+    tag: 'ALL-SKY FITS CUBE',
+    coverage: 'NOT YET PORTED — the official HiPS notebook is linked; direct HEALPix FITS tile retrieval and per-position spectrum extraction remain outstanding.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'NASA/IPAC IRSA',
+    title: 'SPHEREx ePSF calibration product',
+    description: 'The EPSF binary table stores detector-zone metadata and 33×33 oversampled PSF arrays (OVSMPX/OVSMPY = 5). The notebook selects the nearest XCENTER/YCENTER zone.',
+    url: 'https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-access/',
+    tag: 'CALIBRATION · EPSF',
+    coverage: 'NOT YET PORTED — the current FITS reader does not parse the EPSF BINTABLE or select a detector-zone PSF.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'NASA/IPAC IRSA',
+    title: 'SPHEREx DR1 & QR3 Wide + Deep SIA collections',
+    description: 'The searchable spectral-image collections: spherex_dr1, spherex_dr1_deep, spherex_qr3, and spherex_qr3_deep. The app queries all four collection families for live spatial observations.',
+    url: 'https://irsa.ipac.caltech.edu/SIA?COLLECTION=spherex_dr1',
+    tag: 'LIVE ARCHIVE · 4 COLLECTIONS',
+    coverage: 'INTEGRATED — live SIAv2 search includes DR1/QR3 wide and deep collections; results retain their originating collection.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'NASA/IPAC IRSA',
+    title: 'SPHEREx DR1 All-Sky HiPS Cube (102 spectral layers)',
+    description: 'The all-sky cube is a separate product from the spectral-image MEFs. It contains IMAGE, NHITS, FLAGS, SPECTRAL_CHANNELS and WCS-WAVE extensions; its 102 layers map to the SPHEREx wavelength channels.',
+    url: 'https://irsa.ipac.caltech.edu/data/hips/SPHEREx/spherex_allsky_cube',
+    tag: 'ALL-SKY FITS CUBE',
+    coverage: 'NOT YET PORTED — the site links the official HiPS notebook; direct HEALPix FITS tile retrieval and per-position spectrum extraction are still outstanding.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'NASA/IPAC IRSA',
+    title: 'SPHEREx ePSF calibration product',
+    description: 'The EPSF binary-table extension stores detector-zone metadata and 33×33 oversampled PSF arrays (OVSMPX/OVSMPY = 5). The official notebook selects the nearest XCENTER/YCENTER zone.',
+    url: 'https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-access/',
+    tag: 'CALIBRATION · EPSF',
+    coverage: 'NOT YET PORTED — the current FITS reader does not parse the EPSF BINTABLE or select a detector-zone PSF.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'Backyard Worlds / WISE',
+    title: 'WiseView',
+    description: 'Official challenge inspiration: blink historical WISE/NEOWISE images to inspect moving and variable infrared sources. Complementary to, not a substitute for, SPHEREx observations.',
+    url: 'https://byw.tools/wiseview',
+    tag: 'TIME-DOMAIN REFERENCE',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'Caltech/IPAC IRSA',
+    title: 'SPHEREx Data Overview notebook',
+    description: 'SIA spatial search, observation metadata, multi-extension FITS structure, IMAGE/FLAGS/VARIANCE/ZODI products, and spatial plus wavelength WCS.',
+    url: 'https://caltech-ipac.github.io/irsa-tutorials/spherex-intro',
+    tag: 'NOTEBOOK · DATA ACCESS',
+    coverage: 'PARTIAL — live archive search, FITS parsing and image display exist; Firefly notebook parity is not complete.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'Caltech/IPAC IRSA',
+    title: 'SPHEREx Spectral Image Cutouts notebook',
+    description: 'Build multi-epoch spatial/spectral cutouts, retain the CUTOUT_INFO table, observation dates, wavelengths, processing versions and source access URLs.',
+    url: 'https://caltech-ipac.github.io/irsa-tutorials/spherex-cutouts',
+    tag: 'NOTEBOOK · CUTOUTS',
+    coverage: 'PARTIAL — single observation cutouts and local multi-epoch FITS indexing exist; notebook-style multi-cutout MEF export is not complete.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'Caltech/IPAC IRSA',
+    title: 'SPHEREx PSF Models notebook',
+    description: 'Extract the EPSF extension, select the detector zone by XCENTER/YCENTER, and understand oversampling, wavelength and effective-area metadata.',
+    url: 'https://caltech-ipac.github.io/irsa-tutorials/spherex-psf',
+    tag: 'NOTEBOOK · PSF',
+    coverage: 'NOT YET PORTED — the current viewer does not expose validated ePSF zone extraction or PSF fitting.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'Caltech/IPAC IRSA',
+    title: 'SPHEREx Source Discovery Tool notebook',
+    description: 'Background subtraction, bad-pixel masking, reprojection, difference-colour images, source extraction, aperture photometry and 1D spectra.',
+    url: 'https://caltech-ipac.github.io/irsa-tutorials/spherex-source-discovery-tool-demo',
+    tag: 'NOTEBOOK · SOURCES',
+    coverage: 'PARTIAL — image comparison and spectral views exist; the notebook SExtractor/SEP extraction and full quality-flag workflow are not ported.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'Caltech/IPAC IRSA',
+    title: 'SPHEREx Mosaic Cube notebook',
+    description: 'Inspect and analyze calibrated SPHEREx mosaic cubes and their spatial/spectral data products.',
+    url: 'https://caltech-ipac.github.io/irsa-tutorials/spherex-mosaic',
+    tag: 'NOTEBOOK · MOSAICS',
+    coverage: 'NOT YET PORTED — no verified mosaic-cube reader or analysis workflow is exposed in the app.',
+  },
+  {
+    group: 'NASA data and resources',
+    agency: 'Caltech/IPAC IRSA',
+    title: 'SPHEREx HiPS All-Sky Cube notebook',
+    description: 'Explore HiPS all-sky mosaic cubes, retrieve FITS tiles, drill into cube data and extract quick-look spectra.',
+    url: 'https://caltech-ipac.github.io/irsa-tutorials/spherex-hipscube',
+    tag: 'NOTEBOOK · HiPS',
+    coverage: 'NOT YET PORTED — tile-level HiPS FITS cube retrieval and drill-through are not verified in the app.',
   },
   {
     group: 'NASA data and resources',
@@ -152,10 +260,10 @@ export const DataIntegrationModal: React.FC<DataIntegrationModalProps> = ({
           <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
           <div className="space-y-1">
             <div className="font-bold text-emerald-300 uppercase tracking-wide">
-              LIVE IRSA + LOCAL FITS DATA PIPELINE
+              LIVE IRSA + LOCAL FITS SUPPORT
             </div>
             <p className="leading-relaxed text-emerald-100/85 font-sans">
-              Black Star Orbit queries NASA/IPAC IRSA SIAv2 (<code>spherex_dr1</code> &amp; <code>spherex_qr3</code>), downloads calibrated Level-2 Multi-Extension FITS cutouts (IMAGE, FLAGS, VARIANCE, ZODI), and cross-matches ESA Gaia DR3 &amp; AllWISE W1/W2 coadds. When live retrieval fails or no matching local files exist, the viewer displays no observation frames and guides users through collecting and indexing genuine archive data.
+              The application has live-first IRSA SIAv2 search, Level-2 FITS cutout parsing, local DR1/QR3 FITS indexing, and Gaia/AllWISE cross-match paths. This does not mean every official notebook workflow is implemented: the notebook coverage map below distinguishes working, partial, and not-yet-ported features.
             </p>
           </div>
         </div>
@@ -260,7 +368,7 @@ export const DataIntegrationModal: React.FC<DataIntegrationModalProps> = ({
                   <span>Official Space Apps Challenge Resources</span>
                 </h4>
                 <p className="mt-1 text-[11px] text-slate-400 font-sans">
-                  Resource links listed for the 2026 “Planet X and SPHEREx” challenge.
+                  Official NASA Space Apps links plus the full public Caltech/IPAC SPHEREx notebook suite. Coverage labels describe the current app, not the notebook itself.
                 </p>
               </div>
               <a
@@ -291,6 +399,7 @@ export const DataIntegrationModal: React.FC<DataIntegrationModalProps> = ({
                       </div>
                       <span className="mt-1 block text-xs font-semibold text-white">{resource.title}</span>
                       <span className="mt-1 block text-[11px] leading-relaxed text-slate-400 font-sans">{resource.description}</span>
+                      {'coverage' in resource && <span className="mt-2 block text-[10px] leading-relaxed text-amber-200/90 font-mono">APP COVERAGE: {resource.coverage}</span>}
                       <span className="mt-2 inline-flex items-center gap-1 text-[10px] text-cyan-400 font-mono">
                         Open resource <ExternalLink className="h-3 w-3" />
                       </span>
@@ -300,7 +409,7 @@ export const DataIntegrationModal: React.FC<DataIntegrationModalProps> = ({
               </div>
             ))}
             <p className="rounded-lg border border-amber-900/50 bg-amber-950/20 px-3 py-2 text-[11px] leading-relaxed text-amber-200/90 font-sans">
-              Scientific scope note: SPHEREx IRSA is the primary image source for this challenge. Gaia and WISE provide complementary astrometric and historical infrared checks. NEOSSat is a separate Canadian mission focused on near-Earth objects and space debris; its data must not be presented as SPHEREx observations or as direct Planet X evidence.
+              Scientific scope note: SPHEREx IRSA is the primary SPHEREx image source. Gaia DR3 provides complementary astrometry; WISE/NEOWISE provides historical infrared context. NEOSSat is a separate Canadian mission and its observations must not be presented as SPHEREx images or direct evidence for Planet X. The official resource list does not supply a dedicated Planet X notebook; orbital-catalogue analysis remains a separate workflow.
             </p>
           </div>
 
