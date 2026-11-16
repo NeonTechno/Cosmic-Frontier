@@ -435,7 +435,7 @@ app.get('/api/horizons/observer', async (req: Request, res: Response) => {
     res.status(400).json({ success: false, error: 'Unsupported Horizons target identifier.' });
     return;
   }
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateUTC) || !Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== dateUTC) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateUTC) || !Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== dateUTC) {
     res.status(400).json({ success: false, error: 'Date must be a valid UTC calendar date in YYYY-MM-DD format.' });
     return;
   }
