@@ -29,8 +29,5 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --include=dev
 
-      - name: Run scientific integrity tests
-        run: npm test
-
-      - name: Typecheck and build production app
+      - name: Typecheck, test and build production app
         run: npm run build
