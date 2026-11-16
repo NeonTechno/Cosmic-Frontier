@@ -223,6 +223,12 @@ export const PlanetXDashboard: React.FC<PlanetXDashboardProps> = ({
               astrometricSnr: cand.astrometricSnr,
               status: cand.status,
               theoreticalConsistency: cand.theoreticalConsistency,
+              dataOrigin: cand.dataOrigin ?? 'UNSPECIFIED',
+              provenanceNote: cand.provenanceNote ?? 'No provenance note supplied.',
+              unavailableMeasurements: cand.unavailableMeasurements ?? [],
+              interpretationRule: cand.dataOrigin === 'SYNTHETIC_DEMO'
+                ? 'All numeric values are synthetic teaching fixtures, not observations or candidate evidence.'
+                : 'Treat missing values as unavailable; archive-derived residuals are not confirmed objects.',
             })
           }
         />
