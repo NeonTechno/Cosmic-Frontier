@@ -275,9 +275,8 @@ export const INITIAL_CANDIDATE_QUEUE: PlanetXCandidate[] = [
 ];
 
 /**
- * Astrometric Parallax & Proper Motion Solver
- * Computes the annual heliocentric reflex ellipse given a heliocentric distance (AU)
- * and linear orbital motion vector.
+ * Illustrative circular-Earth parallax plus linear proper-motion track.
+ * This is not a fitted orbit, JPL ephemeris, or χ² goodness-of-fit calculation.
  */
 export function calculateAstrometricTrajectory(
   candidate: PlanetXCandidate,
