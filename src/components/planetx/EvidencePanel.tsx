@@ -54,7 +54,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
         <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl space-y-2">
           <div className="flex items-center justify-between text-xs font-mono text-cyan-400">
             <span className="flex items-center gap-1 font-semibold">
-              <BarChart3 className="h-4 w-4" /> Rayleigh Test (ϖ)
+              <BarChart3 className="h-4 w-4" /> Monte Carlo null test (ϖ)
             </span>
             <span className="text-emerald-400 font-bold">p = {stats.pValueClustering}</span>
           </div>
@@ -62,7 +62,7 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
             {stats.meanVarpiDeg}°
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-            Mean longitude of perihelion for physical eTNO cluster. Probability of random alignment is &lt; 0.1% (3.4σ).
+            Mean longitude across {stats.sampleSize} catalogue objects. The p-value compares the observed concentration with a uniform-angle null; it is not corrected for survey selection.
           </p>
         </div>
 
@@ -72,13 +72,13 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
             <span className="flex items-center gap-1 font-semibold">
               <ShieldCheck className="h-4 w-4" /> Orbital Pole Dispersion
             </span>
-            <span className="text-slate-300">Δθ ≈ {stats.dispersionDeg}°</span>
+            <span className="text-slate-300">Δθ ≈ {stats.poleDispersionDeg}°</span>
           </div>
           <div className="text-2xl font-bold text-purple-300 font-mono">
-            R = {stats.rayleighR}
+            R = {stats.poleRayleighR}
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-            Vector resultant length measuring orbital plane mutual inclination confinement.
+            Mean angular separation from the sample's mean orbital pole. Isotropic-null Monte Carlo p = {stats.pValuePoleClustering} (n = {stats.poleSampleSize}).
           </p>
         </div>
 
@@ -88,15 +88,27 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({
             <span className="flex items-center gap-1 font-semibold">
               <AlertTriangle className="h-4 w-4" /> Why Not Discovered Yet?
             </span>
-            <span className="text-amber-300 font-bold">Aphelion Blind Spot</span>
+            <span className="text-amber-300 font-bold">Not modelled</span>
           </div>
           <div className="text-xl font-bold text-amber-200 font-mono">
-            d ≈ 400 – 480 AU
+            Survey selection effects
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-            Planet spends ~70% of orbit near aphelion projected against the dense galactic plane in Taurus/Orion.
+            These diagnostics do not model survey pointings, depth, cadence, weather, tracking or follow-up efficiency. A selection-aware analysis is still required.
           </p>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-amber-500/25 bg-amber-950/20 p-4 space-y-2">
+        <div className="flex items-center gap-2 text-xs font-semibold text-amber-300">
+          <AlertTriangle className="h-4 w-4" /> Interpretation and limitations
+        </div>
+        <p className="text-[11px] leading-relaxed text-slate-300">
+          {stats.simulations.toLocaleString()} deterministic Monte Carlo trials · {stats.nullModel}. These are exploratory null-model diagnostics, not a selection-corrected Planet Nine significance test.
+        </p>
+        <ul className="list-disc space-y-1 pl-4 text-[10px] leading-relaxed text-slate-400">
+          {stats.warnings.map((warning: string, index: number) => <li key={index}>{warning}</li>)}
+        </ul>
       </div>
 
       {/* Interactive Hypothesis Parameter Explorer */}
