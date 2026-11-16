@@ -1,4 +1,6 @@
 import type { FC } from 'react';
+import { useTheme } from '../../context/ThemeContext';
+import { AiVisualStudio } from '../../components/editorial/AiVisualStudio';
 import { assetUrl } from '../../utils/assetUrl';
 import type { AppPage } from '../types';
 import { NasaLiveDispatch } from './NasaLiveDispatch';
@@ -17,6 +19,8 @@ interface HomePageProps {
 }
 
 export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
+  const { isLight } = useTheme();
+
   return (
     <div className="cf-lab-home space-y-8 pb-12 pt-3">
       {/* DISCOVERY CATEGORIES GATEWAY */}
@@ -136,6 +140,11 @@ export const HomePage: FC<HomePageProps> = ({ onNavigate }) => {
             </div>
           </div>
         </div>
+
+        {/* GEMINI VISUAL STUDIO — creative astronomy workspace */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Gemini Visual Studio">
+          <AiVisualStudio isLight={isLight} />
+        </section>
 
         {/* STRUCTURED EXPLORATION DOMAINS (4 Thematic Clusters) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
