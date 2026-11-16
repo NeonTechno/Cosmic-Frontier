@@ -102,6 +102,18 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 - [ ] Verify Render deploys the intended branch and smoke-test the public service after deployment.
 - [ ] Keep a known-issues list and never describe incomplete or simulated functionality as a verified scientific result.
 
+## Scientific hardening — phase 2: survey selection
+
+- [x] Review the current OSSOS Survey Simulator architecture, including its Python/Fortran and f90wrap build path.
+- [x] Record the separate-worker integration decision, API contract, licensing review gate, and staged acceptance criteria in [OSSOS adapter design](OSSOS_ADAPTER_DESIGN.md).
+- [ ] Pin an immutable upstream OSSOS commit and reproduce its build/tests in a clean container.
+- [ ] Review the exact EUPL obligations and characterization-data terms before packaging or redistribution.
+- [ ] Select one characterized survey and its matching observed sample; pin and hash all characterization files.
+- [ ] Implement the worker adapter with strict schemas, raw-output preservation, and deterministic contract tests.
+- [ ] Validate a null and an explicitly parameterized alternative population against the same characterized survey.
+- [ ] Add worker image, simulator commit, characterization hashes, model priors, epoch, seed, and output hashes to the reproducibility manifest.
+- [ ] Keep the user-facing status as “selection effects not modelled” until the real survey run passes independent validation.
+
 ## Release status
 
 The checked items above describe code changes included in the current upgrade branch. Unchecked items are follow-up research, engineering, validation, or release work; they are not represented as completed. The upgrade still requires CI and deployment verification before it should be described as release-ready.
