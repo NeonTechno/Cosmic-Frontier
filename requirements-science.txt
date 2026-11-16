@@ -1,0 +1,4 @@
+# Scientific Python stack for the research pipeline.
+# Keep versions broad enough for Linux/macOS wheels; lock exact versions for production releases.
+numpy>=1.26,<3
+astropy>=6.0,<8
