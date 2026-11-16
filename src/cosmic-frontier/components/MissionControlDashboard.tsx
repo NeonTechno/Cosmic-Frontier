@@ -153,6 +153,7 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
 
   const earthObject = ephemData?.objects.find((object) => object.id === 'earth');
   const moonObject = ephemData?.objects.find((object) => object.id === 'moon');
+  const earthOrbitalVelocity = ephemData?.earthReference?.orbitalVelocityKmS;
 
   // Status Badge Helper
   const renderStatusBadge = (status: LiveDataBadgeStatus) => {
@@ -416,7 +417,7 @@ export const MissionControlDashboard: FC<MissionControlDashboardProps> = ({ onNa
           <div className="p-3.5 rounded-xl bg-[#050B1A]/70 border border-[#1E293B]/60 space-y-0.5">
             <span className="text-[#A7B4CC] text-[11px]">Mean Earth Orbital Velocity:</span>
             <div className="text-base font-bold text-[#F5C451] tabular-nums">
-              {ephemData?.earthReference.orbitalVelocityKmS != null ? ephemData.earthReference.orbitalVelocityKmS : '—'} km/s
+              {earthOrbitalVelocity != null ? earthOrbitalVelocity : '—'} km/s
             </div>
             <div className="text-[10px] text-[#A7B4CC]">~107,200 km/h in space</div>
           </div>
