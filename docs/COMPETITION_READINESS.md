@@ -22,7 +22,7 @@ This is the working checklist for turning Black Star Orbit into a compelling, re
 - [ ] Add an in-app provider health indicator that reports availability without exposing secrets.
 - [ ] Add rate limiting, request-size limits, and abuse controls for public AI endpoints.
 - [ ] Add structured response validation and a user-visible “AI-generated explanation” label.
-- [ ] Add optional AI-generated *illustrative* media only where it improves learning; label generated artwork as illustrative and never as telescope imagery or a measured result.
+- [x] Add Gemini-powered astronomy concept-art generation in the Editorial Journal; generated artwork is labelled illustrative and never presented as telescope imagery or a measured result.
 - [ ] Evaluate AI answers against a curated astronomy question set, including adversarial prompts that try to elicit invented observations.
 
 ## Scientific research integrity
