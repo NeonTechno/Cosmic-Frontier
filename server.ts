@@ -1484,28 +1484,33 @@ Answer directly and naturally, grounding your explanation in the values above.`;
 
   try {
     if (geminiApiKey) {
-      const explanationText = await callGemini(
-        [
-          { role: 'system', content: systemInstruction.replace('powered by NVIDIA Nemotron', 'powered by Google Gemini') },
-          { role: 'user', content: prompt },
-        ],
-        { temperature: 0.2, maxTokens: 1024, timeoutMs: 20000 }
-      );
-      res.json({
-        success: true,
-        explanation: explanationText,
-        groundedAttributes: Object.keys(dataPayload),
-        scientificReferences: [
-          'NASA/IPAC IRSA SPHEREx Archive documentation',
-          'Batygin & Brown (2021), The Orbit of Planet Nine, ApJL, 921, L14',
-          'NASA/JPL Solar System Dynamics',
-        ],
-        dataVerificationStatus,
-        confidenceRating: 'HIGH_PRECISION',
-        modelUsed: `Google Gemini (${geminiModel})`,
-        timestamp: new Date().toISOString(),
-      });
-      return;
+      try {
+        const explanationText = await callGemini(
+          [
+            { role: 'system', content: systemInstruction.replace('powered by NVIDIA Nemotron', 'powered by Google Gemini') },
+            { role: 'user', content: prompt },
+          ],
+          { temperature: 0.2, maxTokens: 1024, timeoutMs: 20000 }
+        );
+        res.json({
+          success: true,
+          explanation: explanationText,
+          groundedAttributes: Object.keys(dataPayload),
+          scientificReferences: [
+            'NASA/IPAC IRSA SPHEREx Archive documentation',
+            'Batygin & Brown (2021), The Orbit of Planet Nine, ApJL, 921, L14',
+            'NASA/JPL Solar System Dynamics',
+          ],
+          dataVerificationStatus,
+          confidenceRating: 'HIGH_PRECISION',
+          modelUsed: `Google Gemini (${geminiModel})`,
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      } catch (geminiError: any) {
+        if (!nvidiaApiKey) throw geminiError;
+        console.warn('[Server] Gemini explanation unavailable; trying NVIDIA NIM:', geminiError?.message);
+      }
     }
     if (nvidiaApiKey) {
       const explanationText = await callNvidiaNemotron(
@@ -1559,7 +1564,7 @@ Answer directly and naturally, grounding your explanation in the values above.`;
       scientificReferences: ['NASA IRSA Astronomical Handbook'],
       dataVerificationStatus: dataVerificationStatus,
       confidenceRating: 'THEORETICAL_MODEL',
-      modelUsed: `deterministic-fallback-on-error (${nvidiaModel} unavailable)`,
+      modelUsed: 'deterministic-fallback-on-error (configured AI provider unavailable)',
       timestamp: new Date().toISOString(),
     });
   }
@@ -1663,7 +1668,7 @@ Try asking about infrared light, how SPHEREx maps 102 spectral bands, or how ast
     reply: fallbackReply,
     mode: 'demonstration',
     isAiConnected: false,
-    model: nvidiaModel,
+    model: 'deterministic-educational-fallback',
     suggestions: defaultSuggestions,
     links: defaultLinks,
     scientificReference: defaultReference,
