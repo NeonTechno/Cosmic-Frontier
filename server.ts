@@ -980,6 +980,7 @@ app.post('/api/planetx/candidates/from-spherex', (req: Request, res: Response) =
     id: `CAND-SPX-${Date.now().toString(36).toUpperCase()}`,
     designation: String(designation || `SPHEREx Residual (${ra.toFixed(3)}°, ${dec.toFixed(3)}°)`),
     survey: 'SPHEREx',
+    dataOrigin: 'ARCHIVE_DERIVED',
     raDeg: ra, decDeg: dec,
     eclipticLonDeg: ecliptic.lonDeg, eclipticLatDeg: ecliptic.latDeg,
     heliocentricDistanceAU: null, apparentMagW1: null, apparentMagW2: null, colorW1W2: null,
