@@ -236,7 +236,7 @@ export interface PlanetXCandidate {
   estimatedMassEarths: number | null;
   astrometricSnr: number | null;
   status: 'unvetted' | 'candidate' | 'known_asteroid' | 'instrumental_artifact' | 'brown_dwarf';
-  confidenceScore: number; // 0 - 100
+  confidenceScore: number | null; // null when not evaluated
   notes: string;
   observationHistory: {
     epoch: string;
@@ -249,7 +249,7 @@ export interface PlanetXCandidate {
   unavailableMeasurements?: string[];
   sourceObservationIds?: string[];
   provenanceNote?: string;
-  theoreticalConsistency: number; // Alignment with Batygin & Brown 2021 predictions
+  theoreticalConsistency: number | null; // null when not evaluated
   vettedBy?: string;
   vettingTimestamp?: string;
   vettingVerdict?: string;
