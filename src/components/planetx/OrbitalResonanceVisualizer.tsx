@@ -193,7 +193,7 @@ export const OrbitalResonanceVisualizer: React.FC<OrbitalResonanceVisualizerProp
       antiAligned: e.antiAligned,
       eccentricity: e.e,
       closestResonance: e.closestResonance,
-      color: e.antiAligned ? (isLight ? '#d44d5c' : '#38bdf8') : (isLight ? '#8c8c8c' : '#64748b'),
+      color: e.antiAligned === null ? '#f59e0b' : e.antiAligned ? (isLight ? '#d44d5c' : '#38bdf8') : (isLight ? '#8c8c8c' : '#64748b'),
     }));
   }, [etnoResonanceData, isLight]);
 
@@ -205,7 +205,8 @@ export const OrbitalResonanceVisualizer: React.FC<OrbitalResonanceVisualizerProp
   }, [etnoResonanceData, highlightResonance]);
 
   const resonantCount = etnoResonanceData.filter((e) => e.inResonanceProximity).length;
-  const antiAlignedCount = etnoResonanceData.filter((e) => e.antiAligned).length;
+  const antiAlignedCount = etnoResonanceData.filter((e) => e.antiAligned === true).length;
+  const unassessedCount = etnoResonanceData.filter((e) => e.antiAligned === null).length;
 
   return (
     <div className={`rounded-xl border transition-colors shadow-xl space-y-4 ${
@@ -631,7 +632,7 @@ export const OrbitalResonanceVisualizer: React.FC<OrbitalResonanceVisualizerProp
                             Nearest MMR: <span className="font-bold text-indigo-400">{d.closestResonance}</span> (Offset: {d.semiMajorOffsetAU} AU)
                           </div>
                           <div className={`text-[10px] font-bold ${d.antiAligned ? 'text-emerald-400' : 'text-slate-400'}`}>
-                            {d.antiAligned ? '✓ Confined Anti-Aligned Population' : '○ Non-Clustered / Isolated Test Body'}
+                            {d.antiAligned === null ? '◌ Clustering Not Assessed' : d.antiAligned ? '✓ Confined Anti-Aligned Population' : '○ Non-Clustered / Isolated Test Body'}
                           </div>
                         </div>
                       );
@@ -679,15 +680,21 @@ export const OrbitalResonanceVisualizer: React.FC<OrbitalResonanceVisualizerProp
 
                   <Scatter
                     name="Anti-Aligned eTNOs"
-                    data={etnoResonanceData.filter((e) => e.antiAligned)}
+                    data={etnoResonanceData.filter((e) => e.antiAligned === true)}
                     fill={isLight ? '#d44d5c' : '#38bdf8'}
                     shape="circle"
                   />
                   <Scatter
                     name="Isolated / Non-Aligned eTNOs"
-                    data={etnoResonanceData.filter((e) => !e.antiAligned)}
+                    data={etnoResonanceData.filter((e) => e.antiAligned === false)}
                     fill={isLight ? '#8c8c8c' : '#64748b'}
                     shape="diamond"
+                  />
+                  <Scatter
+                    name="Clustering Not Assessed"
+                    data={etnoResonanceData.filter((e) => e.antiAligned === null)}
+                    fill="#f59e0b"
+                    shape="triangle"
                   />
                 </ScatterChart>
               </ResponsiveContainer>
@@ -763,7 +770,7 @@ export const OrbitalResonanceVisualizer: React.FC<OrbitalResonanceVisualizerProp
                           <div>Eccentricity: {d.eccentricity}</div>
                           <div>Closest MMR: {d.closestResonance}</div>
                           <div className={`text-[10px] font-bold ${d.antiAligned ? 'text-emerald-400' : 'text-slate-400'}`}>
-                            {d.antiAligned ? '✓ Inside Confined Physical Sector' : '○ Outlying Orbital Vector'}
+                            {d.antiAligned === null ? '◌ Clustering Not Assessed' : d.antiAligned ? '✓ Inside Confined Physical Sector' : '○ Outlying Orbital Vector'}
                           </div>
                         </div>
                       );
