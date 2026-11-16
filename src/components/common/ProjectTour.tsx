@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ArrowLeft, ArrowRight, Check, Compass, Database, FlaskConical,
+  ArrowLeft, ArrowRight, BookOpen, Check, Compass, Database, FlaskConical,
   Globe2, Orbit, Rocket, Telescope, X
 } from 'lucide-react';
 
@@ -22,6 +22,16 @@ const steps = [
     tab: 'cosmic-suite' as TourTab,
     action: 'Enter Cosmic Lab',
     highlights: ['Mission overview', 'Workspace map', 'Research shortcuts'],
+  },
+  {
+    eyebrow: '01 / THE JOURNAL',
+    title: 'Start with the science story.',
+    description: 'The Editorial Journal is the front door to Black Star Orbit: a readable field guide to the mission, its discoveries, the questions being investigated and the evidence behind them.',
+    detail: 'Use it as your home page whenever you return. From the journal, move directly into SPHEREx, Planet X or the Astrobiology Lab.',
+    icon: BookOpen,
+    tab: 'overview' as TourTab,
+    action: 'Read the journal',
+    highlights: ['Mission context', 'Research highlights', 'Learning pathways'],
   },
   {
     eyebrow: '01 / THE PLATFORM',
@@ -92,7 +102,7 @@ export const ProjectTour: React.FC<ProjectTourProps> = ({ onComplete, onNavigate
   }, [onComplete]);
 
   const finish = (tab?: TourTab) => {
-    if (tab && tab !== 'overview') onNavigate(tab);
+    onNavigate(tab || 'overview');
     onComplete();
   };
 
