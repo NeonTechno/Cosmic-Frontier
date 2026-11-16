@@ -193,7 +193,17 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
     ctx.fillStyle = lightCanvas ? '#F4F6F8' : '#111820';
     ctx.fillRect(0, 0, w, h);
 
-    const fit = calculateAstrometricTrajectory(candidate);
+    const fit = (() => {
+      try {
+        return calculateAstrometricTrajectory(candidate);
+      } catch {
+        ctx.fillStyle = lightCanvas ? '#596A78' : '#AAB6C2';
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText('Illustrative track unavailable: check distance and observation epochs', 12, 18);
+        return null;
+      }
+    })();
+    if (!fit) return;
 
     // Compute coordinate bounds
     const allRas = fit.modelTrajectory.map((p) => p.ra);
@@ -357,7 +367,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
               <div className="flex items-center space-x-2">
                 <Eye className="h-4 w-4 text-cyan-400" />
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-                  Multi-epoch Evidence Viewer · {candidate?.survey}
+                  Multi-epoch Evidence Viewer · {candidate?.survey}{isSyntheticDemo ? ' · SYNTHETIC DEMO' : ''}
                 </h4>
               </div>
               <div className="flex items-center space-x-2 text-xs font-mono">
@@ -445,12 +455,14 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
           {/* Astrometric Parallax Ellipse Fit */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-xl space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <div className="flex items-center space-x-2">
-                <Sliders className="h-4 w-4 text-purple-400" />
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-                  Illustrative Parallax + Proper-Motion Track
-                </h4>
-                <p className="mt-1 text-[10px] text-slate-500">Circular-Earth approximation for visual learning; not a fitted orbit or JPL ephemeris.</p>
+              <div className="flex items-start space-x-2">
+                <Sliders className="h-4 w-4 text-purple-400 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+                    Illustrative Parallax + Proper-Motion Track
+                  </h4>
+                  <p className="mt-1 text-[10px] text-slate-500">Circular-Earth approximation for visual learning; not a fitted orbit or JPL ephemeris.</p>
+                </div>
               </div>
               <span className="text-xs font-mono text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/40">
                 {isSyntheticDemo ? 'Illustrative distance:' : 'Distance:'} {candidate?.heliocentricDistanceAU == null ? 'Not measured' : `${candidate.heliocentricDistanceAU} AU`}
@@ -539,7 +551,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
                 <span className="text-slate-200 font-semibold truncate block">
                   {candidate?.raDeg.toFixed(2)}°, {candidate?.decDeg.toFixed(2)}°
                 </span>
-                {candidate && <a
+                {candidate && !isSyntheticDemo && <a
                   href={`https://byw.tools/wiseview#ra=${candidate.raDeg}&dec=${candidate.decDeg}&size=176&band=2&speed=500`}
                   target="_blank"
                   rel="noopener noreferrer"
