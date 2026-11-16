@@ -790,15 +790,27 @@ export async function fetchLiveAsteroidOrbitData(
         const julianDate = Number.parseFloat(upcoming.jd);
         const velocity = Number.parseFloat(upcoming.v_rel);
         const date = String(upcoming.cd || '');
-        if (date && Number.isFinite(distAu) && distAu >= 0 && Number.isFinite(julianDate) && Number.isFinite(velocity) && velocity >= 0) {
+        const dateMatch = date.match(/^(\\d{4})-([A-Za-z]{3})-(\\d{2})\\s+(\\d{2}):(\\d{2})/);
+        const monthIndex = dateMatch ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(dateMatch[2]) : -1;
+        const calendarDateMs = dateMatch && monthIndex >= 0
+          ? Date.UTC(Number(dateMatch[1]), monthIndex, Number(dateMatch[3]), Number(dateMatch[4]), Number(dateMatch[5]))
+          : NaN;
+        const julianDateMs = (julianDate - 2440587.5) * 86400000;
+        const dateAndJulianDayAgree = Number.isFinite(calendarDateMs)
+          && Number.isFinite(julianDateMs)
+          && Math.abs(calendarDateMs - julianDateMs) <= 86400000;
+
+        if (date && Number.isFinite(distAu) && distAu >= 0 && Number.isFinite(julianDate) && Number.isFinite(velocity) && velocity >= 0 && dateAndJulianDayAgree) {
           closeApproach = {
             date,
-            iso: new Date((julianDate - 2440587.5) * 86400000).toISOString(),
+            iso: new Date(julianDateMs).toISOString(),
             nominalDistanceLD: Number((distAu * 389.17).toFixed(3)),
             nominalDistanceKm: Math.round(distAu * AU_KM),
             relativeVelocityKmS: Number(velocity.toFixed(2)),
             sentryImpactProbability: 'Not assessed by this endpoint; consult JPL Sentry',
           };
+        } else if (date && Number.isFinite(julianDate) && !dateAndJulianDayAgree) {
+          console.warn('[LiveData] JPL SBDB close-approach calendar date and Julian date disagree; suppressing inconsistent encounter for', cleanDes);
         }
       }
     }
