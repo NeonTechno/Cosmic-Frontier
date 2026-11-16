@@ -323,48 +323,174 @@ export function calculateAstrometricTrajectory(
 }
 
 /**
- * Calculate statistical clustering vector of eTNO orbits
- * Returns mean perihelion longitude varpi, orbital pole alignment, and p-value.
+ * Descriptive angular-clustering diagnostics for an explicitly supplied eTNO sample.
+ *
+ * IMPORTANT: this is an idealized null comparison only. It does not model survey
+ * pointing histories, depth, cadence, weather, tracking efficiency, or discovery
+ * selection. It must not be interpreted as a selection-corrected Planet Nine test.
+ * The legacy antiAligned annotation is deliberately NOT used to select objects.
  */
-export function calculateClusteringSignificance(catalog: ExtremeTNO[]): {
+export interface OrbitalClusteringDiagnostics {
+  sampleSize: number;
+  poleSampleSize: number;
   meanVarpiDeg: number;
   rayleighR: number;
-  pValueClustering: number;
   dispersionDeg: number;
-} {
-  const clustered = catalog.filter(c => c.antiAligned);
-  const n = clustered.length;
-  if (n === 0) return { meanVarpiDeg: 0, rayleighR: 0, pValueClustering: 1, dispersionDeg: 0 };
+  pValueClustering: number;
+  meanPoleLongitudeDeg: number | null;
+  meanPoleLatitudeDeg: number | null;
+  poleRayleighR: number;
+  poleDispersionDeg: number;
+  pValuePoleClustering: number;
+  simulations: number;
+  nullModel: string;
+  selectionBiasCorrected: false;
+  warnings: string[];
+}
 
-  let sumSin = 0;
-  let sumCos = 0;
+function seededRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state += 0x6D2B79F5;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
-  for (const obj of clustered) {
-    const rad = (obj.longPerihelionDeg * Math.PI) / 180;
-    sumSin += Math.sin(rad);
-    sumCos += Math.cos(rad);
+function circularSummary(anglesDeg: number[]) {
+  const sumSin = anglesDeg.reduce((sum, angle) => sum + Math.sin(angle * Math.PI / 180), 0);
+  const sumCos = anglesDeg.reduce((sum, angle) => sum + Math.cos(angle * Math.PI / 180), 0);
+  const n = anglesDeg.length;
+  const r = n ? Math.hypot(sumSin, sumCos) / n : 0;
+  const mean = n && (sumSin !== 0 || sumCos !== 0)
+    ? (Math.atan2(sumSin, sumCos) * 180 / Math.PI + 360) % 360
+    : 0;
+  const dispersion = r > 0 ? Math.sqrt(Math.max(0, -2 * Math.log(r))) * 180 / Math.PI : 180;
+  return { mean, r, dispersion };
+}
+
+function orbitalPoleVector(inclinationDeg: number, nodeDeg: number): [number, number, number] {
+  const inc = inclinationDeg * Math.PI / 180;
+  const node = nodeDeg * Math.PI / 180;
+  return [Math.sin(inc) * Math.sin(node), -Math.sin(inc) * Math.cos(node), Math.cos(inc)];
+}
+
+function vectorSummary(vectors: [number, number, number][]) {
+  const n = vectors.length;
+  if (!n) return { longitude: null as number | null, latitude: null as number | null, r: 0, dispersion: 0 };
+  const sum = vectors.reduce(
+    (acc, v) => [acc[0] + v[0], acc[1] + v[1], acc[2] + v[2]] as [number, number, number],
+    [0, 0, 0] as [number, number, number]
+  );
+  const magnitude = Math.hypot(...sum);
+  const r = magnitude / n;
+  if (magnitude < 1e-12) return { longitude: null, latitude: null, r, dispersion: 90 };
+  const mean = sum.map(value => value / magnitude) as [number, number, number];
+  const longitude = (Math.atan2(mean[1], mean[0]) * 180 / Math.PI + 360) % 360;
+  const latitude = Math.asin(Math.max(-1, Math.min(1, mean[2]))) * 180 / Math.PI;
+  const dispersion = vectors.reduce((total, v) => {
+    const dot = Math.max(-1, Math.min(1, v[0] * mean[0] + v[1] * mean[1] + v[2] * mean[2]));
+    return total + Math.acos(dot) * 180 / Math.PI;
+  }, 0) / n;
+  return { longitude, latitude, r, dispersion };
+}
+
+/**
+ * Compare the sample's longitude-of-perihelion concentration with a uniform-angle
+ * null and its orbital-pole concentration with an isotropic-sphere null.
+ * A seeded Monte Carlo calculation makes the result reproducible.
+ */
+export function calculateClusteringSignificance(
+  catalog: ExtremeTNO[],
+  simulations = 20000,
+  seed = 0x51A7E
+): OrbitalClusteringDiagnostics {
+  if (!Number.isInteger(simulations) || simulations < 1000 || simulations > 100000) {
+    throw new Error('Monte Carlo simulations must be an integer between 1,000 and 100,000.');
   }
 
-  const meanSin = sumSin / n;
-  const meanCos = sumCos / n;
-  const R = Math.hypot(sumSin, sumCos) / n; // Rayleigh resultant length
+  const varpiObjects = catalog.filter(object =>
+    Number.isFinite(object.longPerihelionDeg)
+  );
+  const poleObjects = catalog.filter(object =>
+    Number.isFinite(object.inclinationDeg) &&
+    object.inclinationDeg >= 0 && object.inclinationDeg <= 180 &&
+    Number.isFinite(object.longAscNodeDeg)
+  );
 
-  let meanRad = Math.atan2(meanSin, meanCos);
-  if (meanRad < 0) meanRad += 2 * Math.PI;
-  const meanVarpiDeg = (meanRad * 180) / Math.PI;
+  // Deliberately use all eligible objects; do not condition on the old antiAligned flag.
+  const varpi = circularSummary(varpiObjects.map(object => object.longPerihelionDeg));
+  const poles = vectorSummary(poleObjects.map(object =>
+    orbitalPoleVector(object.inclinationDeg, object.longAscNodeDeg)
+  ));
 
-  // Rayleigh Z-statistic: Z = n * R^2
-  const Z = n * R * R;
-  // p-value approximation: exp(-Z) * (1 + (2*Z - Z^2)/(4*n))
-  const pVal = Math.exp(-Z);
+  const random = seededRandom(seed);
+  let varpiExceedances = 0;
+  let poleExceedances = 0;
 
-  // Angular dispersion s = sqrt(2 * (1 - R)) in radians
-  const dispersionDeg = (Math.sqrt(Math.max(0, 2 * (1 - R))) * 180) / Math.PI;
+  if (varpiObjects.length >= 2 || poleObjects.length >= 2) {
+    for (let iteration = 0; iteration < simulations; iteration++) {
+      if (varpiObjects.length >= 2) {
+        let sx = 0, sy = 0;
+        for (let index = 0; index < varpiObjects.length; index++) {
+          const angle = random() * 2 * Math.PI;
+          sx += Math.cos(angle);
+          sy += Math.sin(angle);
+        }
+        if (Math.hypot(sx, sy) / varpiObjects.length >= varpi.r - 1e-12) varpiExceedances++;
+      }
+      if (poleObjects.length >= 2) {
+        let sx = 0, sy = 0, sz = 0;
+        for (let index = 0; index < poleObjects.length; index++) {
+          const z = random() * 2 - 1;
+          const phi = random() * 2 * Math.PI;
+          const radial = Math.sqrt(Math.max(0, 1 - z * z));
+          sx += radial * Math.cos(phi);
+          sy += radial * Math.sin(phi);
+          sz += z;
+        }
+        if (Math.hypot(sx, sy, sz) / poleObjects.length >= poles.r - 1e-12) poleExceedances++;
+      }
+    }
+  }
+
+  const pVarpi = varpiObjects.length >= 2 ? (varpiExceedances + 1) / (simulations + 1) : 1;
+  const pPole = poleObjects.length >= 2 ? (poleExceedances + 1) / (simulations + 1) : 1;
+  const epochs = catalog.map(object => object.orbitEpochJD).filter((value): value is number =>
+    typeof value === 'number' && Number.isFinite(value)
+  );
+  const epochSpread = epochs.length > 1 ? Math.max(...epochs) - Math.min(...epochs) : 0;
+
+  const warnings = [
+    'Idealized null tests only: uniform longitude of perihelion and isotropically distributed orbital poles.',
+    'Not corrected for survey pointing, depth, cadence, weather, tracking efficiency, follow-up selection, or discovery probability.',
+    'MPC orbital elements are not propagated to a common epoch; mixed osculating epochs can affect angular comparisons.',
+    'A small Monte Carlo p-value is not the probability that Planet Nine exists and is not evidence of a planet by itself.',
+  ];
+  if (catalog.some(object => object.antiAligned !== null)) {
+    warnings.push('Legacy antiAligned annotations were ignored; all objects with usable angles were included.');
+  }
+  if (epochSpread > 0) {
+    warnings.push('The supplied orbit epochs span ' + epochSpread.toFixed(1) + ' days.');
+  }
 
   return {
-    meanVarpiDeg: Number(meanVarpiDeg.toFixed(1)),
-    rayleighR: Number(R.toFixed(3)),
-    pValueClustering: Number(Math.max(0.0001, pVal).toFixed(4)),
-    dispersionDeg: Number(dispersionDeg.toFixed(1)),
+    sampleSize: varpiObjects.length,
+    poleSampleSize: poleObjects.length,
+    meanVarpiDeg: Number(varpi.mean.toFixed(2)),
+    rayleighR: Number(varpi.r.toFixed(4)),
+    dispersionDeg: Number(varpi.dispersion.toFixed(2)),
+    pValueClustering: Number(pVarpi.toFixed(5)),
+    meanPoleLongitudeDeg: poles.longitude === null ? null : Number(poles.longitude.toFixed(2)),
+    meanPoleLatitudeDeg: poles.latitude === null ? null : Number(poles.latitude.toFixed(2)),
+    poleRayleighR: Number(poles.r.toFixed(4)),
+    poleDispersionDeg: Number(poles.dispersion.toFixed(2)),
+    pValuePoleClustering: Number(pPole.toFixed(5)),
+    simulations,
+    nullModel: 'Uniform varpi angles; isotropic orbital-pole directions',
+    selectionBiasCorrected: false,
+    warnings,
   };
 }
