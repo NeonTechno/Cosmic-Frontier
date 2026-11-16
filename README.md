@@ -164,3 +164,12 @@ Track scientific validation, analytical reproducibility, educational quality, ac
 - These orbital tests are explicitly **not survey-selection corrected** and do not propagate objects to a common epoch. A small p-value must not be interpreted as the probability that Planet Nine exists.
 
 Reference methods: [IRSA HiPS notebook](https://caltech-ipac.github.io/irsa-tutorials/spherex-hipscube/) · [IRSA HiPS FITS product description](https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-products/) · [Napier et al. (2021), selection effects in ETNO clustering](https://doi.org/10.3847/PSJ/abe53e).
+
+
+### Planet X candidate provenance and astrometry safeguards
+
+The initial candidate queue contains synthetic teaching fixtures and is labelled as such in the API-facing data model and candidate workbench. These records are not WISE, Subaru, or SPHEREx detections. The bundled seven-object ETNO sample is labelled as literature reference material; the live MPC distant-object feed remains a separate source.
+
+SPHEREx residuals promoted into the candidate queue are tagged as archive-derived follow-up leads, not confirmed objects. The candidate explanation prompt receives provenance and unavailable-measurement fields.
+
+The astrometry panel is an illustrative circular-Earth parallax plus linear-proper-motion visualization. It uses supplied observation dates, refuses to invent a missing distance, and does not report a reduced chi-square or physical-orbit verdict without a validated fit model and uncertainties.
