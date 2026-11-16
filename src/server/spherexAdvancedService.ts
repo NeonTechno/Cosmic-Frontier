@@ -286,7 +286,7 @@ export interface SpherexHipsSpectrum {
   wavelengthRangeMicrons: [number, number];
   blankDichroicLayers: number[];
   aperture: { radiusPixels: number; annulusInnerPixels: number; annulusOuterPixels: number; backgroundMethod: string };
-  spectrum: { layer: number; wavelengthMicrons: number; fluxSurfaceBrightness: number | null; backgroundSurfaceBrightness: number | null; aperturePixels: number; flaggedPixels: number; medianHits: number | null; blank: boolean }[];
+  spectrum: { layer: number; wavelengthMicrons: number; fluxMilliJansky: number | null; backgroundSurfaceBrightness: number | null; aperturePixels: number; flaggedPixels: number; medianHits: number | null; blank: boolean }[];
   notes: string[];
 }
 export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, apertureRadius = 5, annulusInner = 40, annulusOuter = 60): Promise<SpherexHipsSpectrum> {
@@ -361,7 +361,7 @@ export async function extractSpherexHipsSpectrum(raDeg: number, decDeg: number, 
     const blank=blankLayers.includes(layer);
     spec.push({
       layer, wavelengthMicrons:waveValues[layer],
-      fluxSurfaceBrightness:blank||flux===null?null:Number((flux*pixSr*1e9).toFixed(6)),
+      fluxMilliJansky:blank||flux===null?null:Number((flux*pixSr*1e9).toFixed(6)),
       backgroundSurfaceBrightness:background===null?null:Number(background.toFixed(6)),
       aperturePixels:ap.length, flaggedPixels,
       medianHits:hitsValues.length?hitsValues.sort((a,b)=>a-b)[Math.floor(hitsValues.length/2)]:null,
