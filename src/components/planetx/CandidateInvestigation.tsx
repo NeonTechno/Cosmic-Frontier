@@ -384,7 +384,7 @@ export const CandidateInvestigation: React.FC<CandidateInvestigationProps> = ({
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center">
                   <Eye className="h-8 w-8 text-slate-600" />
                   <span className="text-xs font-mono uppercase tracking-wider text-slate-300">No epoch imagery attached</span>
-                  <span className="max-w-xs text-[11px] leading-relaxed text-slate-500">This SPHEREx residual has no time-tagged pixel frames, measured positional offsets, or WISE photometry yet. The viewer will not synthesize an observation.</span>
+                  <span className="max-w-xs text-[11px] leading-relaxed text-slate-500">This candidate has no time-tagged pixel frames, measured positional offsets, or WISE photometry yet. The viewer will not synthesize an observation.</span>
                 </div>
               )}
 
