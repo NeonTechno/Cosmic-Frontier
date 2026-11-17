@@ -35,10 +35,6 @@ The goal was to give a technically ambitious astronomy project a cohesive, acces
 
 ---
 
-Black Star Orbit is a public-facing astronomical discovery and time-domain analysis platform built to inspect repeated infrared observations from **NASA's SPHEREx** mission (`0.75–5.00 µm` across 6 detector arrays D1–D6), align epochs onto a unified North-Up ICRS sky grid, cross-match **ESA Gaia DR3** proper motions and **2010 AllWISE** baselines, and triage candidate moving or variable sources with strict scientific integrity.
-
----
-
 ## Core Architecture & Live Data Pipeline
 
 1. **Live NASA/IPAC IRSA SPHEREx Query Engine (`src/server/astroArchiveService.ts`)**
