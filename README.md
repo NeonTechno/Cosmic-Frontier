@@ -2,36 +2,7 @@
 
 **NASA Space Apps Challenge 2026 — Planet X and SPHEREx**
 
-> Explore the infrared sky as a time machine. **Black Star Orbit** brings repeated observations, astronomical data and interactive visual analysis together to help investigate possible moving and variable objects in our solar system.
-
-<p align="center">
-  <a href="https://cosmic-frontier-spherex-demo.onrender.com/"><strong>Launch the Live Demo</strong></a>
-  &nbsp;·&nbsp;
-  <a href="https://github.com/NeonTechno/Cosmic-Frontier">View the Repository</a>
-</p>
-
-## Project Overview
-
 Black Star Orbit is a public-facing astronomical discovery and time-domain analysis platform built to inspect repeated infrared observations from **NASA's SPHEREx** mission (`0.75–5.00 µm` across 6 detector arrays D1–D6), align epochs onto a unified North-Up ICRS sky grid, cross-match **ESA Gaia DR3** proper motions and **2010 AllWISE** baselines, and triage candidate moving or variable sources with strict scientific integrity.
-
-## My Contribution — UI Lead
-
-As the **UI Lead**, I was responsible for shaping the platform's visual experience and interface presentation. I designed the new overall look of Black Star Orbit, from its first impression to the individual screens users interact with.
-
-My design contributions included:
-
-- Creating the platform's new visual direction and overall look and feel.
-- Designing the splash screen and the experience users see when they first enter the platform.
-- Designing the layouts and visual presentation of the application's screens.
-- Establishing the interface styling, typography, colour use and visual consistency.
-- Shaping the navigation and interaction experience to make the platform clearer and easier to explore.
-
-The goal was to give a technically ambitious astronomy project a cohesive, accessible and engaging interface.
-
-## Explore the Project
-
-- **Live application:** [Black Star Orbit — The Infrared Sky Time Machine](https://cosmic-frontier-spherex-demo.onrender.com/)
-- **Source code:** [NeonTechno/Cosmic-Frontier](https://github.com/NeonTechno/Cosmic-Frontier)
 
 ---
 
